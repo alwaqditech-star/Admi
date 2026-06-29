@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '/backend/admin_dashboard_invalidate.dart';
+import '/backend/admin_firestore_delete.dart';
 import '/components/admin_ui.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/nav/nav.dart';
@@ -261,6 +263,7 @@ abstract final class AdminCrudFeedback {
     String? refreshScope,
     Iterable<String>? refreshScopes,
     String? removedDocumentId,
+    DocumentReference? deletedRef,
     Future<void> Function()? refresh,
     bool invalidateStats = true,
     bool popPage = false,
@@ -294,13 +297,17 @@ abstract final class AdminCrudFeedback {
     }
 
     if (isDelete) {
+      if (deletedRef != null) {
+        await AdminFirestoreDelete.verifyDeleted(deletedRef);
+      }
+
       if (removedDocumentId != null) {
         for (final scope in scopes) {
           AdminListRefresh.removeItem(scope, removedDocumentId);
         }
       }
 
-      // 1) Reload lists from server before showing success (prevents cache ghost rows).
+      // Reload lists from server before showing success (prevents cache ghost rows).
       await AdminListRefresh.notifyAwait(scopes);
 
       // 2) Popup + snackbar only after DB delete + server refresh succeeded.

@@ -81,7 +81,8 @@ class _EdetTransportCompanyWidgetState
 
     setState(() => _model.isSubmitting = true);
     try {
-      await ref.update(
+      await AdminFirestoreDelete.updateDocument(
+        ref,
         createTransportCompanyRecordData(
           naim: _model.nameTextController!.text.trim(),
           licenseNumber: _model.licenseTextController!.text.trim(),
@@ -145,6 +146,7 @@ class _EdetTransportCompanyWidgetState
         message: 'تم حذف الشركة',
         refreshScope: AdminListScope.transportCompanies,
         removedDocumentId: ref.id,
+        deletedRef: ref,
         popPage: true,
       );
     } catch (e) {

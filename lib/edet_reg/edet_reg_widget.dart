@@ -1,4 +1,5 @@
 
+import '/backend/admin_firestore_delete.dart';
 import '/backend/admin_audit_log.dart';
 import '/backend/admin_cascade_delete.dart';
 import '/backend/backend.dart';
@@ -114,7 +115,8 @@ class _EdetRegWidgetState extends State<EdetRegWidget> {
 
     setState(() => _isSaving = true);
     try {
-      await widget.idreg!.update(
+      await AdminFirestoreDelete.updateDocument(
+        widget.idreg!,
         createCitiesRecordData(
           naim: name,
           osf: _model.textFieldDescTextController!.text.trim(),
@@ -182,6 +184,7 @@ class _EdetRegWidgetState extends State<EdetRegWidget> {
         message: 'تم حذف المنطقة وكل البيانات المرتبطة',
         refreshScope: AdminListScope.regions,
         removedDocumentId: record.reference.id,
+        deletedRef: record.reference,
         popPage: true,
       );
     } catch (e) {

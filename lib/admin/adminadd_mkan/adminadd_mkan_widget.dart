@@ -1204,6 +1204,7 @@ class _AdminaddMkanWidgetState extends State<AdminaddMkanWidget> {
                           action: AdminCrudAction.add,
                           message: 'تم إضافة المعلم بنجاح',
                           refreshScope: AdminListScope.landmarks,
+                          deferHeavyWork: false,
                           popPage: true,
                         );
                       } catch (e) {

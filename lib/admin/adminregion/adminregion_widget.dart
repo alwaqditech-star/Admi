@@ -109,6 +109,7 @@ class _AdminregionWidgetState extends State<AdminregionWidget> {
         message: 'تم حذف المنطقة وكل البيانات المرتبطة',
         refreshScope: AdminListScope.regions,
         removedDocumentId: record.reference.id,
+        deletedRef: record.reference,
       );
     } catch (e) {
       if (!mounted) return;

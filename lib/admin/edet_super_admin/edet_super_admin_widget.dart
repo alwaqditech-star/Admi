@@ -84,7 +84,8 @@ class _EdetSuperAdminWidgetState extends State<EdetSuperAdminWidget> {
       final displayName = _model.nameTextController!.text.trim();
       final activating = _model.activeValue && !_admin!.actevUser;
 
-      await ref.update(
+      await AdminFirestoreDelete.updateDocument(
+        ref,
         createUserRecordData(
           displayName: displayName,
           phoneNumber: _model.phoneTextController!.text.trim(),
@@ -182,6 +183,7 @@ class _EdetSuperAdminWidgetState extends State<EdetSuperAdminWidget> {
         message: 'تم حذف السوبر أدمن',
         refreshScope: AdminListScope.superAdmins,
         removedDocumentId: ref.id,
+        deletedRef: ref,
         popPage: true,
       );
     } catch (e) {

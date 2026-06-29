@@ -94,6 +94,7 @@ class _AdminDolWidgetState extends State<AdminDolWidget> {
         message: 'تم حذف الدولة وكل البيانات المرتبطة',
         refreshScope: AdminListScope.countries,
         removedDocumentId: record.reference.id,
+        deletedRef: record.reference,
       );
     } catch (e) {
       if (!mounted) return;

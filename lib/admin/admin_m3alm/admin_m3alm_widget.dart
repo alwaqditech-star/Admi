@@ -46,6 +46,7 @@ class _AdminM3almWidgetState extends State<AdminM3almWidget> {
   String _searchQuery = '';
   Future<List<MkanRecord>>? _searchFuture;
   int _searchRequestId = 0;
+  bool _isDeletingLandmark = false;
 
   Query _landmarksQuery(Query collection) {
     var q = collection as Query<Map<String, dynamic>>;
@@ -202,29 +203,39 @@ class _AdminM3almWidgetState extends State<AdminM3almWidget> {
 
     if (!confirmed) return;
 
+    setState(() => _isDeletingLandmark = true);
     try {
       await ensureCurrentUserDocument(forceRefresh: true);
       if (AdminRoleService.isCountryAgent) {
         await AdminAgentCountryLock.ensureCountryResolved();
       }
       await AdminFirestoreDelete.deleteDocument(record.reference);
+      AdminLandmarkIndex.removeId(record.reference.id);
       await AdminAuditLog.recordDelete(
         targetType: 'landmark',
         targetId: record.reference.id,
         targetLabel: record.naim,
       );
       if (!mounted) return;
+      if (_searchQuery.trim().isNotEmpty) {
+        setState(() {
+          _searchFuture = _searchLandmarks(_searchQuery);
+        });
+      }
       await AdminCrudFeedback.success(
         context,
         action: AdminCrudAction.delete,
         message: AdminCrudFeedback.deleteSuccessMessage,
         refreshScope: AdminListScope.landmarks,
         removedDocumentId: record.reference.id,
+        deletedRef: record.reference,
         invalidateStats: true,
       );
     } catch (e) {
       if (!mounted) return;
       AdminCrudFeedback.error(context, 'تعذر الحذف: $e');
+    } finally {
+      if (mounted) setState(() => _isDeletingLandmark = false);
     }
   }
 
@@ -417,7 +428,9 @@ class _AdminM3almWidgetState extends State<AdminM3almWidget> {
     final theme = FlutterFlowTheme.of(context);
     final isWide = AdminUi.useTableLayout(context);
 
-    return GestureDetector(
+    return Stack(
+      children: [
+        GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
         FocusManager.instance.primaryFocus?.unfocus();
@@ -502,6 +515,21 @@ class _AdminM3almWidgetState extends State<AdminM3almWidget> {
           ),
         ),
       ),
+    ),
+        if (_isDeletingLandmark)
+          const Positioned.fill(
+            child: ColoredBox(
+              color: Color(0x55000000),
+              child: Center(
+                child: SizedBox(
+                  width: 44,
+                  height: 44,
+                  child: CircularProgressIndicator(strokeWidth: 3),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 

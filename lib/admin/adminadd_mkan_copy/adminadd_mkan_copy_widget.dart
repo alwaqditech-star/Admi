@@ -1,4 +1,5 @@
 
+import '/backend/admin_landmark_search.dart';
 import '/backend/admin_agent_country_lock.dart';
 import '/backend/admin_country_landmark_filter.dart';
 import '/backend/admin_country_scope.dart';
@@ -263,6 +264,7 @@ class _AdminaddMkanCopyWidgetState extends State<AdminaddMkanCopyWidget> {
     setState(() => _isDeleting = true);
     try {
       await AdminFirestoreDelete.deleteDocument(record.reference);
+      AdminLandmarkIndex.removeId(record.reference.id);
       await AdminAuditLog.recordDelete(
         targetType: 'landmark',
         targetId: record.reference.id,
@@ -275,6 +277,7 @@ class _AdminaddMkanCopyWidgetState extends State<AdminaddMkanCopyWidget> {
         message: 'تم حذف المعلم بنجاح',
         refreshScope: AdminListScope.landmarks,
         removedDocumentId: record.reference.id,
+        deletedRef: record.reference,
         popPage: true,
         invalidateStats: true,
       );

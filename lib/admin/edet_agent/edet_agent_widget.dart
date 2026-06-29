@@ -1,5 +1,5 @@
-import '/backend/admin_audit_log.dart';
 import '/backend/admin_firestore_delete.dart';
+import '/backend/admin_audit_log.dart';
 import '/backend/admin_performance.dart';
 import '/backend/backend.dart';
 import '/components/admin_crud_feedback.dart';
@@ -295,7 +295,8 @@ class _EdetAgentWidgetState extends State<EdetAgentWidget> {
           double.tryParse(_model.agentCommissionTextController!.text.trim()) ??
               0;
 
-      await ref.update(
+      await AdminFirestoreDelete.updateDocument(
+        ref,
         createUserRecordData(
           displayName: _model.nameTextController!.text.trim(),
           phoneNumber: _model.phoneTextController!.text.trim(),
@@ -365,6 +366,7 @@ class _EdetAgentWidgetState extends State<EdetAgentWidget> {
         message: 'تم حذف الوكيل',
         refreshScope: AdminListScope.agents,
         removedDocumentId: ref.id,
+        deletedRef: ref,
         popPage: true,
       );
     } catch (e) {

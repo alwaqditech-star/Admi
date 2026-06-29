@@ -108,6 +108,7 @@ class _AdminvillWidgetState extends State<AdminvillWidget> {
         message: 'تم حذف المدينة والمعالم المرتبطة',
         refreshScope: AdminListScope.cities,
         removedDocumentId: record.reference.id,
+        deletedRef: record.reference,
       );
     } catch (e) {
       if (!mounted) return;

@@ -1,4 +1,5 @@
 
+import '/backend/admin_firestore_delete.dart';
 import '/backend/admin_audit_log.dart';
 import '/backend/admin_cascade_delete.dart';
 import '/backend/backend.dart';
@@ -138,7 +139,8 @@ class _EdetVillWidgetState extends State<EdetVillWidget> {
 
     setState(() => _isSaving = true);
     try {
-      await record.reference.update(
+      await AdminFirestoreDelete.updateDocument(
+        record.reference,
         createVillagesRecordData(
           cities: FFAppState().Revreg ?? record.cities,
           dolh: FFAppState().RevDolh ?? record.dolh,
@@ -205,6 +207,7 @@ class _EdetVillWidgetState extends State<EdetVillWidget> {
         message: 'تم حذف المدينة والمعالم المرتبطة',
         refreshScope: AdminListScope.cities,
         removedDocumentId: record.reference.id,
+        deletedRef: record.reference,
         popPage: true,
       );
     } catch (e) {

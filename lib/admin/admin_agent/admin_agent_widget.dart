@@ -99,6 +99,7 @@ class _AdminAgentWidgetState extends State<AdminAgentWidget> {
         message: 'تم حذف الوكيل بنجاح',
         refreshScope: AdminListScope.agents,
         removedDocumentId: agent.reference.id,
+        deletedRef: agent.reference,
       );
     } catch (e) {
       if (!mounted) return;

@@ -1,4 +1,5 @@
 
+import '/backend/admin_firestore_delete.dart';
 import '/backend/admin_audit_log.dart';
 import '/backend/admin_cascade_delete.dart';
 import '/backend/backend.dart';
@@ -92,7 +93,8 @@ class _EdetDolhWidgetState extends State<EdetDolhWidget> {
 
     setState(() => _isSaving = true);
     try {
-      await widget.iddolhe!.update(
+      await AdminFirestoreDelete.updateDocument(
+        widget.iddolhe!,
         createCountriesRecordData(
           naim: name,
           osf: _model.textController2!.text.trim(),
@@ -168,6 +170,7 @@ class _EdetDolhWidgetState extends State<EdetDolhWidget> {
         message: 'تم حذف الدولة وكل البيانات المرتبطة',
         refreshScope: AdminListScope.countries,
         removedDocumentId: record.reference.id,
+        deletedRef: record.reference,
         popPage: true,
       );
     } catch (e) {

@@ -27,6 +27,13 @@ class AdminLandmarkIndex {
 
   static void clear() => _byPath.clear();
 
+  static void removePath(String path) => _byPath.remove(path);
+
+  static void removeId(String documentId) {
+    if (documentId.isEmpty) return;
+    _byPath.removeWhere((path, _) => path.endsWith('/$documentId'));
+  }
+
   static List<MkanRecord> searchLocal(String query) {
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return const [];

@@ -146,6 +146,7 @@ class _AdminUserManagementSystemWidgetState
         message: 'تم حذف بيانات ${user.displayName} من قاعدة البيانات',
         refreshScope: AdminListScope.users,
         removedDocumentId: user.reference.id,
+        deletedRef: user.reference,
       );
     } catch (e) {
       if (!mounted) return;

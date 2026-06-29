@@ -102,6 +102,7 @@ class _AdminSuperAdminsWidgetState extends State<AdminSuperAdminsWidget> {
         message: 'تم حذف السوبر أدمن',
         refreshScope: AdminListScope.superAdmins,
         removedDocumentId: admin.reference.id,
+        deletedRef: admin.reference,
       );
     } catch (e) {
       if (!mounted) return;
