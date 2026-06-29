@@ -204,7 +204,9 @@ class _AdminM3almWidgetState extends State<AdminM3almWidget> {
 
     try {
       await ensureCurrentUserDocument(forceRefresh: true);
-      await AdminAgentCountryLock.ensureCountryResolved();
+      if (AdminRoleService.isCountryAgent) {
+        await AdminAgentCountryLock.ensureCountryResolved();
+      }
       await AdminFirestoreDelete.deleteDocument(record.reference);
       await AdminAuditLog.recordDelete(
         targetType: 'landmark',

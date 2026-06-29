@@ -33,6 +33,7 @@ class AdminListRefresh {
   AdminListRefresh._();
 
   static final Map<String, Set<VoidCallback>> _listeners = {};
+  static final Map<String, Set<Future<void> Function()>> _asyncListeners = {};
   static final Map<String, Set<void Function(String docId)>> _removeListeners =
       {};
 
@@ -40,8 +41,16 @@ class AdminListRefresh {
     _listeners.putIfAbsent(scope, () => {}).add(listener);
   }
 
+  static void registerAsync(String scope, Future<void> Function() listener) {
+    _asyncListeners.putIfAbsent(scope, () => {}).add(listener);
+  }
+
   static void unregister(String scope, VoidCallback listener) {
     _listeners[scope]?.remove(listener);
+  }
+
+  static void unregisterAsync(String scope, Future<void> Function() listener) {
+    _asyncListeners[scope]?.remove(listener);
   }
 
   static void registerRemove(
@@ -86,6 +95,27 @@ class AdminListRefresh {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Future<void>.delayed(const Duration(milliseconds: 200), run);
     });
+  }
+
+  /// Waits until all async list reloads finish (used after delete/edit).
+  static Future<void> notifyAwait(Iterable<String> scopes) async {
+    final jobs = <Future<void>>[];
+    for (final scope in scopes) {
+      final async = _asyncListeners[scope];
+      if (async != null) {
+        for (final listener in List<Future<void> Function()>.from(async)) {
+          jobs.add(listener());
+        }
+      }
+      final sync = _listeners[scope];
+      if (sync != null) {
+        for (final listener in List<VoidCallback>.from(sync)) {
+          listener();
+        }
+      }
+    }
+    if (jobs.isEmpty) return;
+    await Future.wait(jobs);
   }
 
   static void notifyAll({bool immediate = false}) {
@@ -264,7 +294,16 @@ abstract final class AdminCrudFeedback {
     }
 
     if (isDelete) {
-      // 1) Popup first — always visible.
+      if (removedDocumentId != null) {
+        for (final scope in scopes) {
+          AdminListRefresh.removeItem(scope, removedDocumentId);
+        }
+      }
+
+      // 1) Reload lists from server before showing success (prevents cache ghost rows).
+      await AdminListRefresh.notifyAwait(scopes);
+
+      // 2) Popup + snackbar only after DB delete + server refresh succeeded.
       if (context.mounted) {
         _showSnackSuccess(
           context,
@@ -275,10 +314,6 @@ abstract final class AdminCrudFeedback {
       }
       unawaited(_showDeleteSuccessDialog(deleteMessage));
 
-      // 2) Remove row + reload current list from server.
-      refreshLists(immediate: true, removeRow: true);
-
-      // 3) Refresh dashboard stats immediately.
       if (invalidateStats) {
         refreshDashboardStatsAfterDelete(
           refreshScope: refreshScope,

@@ -1,5 +1,6 @@
 import '/backend/admin_agent_country_lock.dart';
 import '/backend/admin_country_scope.dart';
+import '/backend/admin_firestore_delete.dart';
 import '/backend/backend.dart';
 import '/components/admin_crud_feedback.dart';
 import '/components/admin_edit_shell.dart';
@@ -1171,8 +1172,10 @@ class _AdminaddMkanWidgetState extends State<AdminaddMkanWidget> {
                               _model.uploadedLocalFile_uploadData8dqs.bytes,
                         );
 
-                        await MkanRecord.collection.doc().set(
-                              createMkanRecordData(
+                        final ref = MkanRecord.collection.doc();
+                        await AdminFirestoreDelete.setDocument(
+                          ref,
+                          createMkanRecordData(
                                 naim: name,
                                 osf: _model.textController2.text.trim(),
                                 img1: img1,

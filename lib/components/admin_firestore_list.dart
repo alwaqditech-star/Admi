@@ -88,7 +88,9 @@ class _AdminFirestoreListState<T> extends State<AdminFirestoreList<T>> {
   StreamSubscription<void>? _agentReadySub;
   int _page = 1;
   int _loadAttempt = 0;
+  int _syncGeneration = 0;
   late final void Function() _externalRefreshListener;
+  late final Future<void> Function() _externalAsyncRefreshListener;
   late final void Function(String docId) _externalRemoveListener;
 
   Future<void> _ensureAgentScopeReady() async {
@@ -114,8 +116,13 @@ class _AdminFirestoreListState<T> extends State<AdminFirestoreList<T>> {
     _externalRefreshListener = () {
       if (mounted) unawaited(_lightRefresh());
     };
+    _externalAsyncRefreshListener = () {
+      if (!mounted) return Future<void>.value();
+      return _lightRefresh();
+    };
     _externalRemoveListener = (docId) {
       if (!mounted) return;
+      _syncGeneration++;
       setState(() {
         _items.removeWhere(
           (item) =>
@@ -126,6 +133,7 @@ class _AdminFirestoreListState<T> extends State<AdminFirestoreList<T>> {
     final scope = widget.refreshScope;
     if (scope != null) {
       AdminListRefresh.register(scope, _externalRefreshListener);
+      AdminListRefresh.registerAsync(scope, _externalAsyncRefreshListener);
       AdminListRefresh.registerRemove(scope, _externalRemoveListener);
     }
     if (AdminRoleService.isCountryAgent) {
@@ -180,11 +188,12 @@ class _AdminFirestoreListState<T> extends State<AdminFirestoreList<T>> {
 
   Future<void> _loadInitial() async {
     final query = _baseQuery().limit(widget.pageSize);
+    final generation = ++_syncGeneration;
     var showedCache = false;
 
     try {
       final cached = await query.get(const GetOptions(source: Source.cache));
-      if (cached.docs.isNotEmpty && mounted) {
+      if (cached.docs.isNotEmpty && mounted && generation == _syncGeneration) {
         showedCache = true;
         setState(() {
           _items
@@ -197,18 +206,18 @@ class _AdminFirestoreListState<T> extends State<AdminFirestoreList<T>> {
           _hasError = false;
           _errorMessage = null;
         });
-        _refreshFromServerInBackground(query);
+        unawaited(_refreshFromServerInBackground(query, generation));
         return;
       }
     } catch (_) {}
 
-    await _fetchFromServer(query, showedCache: showedCache);
+    await _fetchFromServer(query, showedCache: showedCache, generation: generation);
   }
 
-  Future<void> _refreshFromServerInBackground(Query query) async {
+  Future<void> _refreshFromServerInBackground(Query query, int generation) async {
     try {
-      final snap = await query.get();
-      if (!mounted) return;
+      final snap = await query.get(const GetOptions(source: Source.server));
+      if (!mounted || generation != _syncGeneration) return;
       setState(() {
         _items
           ..clear()
@@ -224,7 +233,7 @@ class _AdminFirestoreListState<T> extends State<AdminFirestoreList<T>> {
         _listenFirstPage(query);
       }
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || generation != _syncGeneration) return;
       if (_items.isNotEmpty) {
         setState(() {
           _hasError = true;
@@ -240,18 +249,24 @@ class _AdminFirestoreListState<T> extends State<AdminFirestoreList<T>> {
     }
   }
 
-  Future<void> _fetchFromServer(Query query, {required bool showedCache}) async {
+  Future<void> _fetchFromServer(
+    Query query, {
+    required bool showedCache,
+    required int generation,
+  }) async {
     try {
-      var snap = await query.get();
-      if (!mounted) return;
+      var snap = await query.get(const GetOptions(source: Source.server));
+      if (!mounted || generation != _syncGeneration) return;
 
       if (snap.docs.isEmpty &&
           AdminRoleService.isCountryAgent &&
           _loadAttempt == 0) {
         _loadAttempt++;
         await _ensureAgentScopeReady();
-        snap = await _baseQuery().limit(widget.pageSize).get();
-        if (!mounted) return;
+        snap = await _baseQuery().limit(widget.pageSize).get(
+              const GetOptions(source: Source.server),
+            );
+        if (!mounted || generation != _syncGeneration) return;
       }
 
       setState(() {
@@ -310,10 +325,11 @@ class _AdminFirestoreListState<T> extends State<AdminFirestoreList<T>> {
   /// Reload first page without clearing the list first (safe after CRUD).
   Future<void> _lightRefresh() async {
     if (!mounted) return;
+    final generation = ++_syncGeneration;
     final query = _baseQuery().limit(widget.pageSize);
     try {
       final snap = await query.get(const GetOptions(source: Source.server));
-      if (!mounted) return;
+      if (!mounted || generation != _syncGeneration) return;
       setState(() {
         _items
           ..clear()
@@ -420,6 +436,7 @@ class _AdminFirestoreListState<T> extends State<AdminFirestoreList<T>> {
     final scope = widget.refreshScope;
     if (scope != null) {
       AdminListRefresh.unregister(scope, _externalRefreshListener);
+      AdminListRefresh.unregisterAsync(scope, _externalAsyncRefreshListener);
       AdminListRefresh.unregisterRemove(scope, _externalRemoveListener);
     }
     _liveSub?.cancel();

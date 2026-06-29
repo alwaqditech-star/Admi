@@ -4,20 +4,31 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 abstract final class AdminFirestoreDelete {
   AdminFirestoreDelete._();
 
+  static const _verifyAttempts = 3;
+  static const _verifyDelay = Duration(milliseconds: 450);
+
   /// Confirms [ref] no longer exists on the server.
   static Future<void> verifyDeleted(DocumentReference ref) async {
-    final snap = await ref.get(const GetOptions(source: Source.server));
-    if (snap.exists) {
-      throw StateError('تعذر حذف السجل من قاعدة البيانات');
+    for (var attempt = 0; attempt < _verifyAttempts; attempt++) {
+      final snap = await ref.get(const GetOptions(source: Source.server));
+      if (!snap.exists) return;
+      if (attempt < _verifyAttempts - 1) {
+        await Future<void>.delayed(_verifyDelay);
+      }
     }
+    throw StateError('تعذر حذف السجل من قاعدة البيانات');
   }
 
   /// Confirms [ref] exists on the server after create/update.
   static Future<void> verifySaved(DocumentReference ref) async {
-    final snap = await ref.get(const GetOptions(source: Source.server));
-    if (!snap.exists) {
-      throw StateError('تعذر حفظ السجل في قاعدة البيانات');
+    for (var attempt = 0; attempt < _verifyAttempts; attempt++) {
+      final snap = await ref.get(const GetOptions(source: Source.server));
+      if (snap.exists) return;
+      if (attempt < _verifyAttempts - 1) {
+        await Future<void>.delayed(_verifyDelay);
+      }
     }
+    throw StateError('تعذر حفظ السجل في قاعدة البيانات');
   }
 
   /// Deletes [ref] then verifies absence on the server.

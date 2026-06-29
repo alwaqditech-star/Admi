@@ -322,19 +322,8 @@ service cloud.firestore {
     }
 
     match /mkan/{document} {
-      allow create: if request.auth != null && (
-        isSuperAdmin()
-        || isCountryAgent()
-      );
+      allow create, update, delete: if request.auth != null && isPanelUser();
       allow read: if request.auth != null;
-      allow update: if request.auth != null && (
-        isSuperAdmin()
-        || isCountryAgent()
-      );
-      allow delete: if request.auth != null && (
-        isSuperAdmin()
-        || isCountryAgent()
-      );
     }
 
     match /Classification/{document} {

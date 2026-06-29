@@ -99,7 +99,8 @@ class _AdminaddMkanCopyWidgetState extends State<AdminaddMkanCopyWidget> {
         localBytes: _model.uploadedLocalFile_uploadData8dq.bytes,
       );
 
-      await widget.idmkan!.update(
+      await AdminFirestoreDelete.updateDocument(
+        widget.idmkan!,
         createMkanRecordData(
           naim: name,
           osf: _model.textController2?.text.trim(),
