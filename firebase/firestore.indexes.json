@@ -1,0 +1,1051 @@
+﻿{
+    "indexes":  [
+                    {
+                        "collectionGroup":  "ADRESSUSER",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "USER",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "acctev",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_add",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "ADRESSUSER",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "USER",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "acctev",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "VILL",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_add",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "ADRESSUSER",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "USER",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_add",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "ADRESSUSER",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "USER",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_add",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "chat",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "date",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "user1",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "chat",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "idorder",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "date",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "chat",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "idorder",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "date",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "chat",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "idorder",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "user1",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "chat_messages",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "chat",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "timestamp",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "chats",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "users",
+                                           "arrayConfig":  "CONTAINS"
+                                       },
+                                       {
+                                           "fieldPath":  "last_message_time",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "cities",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "acctev",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "dolh",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "cities",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "dolh",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "acctev",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "sorting",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "cities",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "dolh",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "naim",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "countries",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "acctev",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "naim",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "countries",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "acctev",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "num_trteb",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "countries",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "acctev",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "saudi",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "num_trteb",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "ExtraHours",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "RevOrder",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "dateAdd",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "mkan",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "isShrek",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "naim",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "mkan",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "isShrek",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "Rev_dolh",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "naim",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "order",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "ALLNOW",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_order",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "order",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "ALLNOW",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "mndob_user",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_order",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "order",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "halh_text",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "carRev",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_order",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "order",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "halh_text",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "carRev",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "vill",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "ALLNOW",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_order",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "order",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "halh_text",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "carRev",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "vill",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_order",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "order",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "halh_text",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "cities_user_now",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_order",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "order",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "halh_text",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "cities_user_now",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_order",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "order",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "halh_text",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "mndob_user",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "ALLNOW",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_order",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "order",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "halh_text",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "mndob_user",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_order",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "order",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "halh_text",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "mndob_user",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_order",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "order",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "halh_text",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "vill",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "cities_user_now",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_order",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "order",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "halh_text",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "vill",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_order",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "order",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "halh_text",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "vill",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_order",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "order",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "halh_text",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "vill_text",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "carRev",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_order",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "order",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "halh_text",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "vill_text",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_order",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "order",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "mndob_user",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "ALLNOW",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_order",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "order",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "mndob_user",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_order",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "order",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "Rev_dolh",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "ALLNOW",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_order",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "order",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "Rev_dolh",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_order",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "order",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "USER",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_order",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "order",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "USER",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_order",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "order",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "USER",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_order",
+                                           "order":  "DESCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "halh_text",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "Paymenthistory",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "RevUser",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "DateAdd",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "PaymentMethods",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "userRev",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "acctev",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "dataAdd",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "PaymentMethods",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "userRev",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "acctev",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "dataAdd",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "support",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "RefUser",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "support",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "RefUser",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "support",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "Rev_dolh",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "transport_company",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "Rev_dolh",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "naim",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "type_car",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "actev",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "sr",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "type_car",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "actev",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "vill",
+                                           "arrayConfig":  "CONTAINS"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "user",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "Isagent",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "ismndob",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "user",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "Isagent",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "Rev_dloh_agent",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "user",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "ismndob",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "actev_mndob",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "ismndom",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "created_time",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "user",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "ismndob",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "Rev_dolh",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "user",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "ismndob",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "transport_company",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "villages",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "acctev",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "cities",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "villages",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "acctev",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "cities",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "naim",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "villages",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "acctev",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "naim",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "villages",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "dolh",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "naim",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "order",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "ALLNOW",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "partner_mkans",
+                                           "arrayConfig":  "CONTAINS"
+                                       },
+                                       {
+                                           "fieldPath":  "data_order",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "order",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "ALLNOW",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "partner_mkans",
+                                           "arrayConfig":  "CONTAINS"
+                                       },
+                                       {
+                                           "fieldPath":  "Rev_dolh",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_order",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "mkan",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "Rev_dolh",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "__name__",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "mkan",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "isShrek",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "Rev_dolh",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "__name__",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
+                    }
+                ],
+    "fieldOverrides":  [
+                           {
+                               "collectionGroup":  "fcm_tokens",
+                               "fieldPath":  "fcm_token",
+                               "ttl":  false,
+                               "indexes":  [
+                                               {
+                                                   "order":  "ASCENDING",
+                                                   "queryScope":  "COLLECTION_GROUP"
+                                               }
+                                           ]
+                           }
+                       ]
+}

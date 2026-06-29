@@ -1,0 +1,496 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function panelUser() {
+      return get(/databases/$(database)/documents/user/$(request.auth.uid)).data;
+    }
+
+    function panelUserExists() {
+      return exists(/databases/$(database)/documents/user/$(request.auth.uid));
+    }
+
+    function isSuperAdmin() {
+      return request.auth != null
+        && panelUserExists()
+        && (
+          panelUser().IsAdmin == true
+          || panelUser().isAdmin == true
+          || panelUser().isAdminRule == 1
+          || panelUser().IsAdminRule == 1
+        );
+    }
+
+    function adminRuleIsAgent() {
+      return panelUser().isAdminRule == 2
+        || panelUser().IsAdminRule == 2
+        || panelUser().isAdminRule == '2'
+        || panelUser().IsAdminRule == '2';
+    }
+
+    function isCountryAgent() {
+      return request.auth != null
+        && panelUserExists()
+        && (
+          adminRuleIsAgent()
+          || panelUser().Isagent == true
+          || panelUser().isagent == true
+        );
+    }
+
+    function isPanelUser() {
+      return request.auth != null
+        && panelUserExists()
+        && (
+          panelUser().IsAdmin == true
+          || panelUser().isAdmin == true
+          || panelUser().isAdminRule in [1, 2, 3, 4]
+          || panelUser().IsAdminRule in [1, 2, 3, 4]
+        );
+    }
+
+    function isTransportManager() {
+      return request.auth != null
+        && panelUserExists()
+        && (panelUser().isAdminRule == 4 || panelUser().IsAdminRule == 4);
+    }
+
+    function isPartner() {
+      return request.auth != null
+        && panelUserExists()
+        && (panelUser().isAdminRule == 3 || panelUser().IsAdminRule == 3);
+    }
+
+    function partnerMkanRef() {
+      return panelUser().partner_mkan;
+    }
+
+    function orderBelongsToPartner(data) {
+      return isPartner()
+        && partnerMkanRef() != null
+        && partnerMkanRef() in data.partner_mkans;
+    }
+
+    function orderBelongsToConsumer(data) {
+      return isConsumerAppUser()
+        && data.USER == /databases/$(database)/documents/user/$(request.auth.uid);
+    }
+
+    function transportCompanyDoc() {
+      return panelUser().transport_company;
+    }
+
+    function transportCompanyMatches(data) {
+      return isTransportManager()
+        && transportCompanyDoc() != null
+        && data.mndob_user != null
+        && get(data.mndob_user).data.transport_company == transportCompanyDoc();
+    }
+
+    function canReadOrder(data) {
+      return isSuperAdmin()
+        || (isCountryAgent() && countriesMatchAgentScope(data.Rev_dolh))
+        || orderBelongsToPartner(data)
+        || transportCompanyMatches(data)
+        || orderBelongsToConsumer(data);
+    }
+
+    function canWriteOrder(data) {
+      return isSuperAdmin()
+        || (isCountryAgent() && countriesMatchAgentScope(data.Rev_dolh))
+        || orderBelongsToPartner(data)
+        || orderBelongsToConsumer(data);
+    }
+
+    function isConsumerAppUser() {
+      return request.auth != null && panelUserExists() && !isPanelUser();
+    }
+
+    function agentCountry() {
+      return panelUser().Rev_dloh_agent != null
+        ? panelUser().Rev_dloh_agent
+        : (('Rev_dolh' in panelUser()) && panelUser().Rev_dolh != null
+            ? panelUser().Rev_dolh
+            : (isCountryAgent()
+                ? /databases/$(database)/documents/countries/saudi_arabia
+                : null));
+    }
+
+    function cityDolh(cityRef) {
+      return cityRef != null
+        && exists(cityRef)
+        && 'dolh' in get(cityRef).data
+        ? get(cityRef).data.dolh
+        : null;
+    }
+
+    function villageDolh(villageRef) {
+      return villageRef != null && exists(villageRef)
+        ? (
+          ('dolh' in get(villageRef).data && get(villageRef).data.dolh != null)
+            ? get(villageRef).data.dolh
+            : (
+              'cities' in get(villageRef).data
+              && get(villageRef).data.cities != null
+              && exists(get(villageRef).data.cities)
+                ? cityDolh(get(villageRef).data.cities)
+                : null
+            )
+        )
+        : null;
+    }
+
+    function agentHasCountry() {
+      return agentCountry() != null;
+    }
+
+    function isSaudiCountryRef(countryRef) {
+      return countryRef != null && (
+        countryRef.id == 'saudi_arabia'
+        || countryRef.id == 'demo_saudi'
+        || (
+          exists(/databases/$(database)/documents/countries/$(countryRef.id))
+          && 'saudi' in get(/databases/$(database)/documents/countries/$(countryRef.id)).data
+          && get(/databases/$(database)/documents/countries/$(countryRef.id)).data.saudi == true
+        )
+      );
+    }
+
+    function countriesMatchAgentScope(countryRef) {
+      return countryRef != null && agentHasCountry() && (
+        countryRef == agentCountry()
+        || (isSaudiCountryRef(countryRef) && isSaudiCountryRef(agentCountry()))
+      );
+    }
+
+    function geoInAgentScope(countryRef) {
+      return countriesMatchAgentScope(countryRef);
+    }
+
+    function mkanMissingCountry(data) {
+      return !('Rev_dolh' in data) || data.Rev_dolh == null;
+    }
+
+    function sameAgentCountry(data) {
+      return agentHasCountry() && (
+        ('Rev_dolh' in data && countriesMatchAgentScope(data.Rev_dolh))
+        || ('Rev_dloh_agent' in data && countriesMatchAgentScope(data.Rev_dloh_agent))
+      );
+    }
+
+    function mkanInAgentGeoScope(data) {
+      return isCountryAgent() && (
+        !agentHasCountry()
+        || mkanMissingCountry(data)
+        || ('Rev_dolh' in data && countriesMatchAgentScope(data.Rev_dolh))
+        || (
+          'id_cit' in data
+          && data.id_cit != null
+          && geoInAgentScope(cityDolh(data.id_cit))
+        )
+        || (
+          'id_vill' in data
+          && data.id_vill != null
+          && geoInAgentScope(villageDolh(data.id_vill))
+        )
+        || (
+          isSaudiCountryRef(agentCountry())
+          && (
+            ('Rev_dolh' in data && isSaudiCountryRef(data.Rev_dolh))
+            || (
+              'id_cit' in data
+              && data.id_cit != null
+              && exists(data.id_cit)
+            )
+            || (
+              'id_vill' in data
+              && data.id_vill != null
+              && exists(data.id_vill)
+            )
+          )
+        )
+      );
+    }
+
+    function villageCountry(data) {
+      return ('dolh' in data && data.dolh != null)
+        ? data.dolh
+        : (('cities' in data && data.cities != null)
+            ? cityDolh(data.cities)
+            : null);
+    }
+
+    function cityInAgentScope(data) {
+      return 'dolh' in data && geoInAgentScope(data.dolh);
+    }
+
+    function villageInAgentScope(data) {
+      return geoInAgentScope(villageCountry(data));
+    }
+
+    function agentCanWriteUser(data) {
+      return isCountryAgent()
+        && agentHasCountry()
+        && (
+          countriesMatchAgentScope(data.Rev_dloh_agent)
+          || countriesMatchAgentScope(data.Rev_dolh)
+          || sameAgentCountry(data)
+          || (
+            'mndob_vill' in data
+            && data.mndob_vill != null
+            && geoInAgentScope(villageDolh(data.mndob_vill))
+          )
+        );
+    }
+
+    match /countries/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if request.auth != null;
+      allow delete: if isSuperAdmin();
+    }
+
+    match /cities/{document} {
+      allow create: if request.auth != null && (
+        isSuperAdmin()
+        || (isCountryAgent() && cityInAgentScope(request.resource.data))
+      );
+      allow read: if request.auth != null;
+      allow update: if request.auth != null && (
+        isSuperAdmin()
+        || (isCountryAgent() && cityInAgentScope(request.resource.data))
+      );
+      allow delete: if request.auth != null && (
+        isSuperAdmin()
+        || (isCountryAgent() && cityInAgentScope(resource.data))
+      );
+    }
+
+    match /villages/{document} {
+      allow create: if request.auth != null && (
+        isSuperAdmin()
+        || (isCountryAgent() && villageInAgentScope(request.resource.data))
+      );
+      allow read: if true;
+      allow update: if request.auth != null && (
+        isSuperAdmin()
+        || (isCountryAgent() && villageInAgentScope(request.resource.data))
+      );
+      allow delete: if request.auth != null && (
+        isSuperAdmin()
+        || (isCountryAgent() && villageInAgentScope(resource.data))
+      );
+    }
+
+    function agentCanReadUser(data) {
+      return isCountryAgent()
+        && (
+          countriesMatchAgentScope(data.Rev_dloh_agent)
+          || countriesMatchAgentScope(data.Rev_dolh)
+          || (
+            'mndob_vill' in data
+            && data.mndob_vill != null
+            && geoInAgentScope(villageDolh(data.mndob_vill))
+          )
+        );
+    }
+
+    match /user/{document} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && (
+        isSuperAdmin()
+        || !isCountryAgent()
+        || request.auth.uid == document
+        || agentCanReadUser(resource.data)
+      );
+      allow write: if request.auth != null && (
+        request.auth.uid == document
+        || isSuperAdmin()
+        || agentCanWriteUser(request.resource.data)
+      );
+      allow delete: if isSuperAdmin();
+    }
+
+    match /transport_company/{document} {
+      allow create: if isSuperAdmin() || isCountryAgent();
+      allow read: if request.auth != null;
+      allow update, delete: if isSuperAdmin()
+        || (isCountryAgent() && countriesMatchAgentScope(resource.data.Rev_dolh))
+        || (isTransportManager()
+            && transportCompanyDoc()
+               == /databases/$(database)/documents/transport_company/$(document));
+    }
+
+    match /mkan/{document} {
+      allow create: if request.auth != null && (
+        isSuperAdmin()
+        || isCountryAgent()
+      );
+      allow read: if request.auth != null;
+      allow update: if request.auth != null && (
+        isSuperAdmin()
+        || isCountryAgent()
+      );
+      allow delete: if request.auth != null && (
+        isSuperAdmin()
+        || isCountryAgent()
+      );
+    }
+
+    match /Classification/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if false;
+      allow delete: if false;
+    }
+
+    match /cart/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if false;
+      allow delete: if false;
+    }
+
+    match /type_car/{document} {
+      allow create: if request.auth != null && isPanelUser();
+      allow read: if true;
+      allow update, delete: if request.auth != null && isPanelUser();
+    }
+
+    match /order/{document} {
+      allow create: if true;
+      allow read: if request.auth != null && canReadOrder(resource.data);
+      allow update: if request.auth != null && canWriteOrder(resource.data);
+      allow delete: if false;
+    }
+
+    match /auto_num/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if false;
+      allow delete: if false;
+    }
+
+    match /cart_maps/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if false;
+      allow delete: if false;
+    }
+
+    match /mapmap/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if false;
+      allow delete: if false;
+    }
+
+    match /order_mkss/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if false;
+      allow delete: if false;
+    }
+
+    match /order/{parent}/mkss/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if false;
+      allow delete: if false;
+    }
+
+    match /{path=**}/mkss/{document} {
+      allow read: if true;
+    }
+
+    match /ADRESSUSER/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+
+    match /listamaknorder/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if false;
+      allow delete: if false;
+    }
+
+    match /order2/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if false;
+      allow delete: if false;
+    }
+
+    match /order2/{parent}/mkan2/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if false;
+      allow delete: if false;
+    }
+
+    match /{path=**}/mkan2/{document} {
+      allow read: if true;
+    }
+
+    match /user/{parent}/ordaercart/{document} {
+      allow create: if request.auth.uid == parent;
+      allow read: if request.auth.uid == parent;
+      allow write: if request.auth.uid == parent;
+      allow delete: if request.auth.uid == parent;
+    }
+
+    match /list_address/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if false;
+      allow delete: if false;
+    }
+
+    match /idlistorder/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if false;
+      allow delete: if false;
+    }
+
+    match /demodelet/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if false;
+      allow delete: if false;
+    }
+
+    match /support/{document} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && (
+        isSuperAdmin()
+        || !isCountryAgent()
+        || countriesMatchAgentScope(resource.data.Rev_dolh)
+      );
+      allow update: if request.auth != null && (
+        isSuperAdmin()
+        || !isCountryAgent()
+        || countriesMatchAgentScope(resource.data.Rev_dolh)
+      );
+      allow delete: if isSuperAdmin()
+        || (isCountryAgent() && countriesMatchAgentScope(resource.data.Rev_dolh));
+    }
+
+    // Admin panel audit trail — super admin read; any panel user can append.
+    match /admin_audit_log/{document} {
+      allow create: if isPanelUser();
+      allow read: if isSuperAdmin();
+      allow update, delete: if false;
+    }
+
+    match /Settings/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if true;
+      allow delete: if true;
+    }
+  }
+}

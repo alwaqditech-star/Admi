@@ -1,0 +1,90 @@
+Flutter crash report.
+Please report a bug at https://github.com/flutter/flutter/issues.
+
+## command
+
+flutter run -d chrome
+
+## exception
+
+PathNotFoundException: PathNotFoundException: Cannot create file, path = 'build\flutter_assets\assets/images/%D9%85%D9%86%D8%B8%D8%B1_%D8%B9%D8%A7%D9%85_%D9%85%D8%AF%D9%8A%D9%86%D8%A9_%D8%AA%D8%A8%D9%88%D9%83_%D9%8A%D8%B8%D9%87%D8%B1_%D9%81%D9%8A%D9%87_%D8%A7%D9%84%D9%85%D8%AD%D9%83%D9%85%D8%A9_%D9%88%D8%A8%D8%B1%D8%AC_%D8%A7%D9%84%D8%AE%D8%B2%D8%A7%D9%86_2014-06-18_14-51.jpg' (OS Error: The filename, directory name, or volume label syntax is incorrect.
+, errno = 123)
+
+```
+#0      _File.throwIfError (dart:io/file_impl.dart:782:7)
+#1      _File.createSync (dart:io/file_impl.dart:343:5)
+#2      ForwardingFile.createSync (package:file/src/forwarding/forwarding_file.dart:26:16)
+#3      ErrorHandlingFile.createSync.<anonymous closure> (package:flutter_tools/src/base/error_handling_io.dart:265:22)
+#4      _runSync (package:flutter_tools/src/base/error_handling_io.dart:549:14)
+#5      ErrorHandlingFile.createSync (package:flutter_tools/src/base/error_handling_io.dart:264:5)
+#6      ErrorHandlingFile.copySync.<anonymous closure> (package:flutter_tools/src/base/error_handling_io.dart:299:24)
+#7      _runSync (package:flutter_tools/src/base/error_handling_io.dart:549:14)
+#8      ErrorHandlingFile.copySync (package:flutter_tools/src/base/error_handling_io.dart:298:5)
+#9      writeBundle.<anonymous closure> (package:flutter_tools/src/bundle_builder.dart:222:19)
+<asynchronous suspension>
+#10     Future.wait.<anonymous closure> (dart:async/future.dart:525:21)
+<asynchronous suspension>
+#11     writeBundle (package:flutter_tools/src/bundle_builder.dart:177:3)
+<asynchronous suspension>
+#12     WebDevFS.update (package:flutter_tools/src/isolated/devfs_web.dart:1106:9)
+<asynchronous suspension>
+#13     ResidentWebRunner._updateDevFS (package:flutter_tools/src/isolated/resident_web_runner.dart:729:35)
+<asynchronous suspension>
+#14     ResidentWebRunner.run.<anonymous closure> (package:flutter_tools/src/isolated/resident_web_runner.dart:337:41)
+<asynchronous suspension>
+#15     asyncGuard.<anonymous closure> (package:flutter_tools/src/base/async_guard.dart:109:26)
+<asynchronous suspension>
+```
+
+## flutter doctor
+
+```
+[32m[✓][39m Flutter (Channel stable, 3.32.4, on Microsoft Windows [Version 10.0.19045.2006], locale ar-SA) [881ms]
+    [32m•[39m Flutter version 3.32.4 on channel stable at D:\dev3\flutter
+    [32m•[39m Upstream repository https://github.com/flutter/flutter.git
+    [32m•[39m Framework revision 6fba2447e9 (7 months ago), 2025-06-12 19:03:56 -0700
+    [32m•[39m Engine revision 8cd19e509d
+    [32m•[39m Dart version 3.8.1
+    [32m•[39m DevTools version 2.45.1
+
+[32m[✓][39m Windows Version (?? 10 Home 64-bit, 22H2, 2009) [2.1s]
+
+[32m[✓][39m Android toolchain - develop for Android devices (Android SDK version 36.1.0) [5.1s]
+    [32m•[39m Android SDK at C:\Users\HP\AppData\Local\Android\sdk
+    [32m•[39m Platform android-36, build-tools 36.1.0
+    [32m•[39m Java binary at: C:\Program Files\Android\Android Studio\jbr\bin\java
+      This is the JDK bundled with the latest Android Studio installation on this machine.
+      To manually set the JDK path, use: `flutter config --jdk-dir="path/to/jdk"`.
+    [32m•[39m Java version OpenJDK Runtime Environment (build 21.0.8+-14196175-b1038.72)
+    [32m•[39m All Android licenses accepted.
+
+[32m[✓][39m Chrome - develop for the web [138ms]
+    [32m•[39m Chrome at C:\Program Files\Google\Chrome\Application\chrome.exe
+
+[32m[✓][39m Visual Studio - develop Windows apps (Visual Studio Community 2026 18.1.1) [136ms]
+    [32m•[39m Visual Studio at C:\Program Files\Microsoft Visual Studio\18\Community
+    [32m•[39m Visual Studio Community 2026 version 18.1.11312.151
+    [32m•[39m Windows 10 SDK version 10.0.26100.0
+
+[32m[✓][39m Android Studio (version 2025.2.2) [11ms]
+    [32m•[39m Android Studio at C:\Program Files\Android\Android Studio
+    [32m•[39m Flutter plugin can be installed from:
+      🔨 https://plugins.jetbrains.com/plugin/9212-flutter
+    [32m•[39m Dart plugin can be installed from:
+      🔨 https://plugins.jetbrains.com/plugin/6351-dart
+    [32m•[39m Java version OpenJDK Runtime Environment (build 21.0.8+-14196175-b1038.72)
+
+[32m[✓][39m VS Code (version 1.108.1) [8ms]
+    [32m•[39m VS Code at C:\Users\HP\AppData\Local\Programs\Microsoft VS Code
+    [32m•[39m Flutter extension version 3.126.0
+
+[32m[✓][39m Connected device (3 available) [259ms]
+    [32m•[39m Windows (desktop) • windows • windows-x64    • Microsoft Windows [Version 10.0.19045.2006]
+    [32m•[39m Chrome (web)      • chrome  • web-javascript • Google Chrome 143.0.7499.193
+    [32m•[39m Edge (web)        • edge    • web-javascript • Microsoft Edge 143.0.3650.139
+
+[32m[✓][39m Network resources [511ms]
+    [32m•[39m All expected network resources are available.
+
+[32m•[39m No issues found!
+```
