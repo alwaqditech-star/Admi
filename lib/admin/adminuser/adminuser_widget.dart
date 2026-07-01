@@ -77,7 +77,7 @@ class _AdminuserWidgetState extends State<AdminuserWidget> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('لا'),
+                child: Text(appTr(context, 'adm_no')),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
@@ -111,7 +111,7 @@ class _AdminuserWidgetState extends State<AdminuserWidget> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تعذر التحديث: $e')),
+        SnackBar(content: Text(AdminCrudFeedback.updateFailed(context, e))),
       );
     }
   }
@@ -164,7 +164,7 @@ class _AdminuserWidgetState extends State<AdminuserWidget> {
         title: l10n.getText('0qqjtlup'),
         child: AdminPageBody(
           title: l10n.getText('5sxo5qip'),
-          subtitle: 'إدارة حسابات مستخدمي التطبيق',
+          subtitle: appTr(context, 'scr_users_subtitle'),
           scrollable: true,
                           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -286,7 +286,7 @@ class _AdminuserWidgetState extends State<AdminuserWidget> {
       ),
       decoration: AdminUi.inputDecoration(
         context,
-        label: 'بحث',
+        label: uiTr(context, 'بحث'),
         hint: 'ابحث بالاسم أو البريد أو الجوال...',
         prefixIcon: Icons.search_rounded,
       ),
@@ -503,13 +503,13 @@ class _UserCard extends StatelessWidget {
           const SizedBox(height: 12),
           _InfoTile(
             icon: Icons.email_outlined,
-            label: 'البريد الإلكتروني',
+            label: uiTr(context, 'البريد الإلكتروني'),
             value: user.email.isNotEmpty ? user.email : '—',
           ),
           const SizedBox(height: 8),
           _InfoTile(
             icon: Icons.phone_rounded,
-            label: 'رقم الجوال',
+            label: uiTr(context, 'رقم الجوال'),
             value: user.phoneNumber.isNotEmpty ? user.phoneNumber : '—',
           ),
         ],

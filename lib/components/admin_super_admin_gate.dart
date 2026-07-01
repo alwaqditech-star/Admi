@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '/flutter_flow/flutter_flow_util.dart';
 
 import '/auth/firebase_auth/auth_util.dart';
 import '/backend/admin_role_service.dart';
@@ -31,8 +32,8 @@ class AdminSuperAdminGate {
       updateCallback: updateCallback,
       title: title,
       child: AdminPageBody(
-        title: 'جاري التحميل',
-        subtitle: 'يتم تحميل بيانات حسابك',
+        title: uiTr(context, 'جاري التحميل'),
+        subtitle: uiTr(context, 'يتم تحميل بيانات حسابك'),
         child: AdminContentCard(
           child: Center(
             child: Padding(
@@ -62,8 +63,8 @@ class AdminSuperAdminGate {
       updateCallback: updateCallback,
       title: title,
       child: AdminPageBody(
-        title: 'غير مصرّح',
-        subtitle: 'متاح لسوبر الأدمن فقط',
+        title: uiTr(context, 'غير مصرّح'),
+        subtitle: uiTr(context, 'متاح لسوبر الأدمن فقط'),
         child: AdminContentCard(
           child: Text(
             'لا تملك صلاحية الوصول إلى $feature.',

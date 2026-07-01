@@ -1,4 +1,5 @@
 import '/backend/admin_country_scope.dart';
+import '/backend/admin_role_service.dart';
 import '/backend/backend.dart';
 import '/components/admin_cache_picker.dart';
 import '/components/admin_ui.dart';
@@ -34,7 +35,7 @@ class AdminCountryPickerSheet extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
           child: Text(
-            'اختر الدولة',
+            appTr(context, 'adm_pick_country'),
             style: theme.titleMedium.override(
               fontFamily: theme.titleMediumFamily,
               fontWeight: FontWeight.w700,
@@ -49,8 +50,8 @@ class AdminCountryPickerSheet extends StatelessWidget {
             query: CountriesRecord.collection,
             recordBuilder: CountriesRecord.fromSnapshot,
             queryBuilder: (q) => q.orderBy('naim'),
-            searchHint: 'بحث عن دولة...',
-            emptyMessage: 'لا توجد دول مسجلة',
+            searchHint: appTr(context, 'adm_search_country'),
+            emptyMessage: appTr(context, 'adm_no_countries'),
             filter: (country, q) =>
                 country.naim.toLowerCase().contains(q) ||
                 country.osf.toLowerCase().contains(q),
@@ -112,7 +113,8 @@ class AdminRegionPickerSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
-    final country = countryRef ?? FFAppState().RevDolh;
+    final country =
+        countryRef ?? FFAppState().RevDolh ?? AdminCountryScope.activeCountryRef;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -123,7 +125,7 @@ class AdminRegionPickerSheet extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'اختر المنطقة',
+                appTr(context, 'adm_pick_region'),
                 style: theme.titleMedium.override(
                   fontFamily: theme.titleMediumFamily,
                   fontWeight: FontWeight.w700,
@@ -134,7 +136,7 @@ class AdminRegionPickerSheet extends StatelessWidget {
               if (country == null) ...[
                 const SizedBox(height: 6),
                 Text(
-                  'اختر الدولة أولاً لتصفية المناطق',
+                  appTr(context, 'adm_pick_country_filter_regions'),
                   style: theme.bodySmall.override(
                     fontFamily: theme.bodySmallFamily,
                     color: theme.secondaryText,
@@ -152,7 +154,7 @@ class AdminRegionPickerSheet extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.all(24),
                     child: Text(
-                      'لا توجد مناطق — اختر الدولة أولاً',
+                      appTr(context, 'adm_no_regions_pick_country'),
                       textAlign: TextAlign.center,
                       style: theme.bodyMedium,
                     ),
@@ -164,8 +166,8 @@ class AdminRegionPickerSheet extends StatelessWidget {
                   queryBuilder: (q) => q
                       .where('acctev', isEqualTo: true)
                       .where('dolh', isEqualTo: country),
-                  searchHint: 'بحث عن منطقة...',
-                  emptyMessage: 'لا توجد مناطق لهذه الدولة',
+                  searchHint: appTr(context, 'adm_search_region'),
+                  emptyMessage: appTr(context, 'adm_no_regions_country'),
                   filter: (region, q) =>
                       region.naim.toLowerCase().contains(q) ||
                       region.osf.toLowerCase().contains(q),
@@ -234,14 +236,21 @@ class AdminCityPickerSheet extends StatelessWidget {
   const AdminCityPickerSheet({
     super.key,
     this.regionRef,
+    this.countryRef,
   });
 
   final DocumentReference? regionRef;
+  final DocumentReference? countryRef;
 
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
     final region = regionRef ?? FFAppState().Revreg;
+    final country =
+        countryRef ?? FFAppState().RevDolh ?? AdminCountryScope.activeCountryRef;
+    final scopedToCountry = AdminRoleService.isCountryAgent ||
+        AdminCountryScope.hasActiveCountryScope ||
+        country != null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -252,7 +261,7 @@ class AdminCityPickerSheet extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'اختر المدينة',
+                appTr(context, 'adm_pick_city'),
                 style: theme.titleMedium.override(
                   fontFamily: theme.titleMediumFamily,
                   fontWeight: FontWeight.w700,
@@ -260,10 +269,20 @@ class AdminCityPickerSheet extends StatelessWidget {
                   useGoogleFonts: !theme.titleMediumIsCustom,
                 ),
               ),
-              if (region == null) ...[
+              if (region == null && scopedToCountry && country != null) ...[
                 const SizedBox(height: 6),
                 Text(
-                  'يمكنك اختيار منطقة أولاً لتصفية المدن',
+                  appTr(context, 'adm_agent_cities_only'),
+                  style: theme.bodySmall.override(
+                    fontFamily: theme.bodySmallFamily,
+                    color: theme.secondaryText,
+                    useGoogleFonts: !theme.bodySmallIsCustom,
+                  ),
+                ),
+              ] else if (region == null) ...[
+                const SizedBox(height: 6),
+                Text(
+                  appTr(context, 'adm_region_filter_cities'),
                   style: theme.bodySmall.override(
                     fontFamily: theme.bodySmallFamily,
                     color: theme.secondaryText,
@@ -279,17 +298,17 @@ class AdminCityPickerSheet extends StatelessWidget {
           child: AdminCacheRecordList<VillagesRecord>(
             query: VillagesRecord.collection,
             recordBuilder: VillagesRecord.fromSnapshot,
-            queryBuilder: (q) {
-              var query = q.where('acctev', isEqualTo: true);
-              if (region != null) {
-                query = query.where('cities', isEqualTo: region);
-              }
-              return query;
-            },
-            searchHint: 'بحث عن مدينة...',
+            queryBuilder: (q) => AdminCountryScope.applyVillagePickerQuery(
+              q as Query<Map<String, dynamic>>,
+              regionRef: region,
+              countryRef: country,
+            ),
+            searchHint: appTr(context, 'adm_search_city'),
             emptyMessage: region == null
-                ? 'لا توجد مدن متاحة'
-                : 'لا توجد مدن في هذه المنطقة',
+                ? (scopedToCountry
+                    ? appTr(context, 'adm_no_cities_agent_country')
+                    : appTr(context, 'adm_no_cities'))
+                : appTr(context, 'adm_no_cities_in_region'),
             filter: (city, q) =>
                 city.naim.toLowerCase().contains(q) ||
                 city.osf.toLowerCase().contains(q),
@@ -358,7 +377,7 @@ class AdminWorkCityPickerSheet extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
           child: Text(
-            'اختر مدينة العمل',
+            appTr(context, 'adm_pick_work_city'),
             style: theme.titleMedium.override(
               fontFamily: theme.titleMediumFamily,
               fontWeight: FontWeight.w700,
@@ -381,8 +400,8 @@ class AdminWorkCityPickerSheet extends StatelessWidget {
               }
               return query;
             },
-            searchHint: 'بحث عن مدينة عمل...',
-            emptyMessage: 'لا توجد مدن متاحة',
+            searchHint: appTr(context, 'adm_search_work_city'),
+            emptyMessage: appTr(context, 'adm_no_cities'),
             filter: (city, q) => city.naim.toLowerCase().contains(q),
             itemBuilder: (context, city) {
               return Material(
@@ -436,7 +455,7 @@ class AdminTypeCarPickerSheet extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
           child: Text(
-            'اختر نوع السيارة',
+            appTr(context, 'adm_pick_car_type'),
             style: theme.titleMedium.override(
               fontFamily: theme.titleMediumFamily,
               fontWeight: FontWeight.w700,
@@ -451,8 +470,8 @@ class AdminTypeCarPickerSheet extends StatelessWidget {
             query: TypeCarRecord.collection,
             recordBuilder: TypeCarRecord.fromSnapshot,
             queryBuilder: (q) => q.where('actev', isEqualTo: true),
-            searchHint: 'بحث عن نوع سيارة...',
-            emptyMessage: 'لا توجد أنواع سيارات متاحة',
+            searchHint: appTr(context, 'adm_search_car_type'),
+            emptyMessage: appTr(context, 'adm_no_car_types'),
             filter: (type, q) => type.naim.toLowerCase().contains(q),
             itemBuilder: (context, type) {
               return Material(
@@ -477,7 +496,7 @@ class AdminTypeCarPickerSheet extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   subtitle: Text(
-                    '${type.sr} ريال / ساعة',
+                    appTrFormat(context, 'adm_price_per_hour', type.sr),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

@@ -1,13 +1,10 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '/backend/admin_dashboard_invalidate.dart';
-import '/backend/admin_firestore_delete.dart';
 import '/components/admin_ui.dart';
 import '/flutter_flow/flutter_flow_util.dart';
-import '/flutter_flow/nav/nav.dart';
 
 enum AdminCrudAction { add, edit, delete }
 
@@ -131,18 +128,32 @@ class AdminListRefresh {
 abstract final class AdminCrudFeedback {
   AdminCrudFeedback._();
 
-  static const String deleteSuccessMessage = 'تم الحذف بنجاح';
+  static String deleteSuccessMessage(BuildContext context) =>
+      FFLocalizations.of(context).getText('adm_deleted_success');
 
-  static String defaultMessage(AdminCrudAction action) {
+  static String defaultMessage(BuildContext context, AdminCrudAction action) {
+    final l10n = FFLocalizations.of(context);
     switch (action) {
       case AdminCrudAction.add:
-        return 'تمت الإضافة بنجاح';
+        return l10n.getText('adm_added_success');
       case AdminCrudAction.edit:
-        return 'تم حفظ التعديلات بنجاح';
+        return l10n.getText('adm_saved_success');
       case AdminCrudAction.delete:
-        return deleteSuccessMessage;
+        return l10n.getText('adm_deleted_success');
     }
   }
+
+  static String saveFailed(BuildContext context, Object error) =>
+      '${FFLocalizations.of(context).getText('adm_save_failed')}: $error';
+
+  static String deleteFailed(BuildContext context, Object error) =>
+      '${FFLocalizations.of(context).getText('adm_delete_failed')}: $error';
+
+  static String updateFailed(BuildContext context, Object error) =>
+      '${FFLocalizations.of(context).getText('adm_update_failed')}: $error';
+
+  static String uploadFailed(BuildContext context, Object error) =>
+      '${FFLocalizations.of(context).getText('adm_upload_failed')}: $error';
 
   static IconData _icon(AdminCrudAction action) {
     switch (action) {
@@ -263,7 +274,6 @@ abstract final class AdminCrudFeedback {
     String? refreshScope,
     Iterable<String>? refreshScopes,
     String? removedDocumentId,
-    DocumentReference? deletedRef,
     Future<void> Function()? refresh,
     bool invalidateStats = true,
     bool popPage = false,
@@ -271,10 +281,10 @@ abstract final class AdminCrudFeedback {
   }) async {
     if (!context.mounted) return;
 
-    final text = message ?? defaultMessage(action);
+    final text = message ?? defaultMessage(context, action);
     final isDelete = action == AdminCrudAction.delete;
     final deleteMessage =
-        isDelete ? (message ?? deleteSuccessMessage) : text;
+        isDelete ? (message ?? deleteSuccessMessage(context)) : text;
     final shouldDefer = deferHeavyWork ?? !isDelete;
 
     final scopes = <String>{
@@ -297,17 +307,15 @@ abstract final class AdminCrudFeedback {
     }
 
     if (isDelete) {
-      if (deletedRef != null) {
-        await AdminFirestoreDelete.verifyDeleted(deletedRef);
-      }
-
       if (removedDocumentId != null) {
         for (final scope in scopes) {
           AdminListRefresh.removeItem(scope, removedDocumentId);
         }
       }
 
-      // Reload lists from server before showing success (prevents cache ghost rows).
+      if (refresh != null) {
+        await refresh();
+      }
       await AdminListRefresh.notifyAwait(scopes);
 
       // 2) Popup + snackbar only after DB delete + server refresh succeeded.
@@ -336,6 +344,9 @@ abstract final class AdminCrudFeedback {
     }
 
     _showSnackSuccess(context, action: action, message: text);
+    if (refresh != null) {
+      await refresh();
+    }
     if (shouldDefer) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Future<void>.delayed(
@@ -344,6 +355,7 @@ abstract final class AdminCrudFeedback {
         );
       });
     } else {
+      await AdminListRefresh.notifyAwait(scopes);
       refreshLists(immediate: true);
     }
 

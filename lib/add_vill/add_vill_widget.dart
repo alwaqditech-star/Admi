@@ -1,9 +1,12 @@
+import '/backend/admin_agent_country_lock.dart';
+import '/backend/admin_country_scope.dart';
+import '/backend/admin_role_service.dart';
 import '/backend/backend.dart';
+import '/components/admin_crud_feedback.dart';
 import '/components/admin_edit_shell.dart';
 import '/components/admin_image_picker.dart';
 import '/components/admin_region_picker.dart';
 import '/components/admin_ui.dart';
-import '/backend/admin_agent_country_lock.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -36,8 +39,50 @@ class _AddVillWidgetState extends State<AddVillWidget> {
     _model.switchValue = true;
 
     AdminAgentCountryLock.applyToAppState();
+    FFAppState().Revreg = null;
+    FFAppState().RevRegTEXT = '';
+    clearCitySelection();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await AdminAgentCountryLock.ensureCountryResolved();
+      if (mounted) safeSetState(() {});
+    });
+  }
+
+  bool get _countryLocked => AdminRoleService.isCountryAgent;
+
+  String get _countryDisplay =>
+      FFAppState().RevdolhTEXT.trim().isNotEmpty
+          ? FFAppState().RevdolhTEXT
+          : '';
+
+  String get _regionDisplay =>
+      FFAppState().Revreg != null ? FFAppState().RevRegTEXT : '';
+
+  DocumentReference? get _activeCountryRef =>
+      FFAppState().RevDolh ?? AdminCountryScope.activeCountryRef;
+
+  Future<void> _pickCountry() async {
+    await showAdminPickerSheet(
+      context: context,
+      child: const AdminCountryPickerSheet(),
+    );
+    if (mounted) safeSetState(() {});
+  }
+
+  Future<void> _pickRegion() async {
+    final country = _activeCountryRef;
+    if (country == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(appTr(context, 'adm_select_country_first'))),
+      );
+      return;
+    }
+    await showAdminPickerSheet(
+      context: context,
+      child: AdminRegionPickerSheet(countryRef: country),
+    );
+    if (mounted) safeSetState(() {});
   }
 
   @override
@@ -61,13 +106,13 @@ class _AddVillWidgetState extends State<AddVillWidget> {
   Future<void> _saveCity() async {
     if (FFAppState().RevDolh == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى اختيار الدولة')),
+        SnackBar(content: Text(appTr(context, 'adm_select_country'))),
       );
       return;
     }
     if (FFAppState().Revreg == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى اختيار المنطقة')),
+        SnackBar(content: Text(appTr(context, 'adm_select_region'))),
       );
       return;
     }
@@ -75,17 +120,20 @@ class _AddVillWidgetState extends State<AddVillWidget> {
     final name = _model.textController1!.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى إدخال اسم المدينة')),
+        SnackBar(content: Text(appTr(context, 'adm_enter_city_name'))),
       );
       return;
     }
 
     if (_model.isDataUploading_uploadDataWt55) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('انتظر اكتمال رفع الصورة ثم احفظ')),
+        SnackBar(content: Text(appTr(context, 'adm_wait_image_upload'))),
       );
       return;
     }
+
+    final countryRef =
+        AdminCountryScope.mkanCountryRefForSave() ?? FFAppState().RevDolh;
 
     setState(() => _isSaving = true);
 
@@ -99,7 +147,7 @@ class _AddVillWidgetState extends State<AddVillWidget> {
       await VillagesRecord.collection.doc().set(
             createVillagesRecordData(
               cities: FFAppState().Revreg,
-              dolh: FFAppState().RevDolh,
+              dolh: countryRef,
               naim: name,
               osf: _model.textController2!.text.trim(),
               acctev: _model.switchValue,
@@ -109,13 +157,13 @@ class _AddVillWidgetState extends State<AddVillWidget> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم إضافة المدينة بنجاح')),
+        SnackBar(content: Text(appTr(context, 'adm_city_added'))),
       );
       context.safePop();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تعذر الحفظ: $e')),
+        SnackBar(content: Text(AdminCrudFeedback.saveFailed(context, e))),
       );
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -132,11 +180,13 @@ class _AddVillWidgetState extends State<AddVillWidget> {
         FocusManager.instance.primaryFocus?.unfocus();
       },
       child: AdminEditScaffold(
-        title: 'إضافة مدينة جديدة',
-        subtitle: 'اختر الدولة والمنطقة ثم أدخل بيانات المدينة',
+        title: appTr(context, 'adm_add_city_title'),
+        subtitle: _countryLocked
+            ? appTr(context, 'adm_add_city_subtitle_agent')
+            : appTr(context, 'adm_add_city_subtitle'),
         isLoading: _isSaving,
         floatingAction: AdminPrimaryButton(
-          label: 'حفظ المدينة',
+          label: appTr(context, 'adm_save_city'),
           icon: Icons.location_city_rounded,
           isLoading: _isSaving,
           onPressed: _isSaving ? null : _saveCity,
@@ -145,68 +195,47 @@ class _AddVillWidgetState extends State<AddVillWidget> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             AdminEditFormCard(
-              sectionTitle: 'الموقع الجغرافي',
+              sectionTitle: appTr(context, 'adm_location'),
               children: [
                 AdminEditPickerRow(
-                  label: 'الدولة',
-                  value: FFAppState().RevdolhTEXT,
-                  placeholder: 'اختر الدولة',
-                  onTap: () async {
-                    await showAdminPickerSheet(
-                      context: context,
-                      child: const AdminCountryPickerSheet(),
-                    );
-                    if (mounted) safeSetState(() {});
-                  },
+                  label: appTr(context, 'adm_country'),
+                  value: _countryDisplay,
+                  placeholder: appTr(context, 'adm_pick_country'),
+                  locked: _countryLocked,
+                  onTap: _pickCountry,
                 ),
                 const SizedBox(height: 14),
                 AdminEditPickerRow(
-                  label: 'المنطقة / المحافظة',
-                  value: FFAppState().RevRegTEXT,
-                  placeholder: 'اختر المنطقة',
-                  onTap: () async {
-                    if (FFAppState().RevDolh == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('يرجى اختيار الدولة أولاً'),
-                        ),
-                      );
-                      return;
-                    }
-                    await showAdminPickerSheet(
-                      context: context,
-                      child: AdminRegionPickerSheet(
-                        countryRef: FFAppState().RevDolh,
-                      ),
-                    );
-                    if (mounted) safeSetState(() {});
-                  },
+                  label: appTr(context, 'adm_region'),
+                  value: _regionDisplay,
+                  placeholder: appTr(context, 'adm_pick_region'),
+                  onTap: _pickRegion,
                 ),
               ],
             ),
             const SizedBox(height: 16),
             AdminEditFormCard(
-              sectionTitle: 'صورة المدينة',
+              sectionTitle: appTr(context, 'adm_city_image'),
               children: [
                 AdminEditableImageCard(
                   imageUrl: _model.uploadedFileUrl_uploadDataWt55,
                   localBytes: _model.uploadedLocalFile_uploadDataWt55.bytes,
                   isUploading: _model.isDataUploading_uploadDataWt55,
-                  hint: 'اضغط لاختيار صورة المدينة',
+                  hint: appTr(context, 'adm_pick_city_image'),
                   onPick: _pickCityImage,
                 ),
               ],
             ),
             const SizedBox(height: 16),
             AdminEditFormCard(
-              sectionTitle: 'البيانات الأساسية',
+              sectionTitle: appTr(context, 'adm_basic_data'),
               children: [
                 TextFormField(
                   controller: _model.textController1,
                   focusNode: _model.textFieldFocusNode1,
-                  decoration: const InputDecoration(
-                    labelText: 'اسم المدينة',
-                    hintText: 'مثال: الرياض',
+                  decoration: InputDecoration(
+                    labelText: appTr(context, 'adm_city_name_label'),
+                    hintText: appTr(context, 'adm_city_name_hint'),
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -214,16 +243,16 @@ class _AddVillWidgetState extends State<AddVillWidget> {
                   controller: _model.textController2,
                   focusNode: _model.textFieldFocusNode2,
                   maxLines: 3,
-                  decoration: const InputDecoration(
-                    labelText: 'وصف المدينة (اختياري)',
-                    hintText: 'وصف مختصر عن المدينة',
+                  decoration: InputDecoration(
+                    labelText: appTr(context, 'adm_city_desc_label'),
+                    hintText: appTr(context, 'adm_city_desc_hint'),
                     alignLabelWithHint: true,
                   ),
                 ),
                 const SizedBox(height: 14),
                 AdminEditSwitchRow(
-                  label: 'تفعيل المدينة',
-                  subtitle: 'تظهر المدينة في التطبيق عند التفعيل',
+                  label: appTr(context, 'adm_activate_city'),
+                  subtitle: appTr(context, 'adm_city_visible_hint'),
                   value: _model.switchValue ?? true,
                   onChanged: (v) => safeSetState(() => _model.switchValue = v),
                 ),

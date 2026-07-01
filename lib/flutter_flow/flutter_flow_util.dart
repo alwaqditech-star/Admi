@@ -13,6 +13,8 @@ import 'package:timeago/timeago.dart' as timeago;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../main.dart';
+import 'internationalization.dart';
+import '/l10n/admin_translations.dart';
 
 
 export 'keep_alive_wrapper.dart';
@@ -29,6 +31,7 @@ export 'package:cloud_firestore/cloud_firestore.dart'
     show DocumentReference, FirebaseFirestore;
 export 'package:page_transition/page_transition.dart';
 export 'internationalization.dart' show FFLocalizations;
+export '/l10n/ui_catalog.dart' show uiTr;
 export 'nav/nav.dart';
 
 T valueOrDefault<T>(T? value, T defaultValue) =>
@@ -302,6 +305,13 @@ extension StringDocRef on String {
 
 void setAppLanguage(BuildContext context, String language) =>
     MyApp.of(context).setLocale(language);
+
+/// Shorthand for localized admin / shared UI strings.
+String appTr(BuildContext context, String key) =>
+    FFLocalizations.of(context).getText(key);
+
+String appTrFormat(BuildContext context, String key, Object value) =>
+    formatAdminTranslation(appTr(context, key), value);
 
 void setDarkModeSetting(BuildContext context, ThemeMode themeMode) =>
     MyApp.of(context).setThemeMode(themeMode);

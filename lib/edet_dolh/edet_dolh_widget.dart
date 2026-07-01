@@ -1,7 +1,7 @@
 
-import '/backend/admin_firestore_delete.dart';
 import '/backend/admin_audit_log.dart';
 import '/backend/admin_cascade_delete.dart';
+import '/backend/admin_firestore_delete.dart';
 import '/backend/backend.dart';
 import '/backend/firebase_storage/storage.dart';
 import '/components/admin_crud_feedback.dart';
@@ -68,12 +68,12 @@ class _EdetDolhWidgetState extends State<EdetDolhWidget> {
       });
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم اختيار الصورة بنجاح')),
+        SnackBar(content: Text(appTr(context, 'adm_image_selected'))),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تعذر رفع الصورة: ${uploadErrorMessage(e)}')),
+        SnackBar(content: Text(AdminCrudFeedback.uploadFailed(context, uploadErrorMessage(e)))),
       );
     } finally {
       if (mounted) {
@@ -86,7 +86,7 @@ class _EdetDolhWidgetState extends State<EdetDolhWidget> {
     final name = _model.textController1!.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى إدخال اسم الدولة')),
+        SnackBar(content: Text(uiTr(context, 'يرجى إدخال اسم الدولة'))),
       );
       return;
     }
@@ -116,13 +116,14 @@ class _EdetDolhWidgetState extends State<EdetDolhWidget> {
       await AdminCrudFeedback.success(
         context,
         action: AdminCrudAction.edit,
-        message: 'تم حفظ التعديلات بنجاح',
+        message: uiTr(context, 'تم حفظ التعديلات بنجاح'),
         refreshScope: AdminListScope.countries,
         popPage: true,
+        deferHeavyWork: false,
       );
     } catch (e) {
       if (!mounted) return;
-      AdminCrudFeedback.error(context, 'تعذر الحفظ: $e');
+      AdminCrudFeedback.error(context, AdminCrudFeedback.saveFailed(context, e));
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -134,7 +135,7 @@ class _EdetDolhWidgetState extends State<EdetDolhWidget> {
     final confirmed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('تأكيد الحذف'),
+            title: Text(appTr(context, 'adm_delete_confirm_title')),
             content: Text(
               'هل أنت متأكد من حذف "${record.naim}"؟\n'
               'سيتم حذف كل المناطق والمدن والمعالم المرتبطة.',
@@ -142,11 +143,11 @@ class _EdetDolhWidgetState extends State<EdetDolhWidget> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('لا'),
+                child: Text(appTr(context, 'adm_no')),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('نعم، احذف'),
+                child: Text(appTr(context, 'adm_yes_delete')),
               ),
             ],
           ),
@@ -167,15 +168,14 @@ class _EdetDolhWidgetState extends State<EdetDolhWidget> {
       await AdminCrudFeedback.success(
         context,
         action: AdminCrudAction.delete,
-        message: 'تم حذف الدولة وكل البيانات المرتبطة',
+        message: uiTr(context, 'تم حذف الدولة وكل البيانات المرتبطة'),
         refreshScope: AdminListScope.countries,
         removedDocumentId: record.reference.id,
-        deletedRef: record.reference,
         popPage: true,
       );
     } catch (e) {
       if (!mounted) return;
-      AdminCrudFeedback.error(context, 'تعذر الحذف: $e');
+      AdminCrudFeedback.error(context, AdminCrudFeedback.deleteFailed(context, e));
     } finally {
       if (mounted) setState(() => _isDeleting = false);
     }
@@ -187,8 +187,8 @@ class _EdetDolhWidgetState extends State<EdetDolhWidget> {
       stream: CountriesRecord.getDocument(widget.iddolhe!),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const AdminEditScaffold(
-            title: 'تعديل الدولة',
+          return AdminEditScaffold(
+            title: uiTr(context, 'تعديل الدولة'),
             isLoading: true,
             child: SizedBox.shrink(),
           );
@@ -198,8 +198,8 @@ class _EdetDolhWidgetState extends State<EdetDolhWidget> {
         _model.bindCountriesRecord(record);
 
         return AdminEditScaffold(
-          title: 'تعديل الدولة',
-          subtitle: 'حدّث بيانات الدولة وصورتها وحالة التفعيل',
+          title: uiTr(context, 'تعديل الدولة'),
+          subtitle: uiTr(context, 'حدّث بيانات الدولة وصورتها وحالة التفعيل'),
           child: AdminEditFormCard(
             children: [
               AdminEditableImageCard(
@@ -213,21 +213,21 @@ class _EdetDolhWidgetState extends State<EdetDolhWidget> {
               AdminTextField(
                 controller: _model.textController1!,
                 focusNode: _model.textFieldFocusNode1,
-                label: 'اسم الدولة',
+                label: uiTr(context, 'اسم الدولة'),
                 icon: Icons.flag_rounded,
               ),
               const SizedBox(height: AdminUi.fieldGap),
               AdminTextField(
                 controller: _model.textController2!,
                 focusNode: _model.textFieldFocusNode2,
-                label: 'وصف الدولة',
+                label: uiTr(context, 'وصف الدولة'),
                 icon: Icons.description_outlined,
               ),
               const SizedBox(height: AdminUi.fieldGap),
               AdminTextField(
                 controller: _model.textController3!,
                 focusNode: _model.textFieldFocusNode3,
-                label: 'نسبة الضريبة (%)',
+                label: uiTr(context, 'نسبة الضريبة (%)'),
                 icon: Icons.percent_rounded,
                 keyboardType: TextInputType.number,
                 hint: 'مثال: 15',
@@ -236,15 +236,15 @@ class _EdetDolhWidgetState extends State<EdetDolhWidget> {
               AdminTextField(
                 controller: _model.textController4!,
                 focusNode: _model.textFieldFocusNode4,
-                label: 'نسبة أرباح التطبيق (%)',
+                label: uiTr(context, 'نسبة أرباح التطبيق (%)'),
                 icon: Icons.account_balance_wallet_outlined,
                 keyboardType: TextInputType.number,
                 hint: 'مثال: 10',
               ),
               const SizedBox(height: AdminUi.fieldGap),
               AdminEditSwitchRow(
-                label: 'تفعيل الدولة',
-                subtitle: 'عند التفعيل تظهر الدولة في التطبيق',
+                label: uiTr(context, 'تفعيل الدولة'),
+                subtitle: uiTr(context, 'عند التفعيل تظهر الدولة في التطبيق'),
                 value: _model.switchValue ?? record.acctev,
                 onChanged: (v) => setState(() => _model.switchValue = v),
               ),
@@ -268,7 +268,7 @@ class _EdetDolhWidgetState extends State<EdetDolhWidget> {
                 const SizedBox(height: 12),
               ],
               AdminPrimaryButton(
-                label: 'حفظ التعديلات',
+                label: uiTr(context, 'حفظ التعديلات'),
                 icon: Icons.save_rounded,
                 isLoading: _isSaving,
                 onPressed: () => _save(record),

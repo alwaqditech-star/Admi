@@ -72,9 +72,9 @@ class _AdminBookingDetailsWidgetState extends State<AdminBookingDetailsWidget> {
             ),
             onPressed: () => context.safePop(),
           ),
-          title: const Text('تفاصيل الحجز'),
+          title: Text(uiTr(context, 'تفاصيل الحجز')),
         ),
-        body: const Center(child: Text('تعذر تحميل بيانات الحجز')),
+        body: Center(child: Text(uiTr(context, 'تعذر تحميل بيانات الحجز'))),
       );
     }
 
@@ -95,7 +95,7 @@ class _AdminBookingDetailsWidgetState extends State<AdminBookingDetailsWidget> {
                 ),
                 onPressed: () => context.safePop(),
               ),
-              title: const Text('تفاصيل الحجز'),
+              title: Text(uiTr(context, 'تفاصيل الحجز')),
             ),
             body: Center(
               child: Padding(
@@ -165,10 +165,10 @@ class _AdminBookingDetailsWidgetState extends State<AdminBookingDetailsWidget> {
                     ),
                     onPressed: () => context.safePop(),
                   ),
-                  title: const Text('تفاصيل الحجز'),
+                  title: Text(uiTr(context, 'تفاصيل الحجز')),
                 ),
-                body: const Center(
-                  child: Text('لا تملك صلاحية عرض هذا الحجز'),
+                body: Center(
+                  child: Text(uiTr(context, 'لا تملك صلاحية عرض هذا الحجز')),
                 ),
               );
             }

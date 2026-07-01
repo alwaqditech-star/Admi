@@ -74,18 +74,18 @@ class _AdminvillWidgetState extends State<AdminvillWidget> {
     final confirmed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('تأكيد الحذف'),
+            title: Text(appTr(context, 'adm_delete_confirm_title')),
             content: Text(
               'هل أنت متأكد من حذف "${record.naim}"؟',
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('لا'),
+                child: Text(appTr(context, 'adm_no')),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('نعم، احذف'),
+                child: Text(appTr(context, 'adm_yes_delete')),
               ),
             ],
           ),
@@ -105,14 +105,13 @@ class _AdminvillWidgetState extends State<AdminvillWidget> {
       await AdminCrudFeedback.success(
         context,
         action: AdminCrudAction.delete,
-        message: 'تم حذف المدينة والمعالم المرتبطة',
+        message: uiTr(context, 'تم حذف المدينة والمعالم المرتبطة'),
         refreshScope: AdminListScope.cities,
         removedDocumentId: record.reference.id,
-        deletedRef: record.reference,
       );
     } catch (e) {
       if (!mounted) return;
-      AdminCrudFeedback.error(context, 'تعذر الحذف: $e');
+      AdminCrudFeedback.error(context, AdminCrudFeedback.deleteFailed(context, e));
     }
   }
 
@@ -129,7 +128,7 @@ class _AdminvillWidgetState extends State<AdminvillWidget> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('لا'),
+                child: Text(appTr(context, 'adm_no')),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
@@ -157,7 +156,7 @@ class _AdminvillWidgetState extends State<AdminvillWidget> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تعذر تحديث حالة المدينة: $e')),
+        SnackBar(content: Text('${appTr(context, 'adm_update_city_status_failed')}: $e')),
       );
     }
   }
@@ -181,7 +180,7 @@ class _AdminvillWidgetState extends State<AdminvillWidget> {
         title: l10n.getText('vrkkakqc'),
         child: AdminPageBody(
           title: l10n.getText('rfnq2sy2'),
-          subtitle: 'إدارة المدن وربطها بالمناطق',
+          subtitle: appTr(context, 'scr_cities_subtitle'),
           scrollable: true,
                           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -305,7 +304,7 @@ class _AdminvillWidgetState extends State<AdminvillWidget> {
       ),
       decoration: AdminUi.inputDecoration(
         context,
-        label: 'بحث',
+        label: uiTr(context, 'بحث'),
         hint: 'ابحث باسم المدينة أو الوصف...',
         prefixIcon: Icons.search_rounded,
       ),

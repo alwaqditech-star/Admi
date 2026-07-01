@@ -1,4 +1,5 @@
 import '/backend/admin_performance.dart';
+import '/backend/admin_firestore_delete.dart';
 import '/components/admin_crud_feedback.dart';
 import '/backend/admin_role_service.dart';
 import '/backend/admin_user_creation.dart';
@@ -9,6 +10,7 @@ import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'admin_add_agent_model.dart';
 export 'admin_add_agent_model.dart';
@@ -167,26 +169,37 @@ class _AdminAddAgentWidgetState extends State<AdminAddAgentWidget> {
 
   Future<void> _submitAgent() async {
     if (!(_model.formKey.currentState?.validate() ?? false)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(uiTr(context, 'يرجى تصحيح الحقول المحددة بالأحمر'))),
+      );
       return;
     }
 
     if (_model.agentStartDate == null || _model.agentEndDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى اختيار تاريخ البداية وتاريخ الانتهاء')),
+        SnackBar(content: Text(uiTr(context, 'يرجى اختيار تاريخ البداية وتاريخ الانتهاء'))),
       );
       return;
     }
 
     if (_model.selectedCountry == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى اختيار البلد')),
+        SnackBar(content: Text(uiTr(context, 'يرجى اختيار البلد'))),
       );
       return;
     }
 
-    if (_model.passTextController!.text != _model.cPassTextController!.text) {
+    final password = _model.passTextController!.text;
+    if (password.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('كلمتا المرور غير متطابقتين')),
+        SnackBar(content: Text(uiTr(context, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل'))),
+      );
+      return;
+    }
+
+    if (password != _model.cPassTextController!.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(uiTr(context, 'كلمتا المرور غير متطابقتين'))),
       );
       return;
     }
@@ -194,52 +207,60 @@ class _AdminAddAgentWidgetState extends State<AdminAddAgentWidget> {
     setState(() => _model.isSubmitting = true);
 
     try {
+      final email = _model.emailTextController!.text.trim();
       final credential = await AdminUserCreation.createEmailUser(
-        email: _model.emailTextController!.text.trim(),
-        password: _model.passTextController!.text,
+        email: email,
+        password: password,
       );
       final uid = credential.user?.uid;
       if (uid == null) {
-        return;
+        throw StateError('تعذر الحصول على معرّف الحساب بعد الإنشاء');
       }
 
-      final agentPercent =
-          double.tryParse(_model.textController7!.text.trim()) ?? 0.0;
+      final agentPercent = _parsePercent(_model.textController7!.text) ?? 0.0;
       final appPercent =
-          double.tryParse(_model.appCommissionTextController!.text.trim()) ??
-              0.0;
+          _parsePercent(_model.appCommissionTextController!.text) ?? 0.0;
+      final vatPercent =
+          _parsePercent(_model.vatPercentTextController!.text) ??
+              _kAgentVatPercent;
 
-      await UserRecord.collection.doc(uid).set(
-            createUserRecordData(
-              displayName: _model.naimfullTextController!.text.trim(),
-              phoneNumber: _model.textController2!.text.trim(),
-              email: _model.emailTextController!.text.trim(),
-              actevUser: _model.switchValue ?? true,
-              createdTime: getCurrentTimestamp,
-              isagent: true,
-              isAdminRule: AdminRoleService.ruleCountryAgent,
-              dolhAgent: _model.selectedCountry!.naim,
-              revDlohAgent: _model.selectedCountry!.reference,
-              agentTotal: agentPercent,
-              vatPercent: _kAgentVatPercent,
-              appCommissionPercent: appPercent,
-              agentDateReg: _model.agentStartDate,
-              agentDateEnd: _model.agentEndDate,
-            ),
-            SetOptions(merge: true),
-          );
+      await AdminFirestoreDelete.setDocument(
+        UserRecord.collection.doc(uid),
+        createUserRecordData(
+          displayName: _model.naimfullTextController!.text.trim(),
+          phoneNumber: _model.textController2!.text.trim(),
+          email: email,
+          uid: uid,
+          actevUser: _model.switchValue ?? true,
+          createdTime: getCurrentTimestamp,
+          isagent: true,
+          isAdminRule: AdminRoleService.ruleCountryAgent,
+          dolhAgent: _model.selectedCountry!.naim,
+          revDlohAgent: _model.selectedCountry!.reference,
+          agentTotal: agentPercent,
+          vatPercent: vatPercent,
+          appCommissionPercent: appPercent,
+          agentDateReg: _model.agentStartDate,
+          agentDateEnd: _model.agentEndDate,
+        ),
+        options: SetOptions(merge: true),
+      );
 
       if (!mounted) return;
       await AdminCrudFeedback.success(
         context,
         action: AdminCrudAction.add,
-        message: 'تم إضافة الوكيل بنجاح',
+        message: uiTr(context, 'تم إضافة الوكيل بنجاح'),
         refreshScope: AdminListScope.agents,
         popPage: true,
+        deferHeavyWork: false,
       );
     } catch (e) {
       if (!mounted) return;
-      AdminCrudFeedback.error(context, 'تعذر إضافة الوكيل: $e');
+      final msg = e is FirebaseAuthException
+          ? AdminUserCreation.authErrorMessage(e)
+          : e.toString().replaceFirst('Exception: ', '');
+      AdminCrudFeedback.error(context, 'تعذر إضافة الوكيل: $msg');
     } finally {
       if (mounted) {
         setState(() => _model.isSubmitting = false);
@@ -247,11 +268,21 @@ class _AdminAddAgentWidgetState extends State<AdminAddAgentWidget> {
     }
   }
 
+  double? _parsePercent(String? raw) {
+    if (raw == null) return null;
+    var value = raw.trim().replaceAll(',', '.');
+    const arabic = '٠١٢٣٤٥٦٧٨٩';
+    for (var i = 0; i < arabic.length; i++) {
+      value = value.replaceAll(arabic[i], '$i');
+    }
+    return double.tryParse(value);
+  }
+
   String? _percentValidator(String? value, {required String label}) {
     if (value == null || value.trim().isEmpty) {
       return 'يرجى إدخال $label';
     }
-    final parsed = double.tryParse(value.trim());
+    final parsed = _parsePercent(value);
     if (parsed == null || parsed < 0 || parsed > 100) {
       return 'أدخل نسبة صحيحة بين 0 و 100';
     }
@@ -421,7 +452,7 @@ class _AdminAddAgentWidgetState extends State<AdminAddAgentWidget> {
           borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
         ),
       ),
-      hint: const Text('اختر البلد'),
+      hint: Text(uiTr(context, 'اختر البلد')),
       items: _model.countries
           .map(
             (country) => DropdownMenuItem(
@@ -446,14 +477,14 @@ class _AdminAddAgentWidgetState extends State<AdminAddAgentWidget> {
   Widget build(BuildContext context) {
     if (AdminSuperAdminGate.isProfileLoading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('إضافة وكيل')),
+        appBar: AppBar(title: Text(appTr(context, 'scr_add_agent'))),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
     if (!AdminSuperAdminGate.isAllowed) {
       return AdminSuperAdminGate.deniedEditScaffold(
         context: context,
-        title: 'إضافة وكيل',
+        title: appTr(context, 'scr_add_agent'),
       );
     }
 
@@ -608,8 +639,8 @@ class _AdminAddAgentWidgetState extends State<AdminAddAgentWidget> {
                                             .bodyLargeIsCustom,
                                   ),
                               minLines: 1,
-                              validator: _model.naimfullTextControllerValidator
-                                  .asValidator(context),
+                              validator: (v) =>
+                                  v == null || v.trim().isEmpty ? 'مطلوب' : null,
                             ),
                             TextFormField(
                               controller: _model.textController2,
@@ -758,8 +789,15 @@ class _AdminAddAgentWidgetState extends State<AdminAddAgentWidget> {
                                   ),
                               minLines: 1,
                               keyboardType: TextInputType.emailAddress,
-                              validator: _model.emailTextControllerValidator
-                                  .asValidator(context),
+                              validator: (v) {
+                                if (v == null || v.trim().isEmpty) {
+                                  return 'مطلوب';
+                                }
+                                if (!v.contains('@')) {
+                                  return 'بريد غير صالح';
+                                }
+                                return null;
+                              },
                             ),
                             TextFormField(
                               controller: _model.textController4,
@@ -920,8 +958,12 @@ class _AdminAddAgentWidgetState extends State<AdminAddAgentWidget> {
                                             .bodyLargeIsCustom,
                                   ),
                               minLines: 1,
-                              validator: _model.passTextControllerValidator
-                                  .asValidator(context),
+                              validator: (v) {
+                                if (v == null || v.length < 6) {
+                                  return '6 أحرف على الأقل';
+                                }
+                                return null;
+                              },
                             ),
                             TextFormField(
                               controller: _model.cPassTextController,
@@ -1113,28 +1155,31 @@ class _AdminAddAgentWidgetState extends State<AdminAddAgentWidget> {
                             ),
                             _buildPercentField(
                               controller: _model.vatPercentTextController!,
-                              label: 'نسبة الضريبة',
+                              label: uiTr(context, 'نسبة الضريبة'),
                               hint: '15',
-                              readOnly: true,
+                              validator: (v) => _percentValidator(
+                                v,
+                                label: uiTr(context, 'نسبة الضريبة'),
+                              ),
                             ),
                             _buildPercentField(
                               controller: _model.appCommissionTextController!,
                               focusNode: _model.appCommissionFocusNode,
-                              label: 'نسبة التطبيق',
+                              label: uiTr(context, 'نسبة التطبيق'),
                               hint: 'مثال: 10',
                               validator: (v) => _percentValidator(
                                 v,
-                                label: 'نسبة التطبيق',
+                                label: uiTr(context, 'نسبة التطبيق'),
                               ),
                             ),
                             _buildPercentField(
                               controller: _model.textController7!,
                               focusNode: _model.textFieldFocusNode3,
-                              label: 'نسبة الوكيل',
+                              label: uiTr(context, 'نسبة الوكيل'),
                               hint: 'مثال: 5',
                               validator: (v) => _percentValidator(
                                 v,
-                                label: 'نسبة الوكيل',
+                                label: uiTr(context, 'نسبة الوكيل'),
                               ),
                             ),
                             _buildCountrySelector(),

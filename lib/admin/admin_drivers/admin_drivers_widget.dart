@@ -67,16 +67,16 @@ class _AdminDriversWidgetState extends State<AdminDriversWidget> {
     final confirmed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('تأكيد الإيقاف'),
-            content: Text('هل أنت متأكد من إيقاف "${driver.displayName}"؟'),
+            title: Text(uiTr(context, 'تأكيد الإيقاف')),
+            content: Text(appTrFormat(context, 'adm_stop_confirm_body', driver.displayName)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('لا'),
+                child: Text(appTr(context, 'adm_no')),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('نعم'),
+                child: Text(uiTr(context, 'نعم')),
               ),
             ],
           ),
@@ -91,12 +91,12 @@ class _AdminDriversWidgetState extends State<AdminDriversWidget> {
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم إيقاف المندوب بنجاح')),
+        SnackBar(content: Text(uiTr(context, 'تم إيقاف المندوب بنجاح'))),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تعذر الإيقاف: $e')),
+        SnackBar(content: Text('${appTr(context, 'adm_deactivate_failed')}: $e')),
       );
     }
   }
@@ -129,7 +129,7 @@ class _AdminDriversWidgetState extends State<AdminDriversWidget> {
         title: l10n.getText('ksgnau0w'),
         child: AdminPageBody(
           title: l10n.getText('ksgnau0w'),
-          subtitle: 'مناديب بانتظار التفعيل أو المراجعة',
+          subtitle: uiTr(context, 'مناديب بانتظار التفعيل أو المراجعة'),
           scrollable: true,
                           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -251,7 +251,7 @@ class _AdminDriversWidgetState extends State<AdminDriversWidget> {
       ),
       decoration: AdminUi.inputDecoration(
         context,
-        label: 'بحث',
+        label: uiTr(context, 'بحث'),
         hint: l10n.getText('fczkvegx'),
         prefixIcon: Icons.search_rounded,
       ),

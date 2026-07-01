@@ -3,7 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '/l10n/admin_translations.dart';
+import '/l10n/nav_translations.dart';
+import '/l10n/ui_catalog.dart';
+
 const _kLocaleStorageKey = '__locale_key__';
+const _kLocaleUserPickedKey = '__locale_user_picked__';
 
 class FFLocalizations {
   FFLocalizations(this.locale);
@@ -19,12 +24,48 @@ class FFLocalizations {
   static late SharedPreferences _prefs;
   static Future initialize() async =>
       _prefs = await SharedPreferences.getInstance();
-  static Future storeLocale(String locale) =>
-      _prefs.setString(_kLocaleStorageKey, locale);
+  static Future storeLocale(String locale) async {
+    await _prefs.setString(_kLocaleStorageKey, locale);
+    await _prefs.setBool(_kLocaleUserPickedKey, true);
+  }
+
   static Locale? getStoredLocale() {
     final locale = _prefs.getString(_kLocaleStorageKey);
     return locale != null && locale.isNotEmpty ? createLocale(locale) : null;
   }
+
+  static bool get hasUserPickedLocale =>
+      _prefs.getBool(_kLocaleUserPickedKey) ?? false;
+
+  /// Maps the device locale to a supported app locale, or English if unsupported.
+  static Locale resolveDeviceLocale([Locale? deviceLocale]) {
+    final device = deviceLocale ?? PlatformDispatcher.instance.locale;
+    final language = device.languageCode.toLowerCase();
+
+    if (language == 'zh') {
+      return const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans');
+    }
+
+    if (languages().contains(language)) {
+      return Locale(language);
+    }
+
+    return const Locale('en');
+  }
+
+  /// Stored manual choice, else device locale (English when unsupported).
+  static Locale resolveInitialLocale() {
+    if (hasUserPickedLocale) {
+      final stored = getStoredLocale();
+      if (stored != null) {
+        return stored;
+      }
+    }
+    return resolveDeviceLocale();
+  }
+
+  static String localizedAppTitle(Locale? locale) =>
+      FFLocalizations(locale ?? resolveInitialLocale()).getText('adm_app_title');
 
   String get languageCode => locale.toString();
   String? get languageShortCode =>
@@ -35,8 +76,16 @@ class FFLocalizations {
       ? languages().indexOf(languageCode)
       : 0;
 
-  String getText(String key) =>
-      (kTranslationsMap[key] ?? {})[locale.toString()] ?? '';
+  String getText(String key) {
+    final map = kTranslationsMap[key] ??
+        kAdminTranslations[key] ??
+        kNavTranslations[key] ??
+        kUiCatalog[key] ??
+        {};
+    final lang = locale.toString();
+    final text = map[lang] ?? map['en'] ?? '';
+    return text;
+  }
 
   String getVariableText({
     String? enText = '',

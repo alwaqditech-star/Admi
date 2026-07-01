@@ -550,7 +550,7 @@ class _AdminRegesrWidgetState extends State<AdminRegesrWidget> {
 
     // 3️⃣ Success
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('تم إنشاء حساب المسؤول بنجاح')),
+      SnackBar(content: Text(uiTr(context, 'تم إنشاء حساب المسؤول بنجاح'))),
     );
 
   } catch (e) {

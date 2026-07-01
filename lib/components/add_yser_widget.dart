@@ -469,8 +469,8 @@ class _AddYserWidgetState extends State<AddYserWidget> {
                           if (_model.passTextController.text !=
                               _model.cpassTextController.text) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('كلمتا المرور غير متطابقتين'),
+                              SnackBar(
+                                content: Text(uiTr(context, 'كلمتا المرور غير متطابقتين')),
                               ),
                             );
                             return;
@@ -518,7 +518,7 @@ class _AddYserWidgetState extends State<AddYserWidget> {
                             if (!context.mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('تعذر حفظ بيانات الحساب: $e'),
+                                content: Text('${appTr(context, 'adm_save_account_failed')}: $e'),
                               ),
                             );
                           }

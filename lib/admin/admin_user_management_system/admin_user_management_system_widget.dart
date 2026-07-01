@@ -70,11 +70,11 @@ class _AdminUserManagementSystemWidgetState
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('إلغاء'),
+                child: Text(appTr(context, 'adm_cancel')),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('تأكيد'),
+                child: Text(uiTr(context, 'تأكيد')),
               ),
             ],
           ),
@@ -104,7 +104,7 @@ class _AdminUserManagementSystemWidgetState
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تعذر التحديث: $e')),
+        SnackBar(content: Text(AdminCrudFeedback.updateFailed(context, e))),
       );
     }
   }
@@ -113,16 +113,16 @@ class _AdminUserManagementSystemWidgetState
     final confirmed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('حذف مستخدم'),
-            content: Text('هل أنت متأكد من حذف "${user.displayName}"؟'),
+            title: Text(uiTr(context, 'حذف مستخدم')),
+            content: Text(appTrFormat(context, 'adm_delete_confirm_body', user.displayName)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('إلغاء'),
+                child: Text(appTr(context, 'adm_cancel')),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('تأكيد الحذف'),
+                child: Text(uiTr(context, 'تأكيد الحذف')),
               ),
             ],
           ),
@@ -146,11 +146,10 @@ class _AdminUserManagementSystemWidgetState
         message: 'تم حذف بيانات ${user.displayName} من قاعدة البيانات',
         refreshScope: AdminListScope.users,
         removedDocumentId: user.reference.id,
-        deletedRef: user.reference,
       );
     } catch (e) {
       if (!mounted) return;
-      AdminCrudFeedback.error(context, 'تعذر الحذف: $e');
+      AdminCrudFeedback.error(context, AdminCrudFeedback.deleteFailed(context, e));
     }
   }
 
@@ -201,8 +200,8 @@ class _AdminUserManagementSystemWidgetState
         padContent: false,
         title: l10n.getText('jdbe4eok'),
         child: AdminPageBody(
-          title: 'إدارة المستخدمين',
-          subtitle: 'جميع حسابات النظام — تفعيل، إيقاف، وحذف',
+          title: appTr(context, 'scr_user_mgmt'),
+          subtitle: uiTr(context, 'جميع حسابات النظام — تفعيل، إيقاف، وحذف'),
           scrollable: true,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -325,7 +324,7 @@ class _AdminUserManagementSystemWidgetState
       ),
       decoration: AdminUi.inputDecoration(
         context,
-        label: 'بحث',
+        label: uiTr(context, 'بحث'),
         hint: l10n.getText('mqx7pmcq'),
         prefixIcon: Icons.search_rounded,
       ),
@@ -363,11 +362,11 @@ class _UsersTable extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               child: Row(
                 children: [
-                  _HeaderCell(label: 'الاسم', flex: 3, theme: theme),
-                  _HeaderCell(label: 'البريد', flex: 3, theme: theme),
-                  _HeaderCell(label: 'الجوال', flex: 2, theme: theme),
-                  _HeaderCell(label: 'الحالة', flex: 2, theme: theme),
-                  _HeaderCell(label: 'إجراءات', flex: 2, theme: theme),
+                  _HeaderCell(label: uiTr(context, 'الاسم'), flex: 3, theme: theme),
+                  _HeaderCell(label: uiTr(context, 'البريد'), flex: 3, theme: theme),
+                  _HeaderCell(label: uiTr(context, 'الجوال'), flex: 2, theme: theme),
+                  _HeaderCell(label: uiTr(context, 'الحالة'), flex: 2, theme: theme),
+                  _HeaderCell(label: uiTr(context, 'إجراءات'), flex: 2, theme: theme),
                 ],
               ),
             ),

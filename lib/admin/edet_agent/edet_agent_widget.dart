@@ -1,5 +1,5 @@
-import '/backend/admin_firestore_delete.dart';
 import '/backend/admin_audit_log.dart';
+import '/backend/admin_firestore_delete.dart';
 import '/backend/admin_performance.dart';
 import '/backend/backend.dart';
 import '/components/admin_crud_feedback.dart';
@@ -84,7 +84,7 @@ class _EdetAgentWidgetState extends State<EdetAgentWidget> {
 
       if (!agent.isagent) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('هذا الحساب ليس وكيلاً')),
+          SnackBar(content: Text(uiTr(context, 'هذا الحساب ليس وكيلاً'))),
         );
         context.safePop();
         return;
@@ -247,12 +247,12 @@ class _EdetAgentWidgetState extends State<EdetAgentWidget> {
       value: _model.selectedCountry,
       isExpanded: true,
       decoration: InputDecoration(
-        labelText: 'البلد',
+        labelText: uiTr(context, 'البلد'),
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
       ),
-      hint: const Text('اختر البلد'),
+      hint: Text(uiTr(context, 'اختر البلد')),
       items: _model.countries
           .map(
             (country) => DropdownMenuItem(
@@ -272,14 +272,14 @@ class _EdetAgentWidgetState extends State<EdetAgentWidget> {
 
     if (_model.agentStartDate == null || _model.agentEndDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى اختيار تاريخ البداية والانتهاء')),
+        SnackBar(content: Text(uiTr(context, 'يرجى اختيار تاريخ البداية والانتهاء'))),
       );
       return;
     }
 
     if (_model.selectedCountry == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى اختيار البلد')),
+        SnackBar(content: Text(uiTr(context, 'يرجى اختيار البلد'))),
       );
       return;
     }
@@ -315,13 +315,14 @@ class _EdetAgentWidgetState extends State<EdetAgentWidget> {
       await AdminCrudFeedback.success(
         context,
         action: AdminCrudAction.edit,
-        message: 'تم تحديث بيانات الوكيل',
+        message: uiTr(context, 'تم تحديث بيانات الوكيل'),
         refreshScope: AdminListScope.agents,
         popPage: true,
+        deferHeavyWork: false,
       );
     } catch (e) {
       if (!mounted) return;
-      AdminCrudFeedback.error(context, 'تعذر الحفظ: $e');
+      AdminCrudFeedback.error(context, AdminCrudFeedback.saveFailed(context, e));
     } finally {
       if (mounted) setState(() => _model.isSubmitting = false);
     }
@@ -335,16 +336,16 @@ class _EdetAgentWidgetState extends State<EdetAgentWidget> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('حذف الوكيل'),
-        content: Text('هل أنت متأكد من حذف الوكيل "${_agent!.displayName}"؟'),
+        title: Text(uiTr(context, 'حذف الوكيل')),
+        content: Text(appTrFormat(context, 'adm_delete_agent_body', _agent!.displayName)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('إلغاء'),
+            child: Text(appTr(context, 'adm_cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('حذف', style: TextStyle(color: Colors.red)),
+            child: Text(appTr(context, 'adm_delete'), style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -363,15 +364,14 @@ class _EdetAgentWidgetState extends State<EdetAgentWidget> {
       await AdminCrudFeedback.success(
         context,
         action: AdminCrudAction.delete,
-        message: 'تم حذف الوكيل',
+        message: uiTr(context, 'تم حذف الوكيل'),
         refreshScope: AdminListScope.agents,
         removedDocumentId: ref.id,
-        deletedRef: ref,
         popPage: true,
       );
     } catch (e) {
       if (!mounted) return;
-      AdminCrudFeedback.error(context, 'تعذر الحذف: $e');
+      AdminCrudFeedback.error(context, AdminCrudFeedback.deleteFailed(context, e));
     } finally {
       if (mounted) setState(() => _model.isSubmitting = false);
     }
@@ -388,35 +388,35 @@ class _EdetAgentWidgetState extends State<EdetAgentWidget> {
     if (!AdminSuperAdminGate.isAllowed) {
       return AdminSuperAdminGate.deniedEditScaffold(
         context: context,
-        title: 'تعديل وكيل',
+        title: appTr(context, 'scr_edit_agent'),
       );
     }
 
     if (_model.isLoading) {
-      return const AdminEditScaffold(
-        title: 'تعديل وكيل',
+      return AdminEditScaffold(
+        title: appTr(context, 'scr_edit_agent'),
         isLoading: true,
-        child: SizedBox.shrink(),
+        child: const SizedBox.shrink(),
       );
     }
 
     if (_agent == null) {
-      return const AdminEditScaffold(
-        title: 'تعديل وكيل',
+      return AdminEditScaffold(
+        title: appTr(context, 'scr_edit_agent'),
         child: AdminContentCard(
-          child: Text('تعذر تحميل بيانات الوكيل', textAlign: TextAlign.center),
+          child: Text(uiTr(context, 'تعذر تحميل بيانات الوكيل'), textAlign: TextAlign.center),
         ),
       );
     }
 
     return AdminEditScaffold(
-      title: 'تعديل وكيل',
+      title: appTr(context, 'scr_edit_agent'),
       subtitle: _agent!.dolhAgent.isNotEmpty
           ? 'الدولة: ${_agent!.dolhAgent}'
           : null,
       isLoading: _model.isSubmitting,
       floatingAction: AdminPrimaryButton(
-        label: 'حفظ التعديلات',
+        label: uiTr(context, 'حفظ التعديلات'),
         icon: Icons.save_rounded,
         isLoading: _model.isSubmitting,
         onPressed: _model.isSubmitting ? null : _save,
@@ -427,12 +427,12 @@ class _EdetAgentWidgetState extends State<EdetAgentWidget> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             AdminEditFormCard(
-              sectionTitle: 'بيانات الوكيل',
+              sectionTitle: uiTr(context, 'بيانات الوكيل'),
               children: [
                 TextFormField(
                   controller: _model.nameTextController,
                   focusNode: _model.nameFocusNode,
-                  decoration: const InputDecoration(labelText: 'الاسم الكامل'),
+                  decoration: InputDecoration(labelText: uiTr(context, 'الاسم الكامل')),
                   validator: (v) =>
                       v == null || v.trim().isEmpty ? 'مطلوب' : null,
                 ),
@@ -440,7 +440,7 @@ class _EdetAgentWidgetState extends State<EdetAgentWidget> {
                 TextFormField(
                   controller: _model.phoneTextController,
                   focusNode: _model.phoneFocusNode,
-                  decoration: const InputDecoration(labelText: 'رقم الجوال'),
+                  decoration: InputDecoration(labelText: uiTr(context, 'رقم الجوال')),
                   keyboardType: TextInputType.phone,
                 ),
                 const SizedBox(height: 12),
@@ -448,8 +448,8 @@ class _EdetAgentWidgetState extends State<EdetAgentWidget> {
                   controller: _model.emailTextController,
                   readOnly: true,
                   enabled: false,
-                  decoration: const InputDecoration(
-                    labelText: 'البريد الإلكتروني',
+                  decoration: InputDecoration(
+                    labelText: uiTr(context, 'البريد الإلكتروني'),
                     helperText: 'لا يمكن تغيير البريد من هنا',
                   ),
                 ),
@@ -457,16 +457,16 @@ class _EdetAgentWidgetState extends State<EdetAgentWidget> {
             ),
             const SizedBox(height: 16),
             AdminEditFormCard(
-              sectionTitle: 'تواريخ التسجيل',
+              sectionTitle: uiTr(context, 'تواريخ التسجيل'),
               children: [
                 _buildDateTile(
-                  label: 'تاريخ البداية',
+                  label: uiTr(context, 'تاريخ البداية'),
                   date: _model.agentStartDate,
                   onTap: () => _pickDate(isStart: true),
                 ),
                 const SizedBox(height: 12),
                 _buildDateTile(
-                  label: 'تاريخ الانتهاء',
+                  label: uiTr(context, 'تاريخ الانتهاء'),
                   date: _model.agentEndDate,
                   onTap: () => _pickDate(isStart: false),
                 ),
@@ -474,11 +474,11 @@ class _EdetAgentWidgetState extends State<EdetAgentWidget> {
             ),
             const SizedBox(height: 16),
             AdminEditFormCard(
-              sectionTitle: 'النسب والموقع',
+              sectionTitle: uiTr(context, 'النسب والموقع'),
               children: [
                 _buildPercentField(
                   controller: _model.vatPercentTextController!,
-                  label: 'نسبة الضريبة',
+                  label: uiTr(context, 'نسبة الضريبة'),
                   hint: '15',
                   readOnly: true,
                 ),
@@ -486,18 +486,18 @@ class _EdetAgentWidgetState extends State<EdetAgentWidget> {
                 _buildPercentField(
                   controller: _model.appCommissionTextController!,
                   focusNode: _model.appCommissionFocusNode,
-                  label: 'نسبة التطبيق',
+                  label: uiTr(context, 'نسبة التطبيق'),
                   hint: 'مثال: 10',
                   validator: (v) =>
-                      _percentValidator(v, label: 'نسبة التطبيق'),
+                      _percentValidator(v, label: uiTr(context, 'نسبة التطبيق')),
                 ),
                 const SizedBox(height: 12),
                 _buildPercentField(
                   controller: _model.agentCommissionTextController!,
                   focusNode: _model.agentCommissionFocusNode,
-                  label: 'نسبة الوكيل',
+                  label: uiTr(context, 'نسبة الوكيل'),
                   hint: 'مثال: 5',
-                  validator: (v) => _percentValidator(v, label: 'نسبة الوكيل'),
+                  validator: (v) => _percentValidator(v, label: uiTr(context, 'نسبة الوكيل')),
                 ),
                 const SizedBox(height: 12),
                 _buildCountrySelector(),
@@ -505,11 +505,11 @@ class _EdetAgentWidgetState extends State<EdetAgentWidget> {
             ),
             const SizedBox(height: 16),
             AdminEditFormCard(
-              sectionTitle: 'حالة الوكيل',
+              sectionTitle: uiTr(context, 'حالة الوكيل'),
               children: [
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('تفعيل الوكيل'),
+                  title: Text(uiTr(context, 'تفعيل الوكيل')),
                   value: _model.activeValue,
                   onChanged: _model.isSubmitting
                       ? null

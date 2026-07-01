@@ -57,14 +57,14 @@ class _AdminAddSuperAdminWidgetState extends State<AdminAddSuperAdminWidget> {
 
     if (password.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('كلمة المرور يجب أن تكون 6 أحرف على الأقل')),
+        SnackBar(content: Text(uiTr(context, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل'))),
       );
       return;
     }
 
     if (password != confirm) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('كلمتا المرور غير متطابقتين')),
+        SnackBar(content: Text(uiTr(context, 'كلمتا المرور غير متطابقتين'))),
       );
       return;
     }
@@ -107,7 +107,7 @@ class _AdminAddSuperAdminWidgetState extends State<AdminAddSuperAdminWidget> {
       await AdminCrudFeedback.success(
         context,
         action: AdminCrudAction.add,
-        message: 'تم إضافة السوبر أدمن بنجاح',
+        message: uiTr(context, 'تم إضافة السوبر أدمن بنجاح'),
         refreshScope: AdminListScope.superAdmins,
         popPage: true,
       );
@@ -124,16 +124,16 @@ class _AdminAddSuperAdminWidgetState extends State<AdminAddSuperAdminWidget> {
     if (!AdminSuperAdminGate.isAllowed) {
       return AdminSuperAdminGate.deniedEditScaffold(
         context: context,
-        title: 'إضافة سوبر أدمن',
+        title: appTr(context, 'scr_add_super_admin'),
       );
     }
 
     return AdminEditScaffold(
-      title: 'إضافة سوبر أدمن',
-      subtitle: 'إنشاء حساب جديد بصلاحيات كاملة على النظام',
+      title: appTr(context, 'scr_add_super_admin'),
+      subtitle: uiTr(context, 'إنشاء حساب جديد بصلاحيات كاملة على النظام'),
       isLoading: _model.isSubmitting,
       floatingAction: AdminPrimaryButton(
-        label: 'حفظ السوبر أدمن',
+        label: uiTr(context, 'حفظ السوبر أدمن'),
         icon: Icons.person_add_alt_1_rounded,
         isLoading: _model.isSubmitting,
         onPressed: _model.isSubmitting ? null : _submit,
@@ -144,12 +144,12 @@ class _AdminAddSuperAdminWidgetState extends State<AdminAddSuperAdminWidget> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             AdminEditFormCard(
-              sectionTitle: 'البيانات الأساسية',
+              sectionTitle: uiTr(context, 'البيانات الأساسية'),
               children: [
                 TextFormField(
                   controller: _model.nameTextController,
                   focusNode: _model.nameFocusNode,
-                  decoration: const InputDecoration(labelText: 'الاسم الكامل'),
+                  decoration: InputDecoration(labelText: uiTr(context, 'الاسم الكامل')),
                   validator: (v) =>
                       v == null || v.trim().isEmpty ? 'مطلوب' : null,
                 ),
@@ -157,15 +157,15 @@ class _AdminAddSuperAdminWidgetState extends State<AdminAddSuperAdminWidget> {
                 TextFormField(
                   controller: _model.phoneTextController,
                   focusNode: _model.phoneFocusNode,
-                  decoration: const InputDecoration(labelText: 'رقم الجوال'),
+                  decoration: InputDecoration(labelText: uiTr(context, 'رقم الجوال')),
                   keyboardType: TextInputType.phone,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _model.emailTextController,
                   focusNode: _model.emailFocusNode,
-                  decoration: const InputDecoration(
-                    labelText: 'البريد الإلكتروني',
+                  decoration: InputDecoration(
+                    labelText: uiTr(context, 'البريد الإلكتروني'),
                   ),
                   keyboardType: TextInputType.emailAddress,
                   validator: (v) {
@@ -178,12 +178,12 @@ class _AdminAddSuperAdminWidgetState extends State<AdminAddSuperAdminWidget> {
             ),
             const SizedBox(height: 16),
             AdminEditFormCard(
-              sectionTitle: 'كلمة المرور',
+              sectionTitle: uiTr(context, 'كلمة المرور'),
               children: [
                 TextFormField(
                   controller: _model.passwordTextController,
                   focusNode: _model.passwordFocusNode,
-                  decoration: const InputDecoration(labelText: 'كلمة المرور'),
+                  decoration: InputDecoration(labelText: uiTr(context, 'كلمة المرور')),
                   obscureText: true,
                   validator: (v) {
                     if (v == null || v.length < 6) {
@@ -196,8 +196,8 @@ class _AdminAddSuperAdminWidgetState extends State<AdminAddSuperAdminWidget> {
                 TextFormField(
                   controller: _model.confirmPasswordTextController,
                   focusNode: _model.confirmPasswordFocusNode,
-                  decoration: const InputDecoration(
-                    labelText: 'تأكيد كلمة المرور',
+                  decoration: InputDecoration(
+                    labelText: uiTr(context, 'تأكيد كلمة المرور'),
                   ),
                   obscureText: true,
                   validator: (v) {
@@ -209,12 +209,12 @@ class _AdminAddSuperAdminWidgetState extends State<AdminAddSuperAdminWidget> {
             ),
             const SizedBox(height: 16),
             AdminEditFormCard(
-              sectionTitle: 'الحالة',
+              sectionTitle: uiTr(context, 'الحالة'),
               children: [
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('تفعيل الحساب'),
-                  subtitle: const Text('يمكن للسوبر أدمن تسجيل الدخول عند التفعيل'),
+                  title: Text(uiTr(context, 'تفعيل الحساب')),
+                  subtitle: Text(uiTr(context, 'يمكن للسوبر أدمن تسجيل الدخول عند التفعيل')),
                   value: _model.activeValue,
                   onChanged: _model.isSubmitting
                       ? null

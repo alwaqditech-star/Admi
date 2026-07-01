@@ -74,18 +74,18 @@ class _AdminregionWidgetState extends State<AdminregionWidget> {
     final confirmed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('تأكيد الحذف'),
+            title: Text(appTr(context, 'adm_delete_confirm_title')),
             content: const Text(
               'عند حذف المنطقة سيتم حذف كل المعالم المرتبطة. هل أنت متأكد من الحذف؟',
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('لا'),
+                child: Text(appTr(context, 'adm_no')),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('نعم، احذف'),
+                child: Text(appTr(context, 'adm_yes_delete')),
               ),
             ],
           ),
@@ -106,14 +106,13 @@ class _AdminregionWidgetState extends State<AdminregionWidget> {
       await AdminCrudFeedback.success(
         context,
         action: AdminCrudAction.delete,
-        message: 'تم حذف المنطقة وكل البيانات المرتبطة',
+        message: uiTr(context, 'تم حذف المنطقة وكل البيانات المرتبطة'),
         refreshScope: AdminListScope.regions,
         removedDocumentId: record.reference.id,
-        deletedRef: record.reference,
       );
     } catch (e) {
       if (!mounted) return;
-      AdminCrudFeedback.error(context, 'تعذر الحذف: $e');
+      AdminCrudFeedback.error(context, AdminCrudFeedback.deleteFailed(context, e));
     }
   }
 
@@ -130,7 +129,7 @@ class _AdminregionWidgetState extends State<AdminregionWidget> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('لا'),
+                child: Text(appTr(context, 'adm_no')),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
@@ -158,7 +157,7 @@ class _AdminregionWidgetState extends State<AdminregionWidget> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تعذر التحديث: $e')),
+        SnackBar(content: Text(AdminCrudFeedback.updateFailed(context, e))),
       );
     }
   }
@@ -182,7 +181,7 @@ class _AdminregionWidgetState extends State<AdminregionWidget> {
         title: l10n.getText('epnbxa8s'),
         child: AdminPageBody(
           title: l10n.getText('epnbxa8s'),
-          subtitle: 'إدارة المناطق السياحية ومعالمها',
+          subtitle: appTr(context, 'scr_regions_subtitle'),
           scrollable: true,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -306,7 +305,7 @@ class _AdminregionWidgetState extends State<AdminregionWidget> {
                                                                 ),
       decoration: AdminUi.inputDecoration(
                                                                                 context,
-        label: 'بحث',
+        label: uiTr(context, 'بحث'),
         hint: 'ابحث باسم المنطقة أو الوصف...',
         prefixIcon: Icons.search_rounded,
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '/flutter_flow/flutter_flow_util.dart';
 
 import '/backend/admin_performance.dart';
 import '/backend/backend.dart';
@@ -128,7 +129,7 @@ class _AdminCacheRecordListState<T> extends State<AdminCacheRecordList<T>> {
                             OutlinedButton.icon(
                               onPressed: _load,
                               icon: const Icon(Icons.refresh_rounded, size: 18),
-                              label: const Text('إعادة المحاولة'),
+                              label: Text(appTr(context, 'adm_retry')),
                             ),
                           ],
                         ),

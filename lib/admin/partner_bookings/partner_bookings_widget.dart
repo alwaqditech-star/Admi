@@ -53,9 +53,9 @@ class _PartnerBookingsWidgetState extends State<PartnerBookingsWidget> {
       menu2Model: _model.menu2Model,
       updateCallback: () => safeSetState(() {}),
       padContent: false,
-      title: 'حجوزات الشريك',
+      title: appTr(context, 'nav_partner_bookings'),
       child: AdminPageBody(
-        title: 'حجوزاتي',
+        title: appTr(context, 'scr_partner_bookings_title'),
         subtitle: partnerMkan != null
             ? 'الحجوزات المرتبطة بمعالمك السياحية'
             : 'لم يُربط حسابك بمعالم بعد — تواصل مع الإدارة',

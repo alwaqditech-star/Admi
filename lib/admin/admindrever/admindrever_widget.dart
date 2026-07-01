@@ -79,11 +79,11 @@ class _AdmindreverWidgetState extends State<AdmindreverWidget> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('لا'),
+                child: Text(appTr(context, 'adm_no')),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('نعم'),
+                child: Text(uiTr(context, 'نعم')),
               ),
             ],
           ),
@@ -107,7 +107,7 @@ class _AdmindreverWidgetState extends State<AdmindreverWidget> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تعذر التحديث: $e')),
+        SnackBar(content: Text(AdminCrudFeedback.updateFailed(context, e))),
       );
     }
   }
@@ -131,7 +131,7 @@ class _AdmindreverWidgetState extends State<AdmindreverWidget> {
         title: l10n.getText('xqeazwes'),
         child: AdminPageBody(
           title: l10n.getText('xqeazwes'),
-          subtitle: 'إدارة المناديب وعرض بياناتهم',
+          subtitle: appTr(context, 'scr_reps_subtitle'),
           scrollable: true,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -267,7 +267,7 @@ class _AdmindreverWidgetState extends State<AdmindreverWidget> {
 
   Widget _buildAddButton(FFLocalizations l10n) {
     return AdminPrimaryButton(
-      label: 'إضافة مندوب جديد',
+      label: uiTr(context, 'إضافة مندوب جديد'),
       icon: Icons.person_add_rounded,
       onPressed: () => context.pushNamed(AddDrevWidget.routeName),
     );
@@ -498,7 +498,7 @@ class _RepresentativeCard extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 8),
               child: _InfoTile(
                 icon: Icons.local_shipping_outlined,
-                label: 'شركة النقل',
+                label: uiTr(context, 'شركة النقل'),
                 value: user.transportCompanyText,
               ),
             ),

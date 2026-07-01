@@ -172,9 +172,9 @@ class _AdminReportsHubWidgetState extends State<AdminReportsHubWidget> {
     _syncCountryScope();
     if (_selectedCountry != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
-            'سجل العمليات يعرض جميع الدول — غير مرتبط بفلتر الدولة',
+            appTr(context, 'scr_audit_all_countries'),
           ),
         ),
       );
@@ -205,7 +205,7 @@ class _AdminReportsHubWidgetState extends State<AdminReportsHubWidget> {
       scaffoldKey: scaffoldKey,
       menu2Model: _model.menu2Model,
       updateCallback: () => safeSetState(() {}),
-      title: 'التقارير الإدارية',
+      title: appTr(context, 'nav_reports'),
     );
     if (blocked != null) return blocked;
 
@@ -215,10 +215,10 @@ class _AdminReportsHubWidgetState extends State<AdminReportsHubWidget> {
         scaffoldKey: scaffoldKey,
         menu2Model: _model.menu2Model,
         updateCallback: () => safeSetState(() {}),
-        title: 'التقارير الإدارية',
+        title: appTr(context, 'nav_reports'),
         child: AdminPageBody(
-          title: 'التقارير الإدارية',
-          subtitle: 'نظرة شاملة على أداء المنصة حسب الدولة',
+          title: appTr(context, 'nav_reports'),
+          subtitle: appTr(context, 'scr_reports_subtitle'),
           scrollable: true,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -308,10 +308,10 @@ class _ReportsContent extends StatelessWidget {
   final void Function({required bool partnersOnly}) openLandmarks;
   final void Function(UserRecord agent) openAgentReport;
 
-  List<Widget> _statGroups() {
+  List<Widget> _statGroups(BuildContext context) {
     final groups = [
       _ReportStatGroup(
-        title: 'المعالم والشركاء',
+        title: appTr(context, 'scr_reports_landmarks'),
         icon: Icons.place_rounded,
         items: [
           _ReportStatItem(
@@ -331,7 +331,7 @@ class _ReportsContent extends StatelessWidget {
         ],
       ),
       _ReportStatGroup(
-        title: 'التغطية الجغرافية',
+        title: appTr(context, 'scr_reports_geo'),
         icon: Icons.map_rounded,
         items: [
           _ReportStatItem(
@@ -351,7 +351,7 @@ class _ReportsContent extends StatelessWidget {
         ],
       ),
       _ReportStatGroup(
-        title: 'المستخدمون والفرق',
+        title: appTr(context, 'scr_reports_users'),
         icon: Icons.groups_rounded,
         items: [
           _ReportStatItem(
@@ -385,7 +385,7 @@ class _ReportsContent extends StatelessWidget {
         ],
       ),
       _ReportStatGroup(
-        title: 'الحجوزات والدعم',
+        title: appTr(context, 'scr_reports_bookings'),
         icon: Icons.receipt_long_rounded,
         items: [
           _ReportStatItem(
@@ -452,7 +452,7 @@ class _ReportsContent extends StatelessWidget {
           ),
         ],
         const SizedBox(height: 22),
-        ..._statGroups(),
+        ..._statGroups(context),
         const SizedBox(height: 22),
         _QuickAccessSection(
           hasCountryFilter: hasCountryFilter,
@@ -512,14 +512,14 @@ class _ReportsFilterBar extends StatelessWidget {
       isExpanded: true,
       decoration: AdminUi.inputDecoration(
         context,
-        label: 'دولة الوكيل',
+        label: uiTr(context, 'دولة الوكيل'),
         hint: 'اختر دولة للفلترة',
         prefixIcon: Icons.public_rounded,
       ),
       items: [
-        const DropdownMenuItem<CountriesRecord?>(
+        DropdownMenuItem<CountriesRecord?>(
           value: null,
-          child: Text('جميع الدول'),
+          child: Text(uiTr(context, 'جميع الدول')),
         ),
         ...countries.map(
           (c) => DropdownMenuItem(
@@ -534,7 +534,7 @@ class _ReportsFilterBar extends StatelessWidget {
     final refreshBtn = OutlinedButton.icon(
       onPressed: onRefresh,
       icon: const Icon(Icons.refresh_rounded, size: 20),
-      label: const Text('تحديث'),
+      label: Text(uiTr(context, 'تحديث')),
       style: OutlinedButton.styleFrom(
         foregroundColor: AdminUi.brandTeal,
         side: BorderSide(color: AdminUi.brandTeal.withValues(alpha: 0.4)),
@@ -690,14 +690,14 @@ class _ReportsSummaryStrip extends StatelessWidget {
     final pills = [
       _SummaryPill(
         icon: Icons.place_rounded,
-        label: 'معالم',
+        label: appTr(context, 'dash_chart_landmarks'),
         value: report.landmarks,
         color: AdminUi.brandTeal,
         loading: countsLoading && !report.loadComplete && report.landmarks == 0,
       ),
       _SummaryPill(
         icon: Icons.event_available_rounded,
-        label: 'حجوزات نشطة',
+        label: uiTr(context, 'حجوزات نشطة'),
         value: report.activeBookings,
         color: const Color(0xFF5C6BC0),
         loading:
@@ -705,13 +705,13 @@ class _ReportsSummaryStrip extends StatelessWidget {
       ),
       _SummaryPill(
         icon: Icons.real_estate_agent_rounded,
-        label: 'وكلاء',
+        label: uiTr(context, 'وكلاء'),
         value: report.agents,
         color: const Color(0xFF39D2C0),
       ),
       _SummaryPill(
         icon: Icons.groups_rounded,
-        label: 'مستخدمون',
+        label: appTr(context, 'dash_chart_users'),
         value: report.appUsers,
         color: const Color(0xFF2A9D8A),
         loading: countsLoading && !report.loadComplete && report.appUsers == 0,
@@ -1118,7 +1118,7 @@ class _QuickAccessSection extends StatelessWidget {
       _QuickLink('الوكلاء', Icons.real_estate_agent_rounded, onAgents),
       _QuickLink('المستخدمون', Icons.groups_rounded, onUsers),
       _QuickLink('الدعم', Icons.support_agent_rounded, onSupport),
-      _QuickLink('سجل العمليات', Icons.history_rounded, onAudit),
+      _QuickLink(appTr(context, 'nav_audit_log'), Icons.history_rounded, onAudit),
     ];
 
     return Column(
@@ -1412,7 +1412,7 @@ class _AgentCard extends StatelessWidget {
             child: OutlinedButton.icon(
               onPressed: () => onOpenReport(agent),
               icon: const Icon(Icons.analytics_outlined, size: 18),
-              label: const Text('عرض التقرير التفصيلي'),
+              label: Text(uiTr(context, 'عرض التقرير التفصيلي')),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AdminUi.brandTeal,
                 side: BorderSide(color: AdminUi.brandTeal.withValues(alpha: 0.4)),
@@ -1498,7 +1498,7 @@ class _AgentTableRow extends StatelessWidget {
           TextButton.icon(
             onPressed: () => onOpenReport(agent),
             icon: const Icon(Icons.analytics_outlined, size: 18),
-            label: const Text('تقرير'),
+            label: Text(uiTr(context, 'تقرير')),
           ),
         ],
       ),

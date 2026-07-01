@@ -3,6 +3,7 @@ import '/backend/admin_role_service.dart';
 import '/components/admin_ui.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/l10n/nav_translations.dart';
 import '/index.dart';
 import '/components/profile_photo_image.dart';
 import 'package:flutter/material.dart';
@@ -59,19 +60,8 @@ class _Menu2WidgetState extends State<Menu2Widget> {
     return GoRouterState.of(context).name == routeName;
   }
 
-  String _menuLabel(
-    FFLocalizations l10n,
-    ({String route, IconData icon, String labelKey, String? labelAr}) item,
-  ) {
-    if (item.labelKey.isEmpty) {
-      return item.labelAr ?? '';
-    }
-    final translated = l10n.getText(item.labelKey);
-    if (translated.isEmpty || translated == item.labelKey) {
-      return item.labelAr ?? translated;
-    }
-    return translated;
-  }
+  String _menuLabel(BuildContext context, String routeName) =>
+      navLabel(context, routeName);
 
   @override
   Widget build(BuildContext context) {
@@ -80,121 +70,26 @@ class _Menu2WidgetState extends State<Menu2Widget> {
     final role = AdminRoleService.currentRole;
     final countryLabel = AdminRoleService.scopedCountryName;
 
-    final allMenuItems = <({String route, IconData icon, String labelKey, String? labelAr})>[
-      (
-        route: Home22DashboardWidget.routeName,
-        icon: Icons.dashboard_rounded,
-        labelKey: 's8yhig27',
-        labelAr: 'لوحة التحكم',
-      ),
-      (
-        route: AdminM3almWidget.routeName,
-        icon: Icons.place_rounded,
-        labelKey: '95vv0eea',
-        labelAr: 'المعالم',
-      ),
-      (
-        route: AdminPartnersWidget.routeName,
-        icon: Icons.handshake_rounded,
-        labelKey: 'f0wi63xt',
-        labelAr: 'الشركاء',
-      ),
-      (
-        route: AdminDolWidget.routeName,
-        icon: Icons.flag_rounded,
-        labelKey: '9ro9sa93',
-        labelAr: 'الدول',
-      ),
-      (
-        route: AdminregionWidget.routeName,
-        icon: Icons.filter_hdr_rounded,
-        labelKey: 'epnbxa8s',
-        labelAr: 'المناطق',
-      ),
-      (
-        route: AdminvillWidget.routeName,
-        icon: Icons.location_city_rounded,
-        labelKey: 'vrkkakqc',
-        labelAr: 'المدن',
-      ),
-      (
-        route: AdminuserWidget.routeName,
-        icon: Icons.groups_rounded,
-        labelKey: '0qqjtlup',
-        labelAr: 'المستخدمون',
-      ),
-      (
-        route: AdminAgentWidget.routeName,
-        icon: Icons.real_estate_agent_rounded,
-        labelKey: 'x1v93obz',
-        labelAr: 'الوكلاء',
-      ),
-      (
-        route: AdminSuperAdminsWidget.routeName,
-        icon: Icons.admin_panel_settings_rounded,
-        labelKey: '',
-        labelAr: 'سوبر أدمن',
-      ),
-      (
-        route: AdminTransportCompaniesWidget.routeName,
-        icon: Icons.local_shipping_rounded,
-        labelKey: '',
-        labelAr: 'شركات النقل',
-      ),
-      (
-        route: AdmindreverWidget.routeName,
-        icon: Icons.directions_car_rounded,
-        labelKey: 'xqeazwes',
-        labelAr: 'المناديب',
-      ),
-      (
-        route: AdminALLhgZWidget.routeName,
-        icon: Icons.bookmark_added_rounded,
-        labelKey: 'kw5c519x',
-        labelAr: 'الحجوزات',
-      ),
-      (
-        route: AdminProfitsWidget.routeName,
-        icon: Icons.account_balance_wallet_rounded,
-        labelKey: 'nn2n9yup',
-        labelAr: 'الأرباح',
-      ),
-      (
-        route: AdminReportsHubWidget.routeName,
-        icon: Icons.assessment_rounded,
-        labelKey: '',
-        labelAr: 'التقارير الإدارية',
-      ),
-      (
-        route: AdminAuditLogWidget.routeName,
-        icon: Icons.history_rounded,
-        labelKey: '',
-        labelAr: 'سجل العمليات',
-      ),
-      (
-        route: CompanyDriversWidget.routeName,
-        icon: Icons.directions_car_filled_rounded,
-        labelKey: '',
-        labelAr: 'سائقو الشركة',
-      ),
-      (
-        route: PartnerBookingsWidget.routeName,
-        icon: Icons.receipt_long_rounded,
-        labelKey: '',
-        labelAr: 'حجوزات الشريك',
-      ),
-      (
-        route: AdminSuportWidget.routeName,
-        icon: Icons.support_agent_rounded,
-        labelKey: '8d66hs1w',
-        labelAr: 'الدعم',
-      ),
-      (
-        route: SettingsWidget.routeName,
-        icon: Icons.settings_rounded,
-        labelKey: '003x6weg',
-        labelAr: 'الإعدادات',
-      ),
+    final allMenuItems = <({String route, IconData icon})>[
+      (route: Home22DashboardWidget.routeName, icon: Icons.dashboard_rounded),
+      (route: AdminM3almWidget.routeName, icon: Icons.place_rounded),
+      (route: AdminPartnersWidget.routeName, icon: Icons.handshake_rounded),
+      (route: AdminDolWidget.routeName, icon: Icons.flag_rounded),
+      (route: AdminregionWidget.routeName, icon: Icons.filter_hdr_rounded),
+      (route: AdminvillWidget.routeName, icon: Icons.location_city_rounded),
+      (route: AdminuserWidget.routeName, icon: Icons.groups_rounded),
+      (route: AdminAgentWidget.routeName, icon: Icons.real_estate_agent_rounded),
+      (route: AdminSuperAdminsWidget.routeName, icon: Icons.admin_panel_settings_rounded),
+      (route: AdminTransportCompaniesWidget.routeName, icon: Icons.local_shipping_rounded),
+      (route: AdmindreverWidget.routeName, icon: Icons.directions_car_rounded),
+      (route: AdminALLhgZWidget.routeName, icon: Icons.bookmark_added_rounded),
+      (route: AdminProfitsWidget.routeName, icon: Icons.account_balance_wallet_rounded),
+      (route: AdminReportsHubWidget.routeName, icon: Icons.assessment_rounded),
+      (route: AdminAuditLogWidget.routeName, icon: Icons.history_rounded),
+      (route: CompanyDriversWidget.routeName, icon: Icons.directions_car_filled_rounded),
+      (route: PartnerBookingsWidget.routeName, icon: Icons.receipt_long_rounded),
+      (route: AdminSuportWidget.routeName, icon: Icons.support_agent_rounded),
+      (route: SettingsWidget.routeName, icon: Icons.settings_rounded),
     ];
 
     final menuItems = allMenuItems.where((item) {
@@ -315,8 +210,8 @@ class _Menu2WidgetState extends State<Menu2Widget> {
                               ),
                               child: Text(
                                 countryLabel.isNotEmpty
-                                    ? '${AdminRoleService.roleLabel(role)} · $countryLabel'
-                                    : AdminRoleService.roleLabel(role),
+                                    ? '${AdminRoleService.roleLabelL10n(context, role)} · $countryLabel'
+                                    : AdminRoleService.roleLabelL10n(context, role),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: theme.labelSmall.override(
@@ -389,7 +284,7 @@ class _Menu2WidgetState extends State<Menu2Widget> {
                 for (final item in menuItems)
                   AdminMenuTile(
                     icon: item.icon,
-                    label: _menuLabel(l10n, item),
+                    label: _menuLabel(context, item.route),
                     isActive: _isActive(context, item.route),
                     onTap: () => _navigate(context, item.route),
                   ),

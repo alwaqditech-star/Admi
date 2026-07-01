@@ -77,7 +77,7 @@ class _HomeWidgetState extends State<HomeWidget> {
                 ),
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('لا توجد إشعارات')),
+                    SnackBar(content: Text(uiTr(context, 'لا توجد إشعارات'))),
                   );
                 },
               ),

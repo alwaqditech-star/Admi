@@ -1,6 +1,7 @@
 import '/backend/admin_agent_country_lock.dart';
 import '/backend/admin_country_scope.dart';
 import '/backend/admin_firestore_delete.dart';
+import '/backend/admin_role_service.dart';
 import '/backend/backend.dart';
 import '/components/admin_crud_feedback.dart';
 import '/components/admin_edit_shell.dart';
@@ -52,8 +53,80 @@ class _AdminaddMkanWidgetState extends State<AdminaddMkanWidget> {
     _model.switchACCTEVValue = true;
 
     AdminAgentCountryLock.applyToAppState();
+    clearCitySelection();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await AdminAgentCountryLock.ensureCountryResolved();
+      if (mounted) safeSetState(() {});
+    });
+  }
+
+  String _cityPickerLabel() {
+    if (FFAppState().REvCITE != null &&
+        FFAppState().RevciteTEXT.trim().isNotEmpty) {
+      return FFAppState().RevciteTEXT;
+    }
+    return 'اختر المدينة';
+  }
+
+  Widget _buildCountryField(BuildContext context) {
+    final theme = FlutterFlowTheme.of(context);
+    final countryLabel = valueOrDefault<String>(
+      FFAppState().RevdolhTEXT,
+      'يرجى تحديد الدولة',
+    );
+    final lockedForAgent = AdminRoleService.isCountryAgent;
+
+    final fieldBody = Container(
+      width: MediaQuery.sizeOf(context).width * 1.0,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F5F5),
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Padding(
+        padding: const EdgeInsetsDirectional.fromSTEB(16.0, 16.0, 16.0, 16.0),
+        child: Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                countryLabel,
+                style: theme.bodyLarge.override(
+                  fontFamily: theme.bodyLargeFamily,
+                  letterSpacing: 0.0,
+                  useGoogleFonts: !theme.bodyLargeIsCustom,
+                ),
+              ),
+            ),
+            Icon(
+              lockedForAgent ? Icons.lock_outline : Icons.arrow_drop_down,
+              color: theme.secondaryText,
+              size: 24.0,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (lockedForAgent) {
+      return fieldBody;
+    }
+
+    return InkWell(
+      splashColor: Colors.transparent,
+      focusColor: Colors.transparent,
+      hoverColor: Colors.transparent,
+      highlightColor: Colors.transparent,
+      onTap: () async {
+        await showAdminPickerSheet(
+          context: context,
+          child: const AdminCountryPickerSheet(),
+        );
+        if (mounted) safeSetState(() {});
+      },
+      child: fieldBody,
+    );
   }
 
   @override
@@ -797,61 +870,7 @@ class _AdminaddMkanWidgetState extends State<AdminaddMkanWidget> {
                             Padding(
                               padding: EdgeInsetsDirectional.fromSTEB(
                                   16.0, 0.0, 16.0, 0.0),
-                              child: InkWell(
-                                splashColor: Colors.transparent,
-                                focusColor: Colors.transparent,
-                                hoverColor: Colors.transparent,
-                                highlightColor: Colors.transparent,
-                                onTap: () async {
-                                  await showAdminPickerSheet(
-                                    context: context,
-                                    child: const AdminCountryPickerSheet(),
-                                  );
-                                  if (mounted) safeSetState(() {});
-                                },
-                                child: Container(
-                                  width: MediaQuery.sizeOf(context).width * 1.0,
-                                  decoration: BoxDecoration(
-                                    color: Color(0xFFF5F5F5),
-                                    borderRadius: BorderRadius.circular(8.0),
-                                  ),
-                                  child: Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        16.0, 16.0, 16.0, 16.0),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.max,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          valueOrDefault<String>(
-                                            FFAppState().RevdolhTEXT,
-                                            'يرجى تحديد الدولة',
-                                          ),
-                                          style: FlutterFlowTheme.of(context)
-                                              .bodyLarge
-                                              .override(
-                                                fontFamily:
-                                                    FlutterFlowTheme.of(context)
-                                                        .bodyLargeFamily,
-                                                letterSpacing: 0.0,
-                                                useGoogleFonts:
-                                                    !FlutterFlowTheme.of(
-                                                            context)
-                                                        .bodyLargeIsCustom,
-                                              ),
-                                        ),
-                                        Icon(
-                                          Icons.arrow_drop_down,
-                                          color: FlutterFlowTheme.of(context)
-                                              .secondaryText,
-                                          size: 24.0,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
+                              child: _buildCountryField(context),
                             ),
                             Padding(
                               padding: EdgeInsetsDirectional.fromSTEB(
@@ -864,8 +883,8 @@ class _AdminaddMkanWidgetState extends State<AdminaddMkanWidget> {
                                 onTap: () async {
                                   if (FFAppState().RevDolh == null) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('يرجى اختيار الدولة أولاً'),
+                                      SnackBar(
+                                        content: Text(uiTr(context, 'يرجى اختيار الدولة أولاً')),
                                       ),
                                     );
                                     return;
@@ -933,7 +952,9 @@ class _AdminaddMkanWidgetState extends State<AdminaddMkanWidget> {
                                 onTap: () async {
                                   await showAdminPickerSheet(
                                     context: context,
-                                    child: const AdminCityPickerSheet(),
+                                    child: AdminCityPickerSheet(
+                                      countryRef: FFAppState().RevDolh,
+                                    ),
                                   );
                                   if (mounted) safeSetState(() {});
                                 },
@@ -952,10 +973,7 @@ class _AdminaddMkanWidgetState extends State<AdminaddMkanWidget> {
                                           MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
-                                          valueOrDefault<String>(
-                                            FFAppState().RevciteTEXT,
-                                            'يرجى تحديد المدينة',
-                                          ),
+                                          _cityPickerLabel(),
                                           style: FlutterFlowTheme.of(context)
                                               .bodyLarge
                                               .override(
@@ -963,6 +981,14 @@ class _AdminaddMkanWidgetState extends State<AdminaddMkanWidget> {
                                                     FlutterFlowTheme.of(context)
                                                         .bodyLargeFamily,
                                                 letterSpacing: 0.0,
+                                                color: FFAppState().REvCITE ==
+                                                        null
+                                                    ? FlutterFlowTheme.of(
+                                                            context)
+                                                        .secondaryText
+                                                    : FlutterFlowTheme.of(
+                                                            context)
+                                                        .primaryText,
                                                 useGoogleFonts:
                                                     !FlutterFlowTheme.of(
                                                             context)
@@ -1097,16 +1123,16 @@ class _AdminaddMkanWidgetState extends State<AdminaddMkanWidget> {
                       final name = _model.textController1.text.trim();
                       if (name.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('يرجى إدخال اسم المعلم'),
+                          SnackBar(
+                            content: Text(uiTr(context, 'يرجى إدخال اسم المعلم')),
                           ),
                         );
                         return;
                       }
                       if (FFAppState().REvCITE == null) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('يرجى اختيار المدينة'),
+                          SnackBar(
+                            content: Text(uiTr(context, 'يرجى اختيار المدينة')),
                           ),
                         );
                         return;
@@ -1116,8 +1142,8 @@ class _AdminaddMkanWidgetState extends State<AdminaddMkanWidget> {
                           _model.isDataUploading_uploadDataP4b ||
                           _model.isDataUploading_uploadData8dqs) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('انتظر اكتمال رفع الصور ثم احفظ'),
+                          SnackBar(
+                            content: Text(uiTr(context, 'انتظر اكتمال رفع الصور ثم احفظ')),
                           ),
                         );
                         return;
@@ -1130,8 +1156,8 @@ class _AdminaddMkanWidgetState extends State<AdminaddMkanWidget> {
                       if (location == null ||
                           !AdminLocationService.isValidLocation(location)) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('يرجى تحديد موقع المعلم على الخريطة'),
+                          SnackBar(
+                            content: Text(uiTr(context, 'يرجى تحديد موقع المعلم على الخريطة')),
                           ),
                         );
                         return;
@@ -1144,8 +1170,8 @@ class _AdminaddMkanWidgetState extends State<AdminaddMkanWidget> {
                         if (countryRef == null) {
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('يرجى اختيار الدولة أولاً'),
+                              SnackBar(
+                                content: Text(uiTr(context, 'يرجى اختيار الدولة أولاً')),
                               ),
                             );
                             setState(() => _isSaving = false);
@@ -1202,14 +1228,14 @@ class _AdminaddMkanWidgetState extends State<AdminaddMkanWidget> {
                         await AdminCrudFeedback.success(
                           context,
                           action: AdminCrudAction.add,
-                          message: 'تم إضافة المعلم بنجاح',
+                          message: uiTr(context, 'تم إضافة المعلم بنجاح'),
                           refreshScope: AdminListScope.landmarks,
-                          deferHeavyWork: false,
                           popPage: true,
+                          deferHeavyWork: false,
                         );
                       } catch (e) {
                         if (!context.mounted) return;
-                        AdminCrudFeedback.error(context, 'تعذر الحفظ: $e');
+                        AdminCrudFeedback.error(context, AdminCrudFeedback.saveFailed(context, e));
                       } finally {
                         if (mounted) setState(() => _isSaving = false);
                       }

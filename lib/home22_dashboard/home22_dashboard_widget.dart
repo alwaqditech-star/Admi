@@ -311,13 +311,13 @@ class _DashboardQuickActionsGrid extends StatelessWidget {
       (
         route: AdminaddMkanWidget.routeName,
         icon: Icons.add_location_alt_rounded,
-        label: 'إضافة معلم',
+        label: appTr(context, 'dash_add_landmark'),
         colors: const [Color(0xFF1F7372), Color(0xFF2A9D8A)],
       ),
       (
         route: AdminAddAgentWidget.routeName,
         icon: Icons.person_add_alt_1_rounded,
-        label: 'إضافة وكيل',
+        label: appTr(context, 'dash_add_agent'),
         colors: const [Color(0xFF39D2C0), Color(0xFF1F9A8A)],
       ),
       (
@@ -344,7 +344,7 @@ class _DashboardQuickActionsGrid extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'إجراءات سريعة',
+          appTr(context, 'dash_quick_actions'),
           style: theme.titleSmall.override(
             fontFamily: theme.titleSmallFamily,
             fontWeight: FontWeight.w700,

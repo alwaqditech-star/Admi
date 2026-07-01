@@ -67,16 +67,16 @@ class _AdminAgentWidgetState extends State<AdminAgentWidget> {
     final confirmed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('تأكيد الحذف'),
-            content: Text('هل أنت متأكد من حذف الوكيل "${agent.displayName}"؟'),
+            title: Text(appTr(context, 'adm_delete_confirm_title')),
+            content: Text(appTrFormat(context, 'adm_delete_agent_body', agent.displayName)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('لا'),
+                child: Text(appTr(context, 'adm_no')),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('نعم، احذف'),
+                child: Text(appTr(context, 'adm_yes_delete')),
               ),
             ],
           ),
@@ -96,10 +96,9 @@ class _AdminAgentWidgetState extends State<AdminAgentWidget> {
       await AdminCrudFeedback.success(
         context,
         action: AdminCrudAction.delete,
-        message: 'تم حذف الوكيل بنجاح',
+        message: uiTr(context, 'تم حذف الوكيل بنجاح'),
         refreshScope: AdminListScope.agents,
         removedDocumentId: agent.reference.id,
-        deletedRef: agent.reference,
       );
     } catch (e) {
       if (!mounted) return;
@@ -155,7 +154,7 @@ class _AdminAgentWidgetState extends State<AdminAgentWidget> {
         menu2Model: _model.menu2Model,
         updateCallback: () => safeSetState(() {}),
         title: l10n.getText('x1v93obz'),
-        feature: 'إدارة الوكلاء',
+        feature: uiTr(context, 'إدارة الوكلاء'),
       );
       if (blocked != null) return blocked;
     }
@@ -173,7 +172,7 @@ class _AdminAgentWidgetState extends State<AdminAgentWidget> {
         title: l10n.getText('x1v93obz'),
         child: AdminPageBody(
           title: l10n.getText('x1v93obz'),
-          subtitle: 'إدارة الوكلاء ومتابعة أدائهم',
+          subtitle: appTr(context, 'scr_agents_subtitle'),
           scrollable: true,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -308,7 +307,7 @@ class _AdminAgentWidgetState extends State<AdminAgentWidget> {
       ),
       decoration: AdminUi.inputDecoration(
         context,
-        label: 'بحث',
+        label: uiTr(context, 'بحث'),
         hint: l10n.getText('3usvges2'),
         prefixIcon: Icons.search_rounded,
       ),

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import '/backend/firebase_storage/storage.dart';
 import '/backend/profile_photo_service.dart';
+import '/components/admin_crud_feedback.dart';
 import '/components/admin_ui.dart';
 import '/components/profile_photo_image.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -490,14 +491,14 @@ Future<void> handleAdminImagePick({
       return;
     }
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('تم اختيار الصورة بنجاح')),
+      SnackBar(content: Text(appTr(context, 'adm_image_selected'))),
     );
   } catch (e) {
     if (!context.mounted) {
       return;
     }
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('تعذر رفع الصورة: ${uploadErrorMessage(e)}')),
+      SnackBar(content: Text(AdminCrudFeedback.uploadFailed(context, uploadErrorMessage(e)))),
     );
   } finally {
     setUploading(false);

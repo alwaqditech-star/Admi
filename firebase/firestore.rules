@@ -18,6 +18,8 @@ service cloud.firestore {
           || panelUser().isAdmin == true
           || panelUser().isAdminRule == 1
           || panelUser().IsAdminRule == 1
+          || panelUser().isAdminRule == '1'
+          || panelUser().IsAdminRule == '1'
         );
     }
 
@@ -246,7 +248,7 @@ service cloud.firestore {
     match /countries/{document} {
       allow create: if true;
       allow read: if true;
-      allow write: if request.auth != null;
+      allow update: if request.auth != null && isSuperAdmin();
       allow delete: if isSuperAdmin();
     }
 
@@ -303,7 +305,7 @@ service cloud.firestore {
         || request.auth.uid == document
         || agentCanReadUser(resource.data)
       );
-      allow write: if request.auth != null && (
+      allow update: if request.auth != null && (
         request.auth.uid == document
         || isSuperAdmin()
         || agentCanWriteUser(request.resource.data)

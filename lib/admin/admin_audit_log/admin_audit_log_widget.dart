@@ -77,8 +77,8 @@ class _AdminAuditLogWidgetState extends State<AdminAuditLogWidget> {
       scaffoldKey: scaffoldKey,
       menu2Model: _model.menu2Model,
       updateCallback: () => safeSetState(() {}),
-      title: 'سجل العمليات',
-      feature: 'سجل العمليات',
+      title: appTr(context, 'nav_audit_log'),
+      feature: appTr(context, 'nav_audit_log'),
     );
     if (blocked != null) return blocked;
 
@@ -87,10 +87,10 @@ class _AdminAuditLogWidgetState extends State<AdminAuditLogWidget> {
       menu2Model: _model.menu2Model,
       updateCallback: () => safeSetState(() {}),
       padContent: false,
-      title: 'سجل العمليات',
+      title: appTr(context, 'nav_audit_log'),
       child: AdminPageBody(
-        title: 'سجل التدقيق',
-        subtitle: 'تتبع عمليات الحذف والتفعيل والإلغاء في لوحة الإدارة',
+        title: appTr(context, 'scr_audit_title'),
+        subtitle: appTr(context, 'scr_audit_subtitle'),
         scrollable: true,
         child: AdminFirestoreList<AuditLogEntry>(
           query: AdminAuditLog.collection,

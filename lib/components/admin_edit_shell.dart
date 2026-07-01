@@ -168,6 +168,7 @@ class AdminEditPickerRow extends StatelessWidget {
     required this.placeholder,
     required this.onTap,
     this.icon = Icons.keyboard_arrow_down_rounded,
+    this.locked = false,
   });
 
   final String label;
@@ -175,6 +176,7 @@ class AdminEditPickerRow extends StatelessWidget {
   final String placeholder;
   final VoidCallback onTap;
   final IconData icon;
+  final bool locked;
 
   @override
   Widget build(BuildContext context) {
@@ -198,11 +200,13 @@ class AdminEditPickerRow extends StatelessWidget {
         Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: onTap,
+            onTap: locked ? null : onTap,
             borderRadius: BorderRadius.circular(AdminUi.radiusSm),
             child: Ink(
               decoration: BoxDecoration(
-                color: theme.secondaryBackground,
+                color: locked
+                    ? const Color(0xFFF5F5F5)
+                    : theme.secondaryBackground,
                 borderRadius: BorderRadius.circular(AdminUi.radiusSm),
                 border: Border.all(color: theme.alternate),
               ),
@@ -210,9 +214,13 @@ class AdminEditPickerRow extends StatelessWidget {
               child: Row(
                 children: [
                   Icon(
-                    Icons.touch_app_rounded,
+                    locked
+                        ? Icons.lock_outline_rounded
+                        : Icons.touch_app_rounded,
                     size: 18,
-                    color: AdminUi.brandTeal.withValues(alpha: 0.8),
+                    color: locked
+                        ? theme.secondaryText
+                        : AdminUi.brandTeal.withValues(alpha: 0.8),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -231,7 +239,10 @@ class AdminEditPickerRow extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Icon(icon, color: theme.secondaryText),
+                  Icon(
+                    locked ? Icons.lock_outline : icon,
+                    color: theme.secondaryText,
+                  ),
                 ],
               ),
             ),

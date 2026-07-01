@@ -74,11 +74,11 @@ class _CompanyDriversWidgetState extends State<CompanyDriversWidget> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('لا'),
+                child: Text(appTr(context, 'adm_no')),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('نعم'),
+                child: Text(uiTr(context, 'نعم')),
               ),
             ],
           ),
@@ -101,7 +101,7 @@ class _CompanyDriversWidgetState extends State<CompanyDriversWidget> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تعذر تحديث حالة السائق: $e')),
+        SnackBar(content: Text('${appTr(context, 'adm_update_driver_status_failed')}: $e')),
       );
     }
   }
@@ -118,10 +118,10 @@ class _CompanyDriversWidgetState extends State<CompanyDriversWidget> {
       menu2Model: _model.menu2Model,
       updateCallback: () => safeSetState(() {}),
       padContent: false,
-      title: 'سائقو الشركة',
+      title: appTr(context, 'nav_company_drivers'),
       child: AdminPageBody(
         title: companyName,
-        subtitle: 'إدارة سائقي شركتك ومركباتهم',
+        subtitle: appTr(context, 'scr_company_drivers_subtitle'),
         scrollable: true,
         child: companyRef == null
             ? AdminContentCard(
@@ -144,7 +144,7 @@ class _CompanyDriversWidgetState extends State<CompanyDriversWidget> {
                   AdminContentCard(
                     padding: const EdgeInsets.all(16),
                     child: AdminPrimaryButton(
-                      label: 'إضافة سائق جديد',
+                      label: uiTr(context, 'إضافة سائق جديد'),
                       icon: Icons.person_add_alt_1_rounded,
                       onPressed: _addDriver,
                     ),

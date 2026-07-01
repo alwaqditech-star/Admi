@@ -248,8 +248,8 @@ bool validateFileFormat(String filePath, BuildContext context) {
   ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
     ..showSnackBar(
-      const SnackBar(
-        content: Text('صيغة الصورة غير مدعومة. استخدم JPG أو PNG'),
+      SnackBar(
+        content: Text(appTr(context, 'adm_image_format_unsupported')),
       ),
     );
   return false;

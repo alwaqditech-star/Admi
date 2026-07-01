@@ -408,8 +408,8 @@ class _AdminAgentCopyWidgetState extends State<AdminAgentCopyWidget> {
                                                 context: context,
                                                 builder: (alertDialogContext) {
                                                   return AlertDialog(
-                                                    title: Text('تحديث'),
-                                                    content: Text('تم التحديث'),
+                                                    title: Text(uiTr(context, 'تحديث')),
+                                                    content: Text(uiTr(context, 'تم التحديث')),
                                                     actions: [
                                                       TextButton(
                                                         onPressed: () =>

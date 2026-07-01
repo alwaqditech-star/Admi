@@ -62,16 +62,16 @@ class _AdminDolWidgetState extends State<AdminDolWidget> {
     final confirmed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('تأكيد الحذف'),
-            content: Text('هل أنت متأكد من حذف "${record.naim}"؟'),
+            title: Text(appTr(context, 'adm_delete_confirm_title')),
+            content: Text(appTrFormat(context, 'adm_delete_confirm_body', record.naim)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('لا'),
+                child: Text(appTr(context, 'adm_no')),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('نعم، احذف'),
+                child: Text(appTr(context, 'adm_yes_delete')),
               ),
             ],
           ),
@@ -91,14 +91,13 @@ class _AdminDolWidgetState extends State<AdminDolWidget> {
       await AdminCrudFeedback.success(
         context,
         action: AdminCrudAction.delete,
-        message: 'تم حذف الدولة وكل البيانات المرتبطة',
+        message: uiTr(context, 'تم حذف الدولة وكل البيانات المرتبطة'),
         refreshScope: AdminListScope.countries,
         removedDocumentId: record.reference.id,
-        deletedRef: record.reference,
       );
     } catch (e) {
       if (!mounted) return;
-      AdminCrudFeedback.error(context, 'تعذر الحذف: $e');
+      AdminCrudFeedback.error(context, AdminCrudFeedback.deleteFailed(context, e));
     }
   }
 
@@ -127,7 +126,7 @@ class _AdminDolWidgetState extends State<AdminDolWidget> {
         menu2Model: _model.menu2Model,
         updateCallback: () => safeSetState(() {}),
         title: l10n.getText('9ro9sa93'),
-        feature: 'إدارة الدول',
+        feature: uiTr(context, 'إدارة الدول'),
       );
       if (blocked != null) return blocked;
     }
@@ -145,7 +144,7 @@ class _AdminDolWidgetState extends State<AdminDolWidget> {
         title: l10n.getText('9ro9sa93'),
         child: AdminPageBody(
           title: l10n.getText('kjly85m8'),
-          subtitle: 'إدارة الدول وعرض أعلامها',
+          subtitle: appTr(context, 'scr_countries_subtitle'),
           scrollable: true,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -266,7 +265,7 @@ class _AdminDolWidgetState extends State<AdminDolWidget> {
       ),
       decoration: AdminUi.inputDecoration(
         context,
-        label: 'بحث',
+        label: uiTr(context, 'بحث'),
         hint: 'ابحث باسم الدولة أو الوصف...',
         prefixIcon: Icons.search_rounded,
       ),

@@ -27,11 +27,12 @@ class AdminLandmarkIndex {
 
   static void clear() => _byPath.clear();
 
-  static void removePath(String path) => _byPath.remove(path);
+  static void removeRecord(MkanRecord record) {
+    _byPath.remove(record.reference.path);
+  }
 
-  static void removeId(String documentId) {
-    if (documentId.isEmpty) return;
-    _byPath.removeWhere((path, _) => path.endsWith('/$documentId'));
+  static void removeById(String documentId) {
+    _byPath.removeWhere((_, record) => record.reference.id == documentId);
   }
 
   static List<MkanRecord> searchLocal(String query) {
@@ -134,7 +135,7 @@ Future<List<MkanRecord>> searchLandmarksFast({
 
   if (merged.length < kAdminSearchLimit) {
     try {
-      final server = await prefix.get();
+      final server = await prefix.get(const GetOptions(source: Source.server));
       for (final doc in server.docs) {
         add(MkanRecord.fromSnapshot(doc));
         if (merged.length >= kAdminSearchLimit) break;

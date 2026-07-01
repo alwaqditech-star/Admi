@@ -1,10 +1,9 @@
 
-import '/backend/admin_landmark_search.dart';
 import '/backend/admin_agent_country_lock.dart';
-import '/backend/admin_country_landmark_filter.dart';
 import '/backend/admin_country_scope.dart';
 import '/backend/admin_audit_log.dart';
 import '/backend/admin_firestore_delete.dart';
+import '/backend/admin_landmark_search.dart';
 import '/backend/admin_resource_guard.dart';
 import '/components/admin_crud_feedback.dart';
 import '/backend/firebase_storage/storage.dart';
@@ -71,14 +70,14 @@ class _AdminaddMkanCopyWidgetState extends State<AdminaddMkanCopyWidget> {
     final name = _model.textController1?.text.trim() ?? '';
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى إدخال اسم المعلم')),
+        SnackBar(content: Text(uiTr(context, 'يرجى إدخال اسم المعلم'))),
       );
       return;
     }
 
       if (FFAppState().REvCITE == null && record.idVill == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('يرجى اختيار المدينة')),
+          SnackBar(content: Text(uiTr(context, 'يرجى اختيار المدينة'))),
         );
         return;
       }
@@ -144,13 +143,14 @@ class _AdminaddMkanCopyWidgetState extends State<AdminaddMkanCopyWidget> {
       await AdminCrudFeedback.success(
         context,
         action: AdminCrudAction.edit,
-        message: 'تم حفظ التعديلات بنجاح',
+        message: uiTr(context, 'تم حفظ التعديلات بنجاح'),
         refreshScope: AdminListScope.landmarks,
         popPage: true,
+        deferHeavyWork: false,
       );
     } catch (e) {
       if (!mounted) return;
-      AdminCrudFeedback.error(context, 'تعذر الحفظ: $e');
+      AdminCrudFeedback.error(context, AdminCrudFeedback.saveFailed(context, e));
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -180,12 +180,12 @@ class _AdminaddMkanCopyWidgetState extends State<AdminaddMkanCopyWidget> {
       });
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم اختيار الصورة بنجاح')),
+        SnackBar(content: Text(appTr(context, 'adm_image_selected'))),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تعذر رفع الصورة: ${uploadErrorMessage(e)}')),
+        SnackBar(content: Text(AdminCrudFeedback.uploadFailed(context, uploadErrorMessage(e)))),
       );
     } finally {
       if (mounted) {
@@ -204,17 +204,17 @@ class _AdminaddMkanCopyWidgetState extends State<AdminaddMkanCopyWidget> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('حذف الصورة'),
-        content: const Text('هل تريد حذف الصورة الرئيسية للمعلم؟'),
+        title: Text(uiTr(context, 'حذف الصورة')),
+        content: Text(uiTr(context, 'هل تريد حذف الصورة الرئيسية للمعلم؟')),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('إلغاء'),
+            child: Text(appTr(context, 'adm_cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('حذف'),
+            child: Text(uiTr(context, 'حذف')),
           ),
         ],
       ),
@@ -228,14 +228,14 @@ class _AdminaddMkanCopyWidgetState extends State<AdminaddMkanCopyWidget> {
       _model.mainImageRemoved = true;
     });
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('تم حذف الصورة — احفظ التعديلات لتأكيد الحذف')),
+      SnackBar(content: Text(uiTr(context, 'تم حذف الصورة — احفظ التعديلات لتأكيد الحذف'))),
     );
   }
 
   Future<void> _deleteLandmark(MkanRecord record) async {
     if (!AdminResourceGuard.canEditMkan(record)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('لا تملك صلاحية حذف هذا المعلم')),
+        SnackBar(content: Text(uiTr(context, 'لا تملك صلاحية حذف هذا المعلم'))),
       );
       return;
     }
@@ -243,16 +243,16 @@ class _AdminaddMkanCopyWidgetState extends State<AdminaddMkanCopyWidget> {
     final confirmed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('تأكيد الحذف'),
-            content: const Text('هل أنت متأكد من حذف هذا المعلم من قاعدة البيانات؟'),
+            title: Text(appTr(context, 'adm_delete_confirm_title')),
+            content: Text(uiTr(context, 'هل أنت متأكد من حذف هذا المعلم من قاعدة البيانات؟')),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('لا'),
+                child: Text(appTr(context, 'adm_no')),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('نعم، احذف'),
+                child: Text(appTr(context, 'adm_yes_delete')),
               ),
             ],
           ),
@@ -264,7 +264,7 @@ class _AdminaddMkanCopyWidgetState extends State<AdminaddMkanCopyWidget> {
     setState(() => _isDeleting = true);
     try {
       await AdminFirestoreDelete.deleteDocument(record.reference);
-      AdminLandmarkIndex.removeId(record.reference.id);
+      AdminLandmarkIndex.removeRecord(record);
       await AdminAuditLog.recordDelete(
         targetType: 'landmark',
         targetId: record.reference.id,
@@ -274,16 +274,15 @@ class _AdminaddMkanCopyWidgetState extends State<AdminaddMkanCopyWidget> {
       await AdminCrudFeedback.success(
         context,
         action: AdminCrudAction.delete,
-        message: 'تم حذف المعلم بنجاح',
+        message: uiTr(context, 'تم حذف المعلم بنجاح'),
         refreshScope: AdminListScope.landmarks,
         removedDocumentId: record.reference.id,
-        deletedRef: record.reference,
         popPage: true,
         invalidateStats: true,
       );
     } catch (e) {
       if (!mounted) return;
-      AdminCrudFeedback.error(context, 'تعذر الحذف: $e');
+      AdminCrudFeedback.error(context, AdminCrudFeedback.deleteFailed(context, e));
     } finally {
       if (mounted) setState(() => _isDeleting = false);
     }
@@ -338,14 +337,14 @@ class _AdminaddMkanCopyWidgetState extends State<AdminaddMkanCopyWidget> {
           return Scaffold(
             backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
             appBar: AppBar(
-              title: const Text('تعديل معلم'),
+              title: Text(uiTr(context, 'تعديل معلم')),
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back_rounded),
                 onPressed: () => context.safePop(),
               ),
             ),
-            body: const Center(
-              child: Text('لا تملك صلاحية تعديل هذا المعلم'),
+            body: Center(
+              child: Text(uiTr(context, 'لا تملك صلاحية تعديل هذا المعلم')),
             ),
           );
         }
@@ -684,15 +683,17 @@ class _AdminaddMkanCopyWidgetState extends State<AdminaddMkanCopyWidget> {
                                       ),
                                 ),
                                 AdminEditPickerRow(
-                                  label: 'المدينة',
+                                  label: uiTr(context, 'المدينة'),
                                   value: cityLabel == 'اختر المدينة'
                                       ? ''
                                       : cityLabel,
-                                  placeholder: 'اختر المدينة',
+                                  placeholder: uiTr(context, 'اختر المدينة'),
                                   onTap: () async {
                                     await showAdminPickerSheet(
                                       context: context,
-                                      child: const AdminCityPickerSheet(),
+                                      child: AdminCityPickerSheet(
+                                        countryRef: FFAppState().RevDolh,
+                                      ),
                                     );
                                     if (mounted) safeSetState(() {});
                                   },

@@ -7,6 +7,27 @@ class AdminUserCreation {
 
   static const _secondaryAppName = 'AdminUserCreation';
 
+  /// Arabic message for common Firebase Auth failures.
+  static String authErrorMessage(Object error) {
+    if (error is FirebaseAuthException) {
+      switch (error.code) {
+        case 'email-already-in-use':
+          return 'البريد الإلكتروني مستخدم مسبقاً. استخدم بريداً آخر أو عدّل الوكيل الحالي.';
+        case 'weak-password':
+          return 'كلمة المرور ضعيفة. يجب أن تكون 6 أحرف على الأقل.';
+        case 'invalid-email':
+          return 'البريد الإلكتروني غير صالح.';
+        case 'operation-not-allowed':
+          return 'إنشاء الحسابات غير مفعّل في Firebase Auth.';
+        case 'network-request-failed':
+          return 'تحقق من الاتصال بالإنترنت وحاول مرة أخرى.';
+        default:
+          return 'تعذر إنشاء الحساب: ${error.message ?? error.code}';
+      }
+    }
+    return error.toString();
+  }
+
   static Future<UserCredential> createEmailUser({
     required String email,
     required String password,
@@ -18,6 +39,8 @@ class AdminUserCreation {
         email: email.trim(),
         password: password,
       );
+    } on FirebaseAuthException catch (e) {
+      throw Exception(authErrorMessage(e));
     } finally {
       await auth.signOut();
     }

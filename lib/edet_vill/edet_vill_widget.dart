@@ -1,7 +1,7 @@
 
-import '/backend/admin_firestore_delete.dart';
 import '/backend/admin_audit_log.dart';
 import '/backend/admin_cascade_delete.dart';
+import '/backend/admin_firestore_delete.dart';
 import '/backend/backend.dart';
 import '/backend/firebase_storage/storage.dart';
 import '/components/admin_crud_feedback.dart';
@@ -102,12 +102,12 @@ class _EdetVillWidgetState extends State<EdetVillWidget> {
       });
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم اختيار الصورة بنجاح')),
+        SnackBar(content: Text(appTr(context, 'adm_image_selected'))),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تعذر رفع الصورة: ${uploadErrorMessage(e)}')),
+        SnackBar(content: Text(AdminCrudFeedback.uploadFailed(context, uploadErrorMessage(e)))),
       );
     } finally {
       if (mounted) {
@@ -120,19 +120,19 @@ class _EdetVillWidgetState extends State<EdetVillWidget> {
     final name = _model.textController1!.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى إدخال اسم المدينة')),
+        SnackBar(content: Text(uiTr(context, 'يرجى إدخال اسم المدينة'))),
       );
       return;
     }
     if (FFAppState().Revreg == null && record.cities == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى اختيار المنطقة')),
+        SnackBar(content: Text(uiTr(context, 'يرجى اختيار المنطقة'))),
       );
       return;
     }
     if (FFAppState().RevDolh == null && record.dolh == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى اختيار الدولة')),
+        SnackBar(content: Text(uiTr(context, 'يرجى اختيار الدولة'))),
       );
       return;
     }
@@ -158,13 +158,14 @@ class _EdetVillWidgetState extends State<EdetVillWidget> {
       await AdminCrudFeedback.success(
         context,
         action: AdminCrudAction.edit,
-        message: 'تم حفظ التعديلات بنجاح',
+        message: uiTr(context, 'تم حفظ التعديلات بنجاح'),
         refreshScope: AdminListScope.cities,
         popPage: true,
+        deferHeavyWork: false,
       );
     } catch (e) {
       if (!mounted) return;
-      AdminCrudFeedback.error(context, 'تعذر الحفظ: $e');
+      AdminCrudFeedback.error(context, AdminCrudFeedback.saveFailed(context, e));
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -174,16 +175,16 @@ class _EdetVillWidgetState extends State<EdetVillWidget> {
     final confirmed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('تأكيد الحذف'),
-            content: Text('هل أنت متأكد من حذف "${record.naim}"؟'),
+            title: Text(appTr(context, 'adm_delete_confirm_title')),
+            content: Text(appTrFormat(context, 'adm_delete_confirm_body', record.naim)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('لا'),
+                child: Text(appTr(context, 'adm_no')),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('نعم، احذف'),
+                child: Text(appTr(context, 'adm_yes_delete')),
               ),
             ],
           ),
@@ -204,15 +205,14 @@ class _EdetVillWidgetState extends State<EdetVillWidget> {
       await AdminCrudFeedback.success(
         context,
         action: AdminCrudAction.delete,
-        message: 'تم حذف المدينة والمعالم المرتبطة',
+        message: uiTr(context, 'تم حذف المدينة والمعالم المرتبطة'),
         refreshScope: AdminListScope.cities,
         removedDocumentId: record.reference.id,
-        deletedRef: record.reference,
         popPage: true,
       );
     } catch (e) {
       if (!mounted) return;
-      AdminCrudFeedback.error(context, 'تعذر الحذف: $e');
+      AdminCrudFeedback.error(context, AdminCrudFeedback.deleteFailed(context, e));
     } finally {
       if (mounted) setState(() => _isDeleting = false);
     }
@@ -226,8 +226,8 @@ class _EdetVillWidgetState extends State<EdetVillWidget> {
       stream: VillagesRecord.getDocument(widget.idvill!),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const AdminEditScaffold(
-            title: 'تعديل المدينة',
+          return AdminEditScaffold(
+            title: uiTr(context, 'تعديل المدينة'),
             isLoading: true,
             child: SizedBox.shrink(),
           );
@@ -246,8 +246,8 @@ class _EdetVillWidgetState extends State<EdetVillWidget> {
             : (_model.regionLabel ?? '');
 
         return AdminEditScaffold(
-          title: 'تعديل المدينة',
-          subtitle: 'حدّث بيانات المدينة وموقعها وصورتها',
+          title: uiTr(context, 'تعديل المدينة'),
+          subtitle: uiTr(context, 'حدّث بيانات المدينة وموقعها وصورتها'),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -264,12 +264,12 @@ class _EdetVillWidgetState extends State<EdetVillWidget> {
               ),
               const SizedBox(height: AdminUi.sectionGap),
               AdminEditFormCard(
-                sectionTitle: 'الموقع',
+                sectionTitle: uiTr(context, 'الموقع'),
                 children: [
                   AdminEditPickerRow(
-                    label: 'الدولة',
+                    label: uiTr(context, 'الدولة'),
                     value: countryLabel,
-                    placeholder: 'اختر الدولة',
+                    placeholder: uiTr(context, 'اختر الدولة'),
                     onTap: () async {
                       final previousCountry = FFAppState().RevDolh;
                       await showAdminPickerSheet(
@@ -288,7 +288,7 @@ class _EdetVillWidgetState extends State<EdetVillWidget> {
                   ),
                   const SizedBox(height: AdminUi.fieldGap),
                   AdminEditPickerRow(
-                    label: 'المنطقة',
+                    label: uiTr(context, 'المنطقة'),
                     value: regionLabel,
                     placeholder: countryLabel.isEmpty
                         ? 'اختر الدولة أولاً'
@@ -297,8 +297,8 @@ class _EdetVillWidgetState extends State<EdetVillWidget> {
                       if (countryLabel.isEmpty &&
                           FFAppState().RevDolh == null) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('يرجى اختيار الدولة أولاً'),
+                          SnackBar(
+                            content: Text(uiTr(context, 'يرجى اختيار الدولة أولاً')),
                           ),
                         );
                         return;
@@ -324,25 +324,25 @@ class _EdetVillWidgetState extends State<EdetVillWidget> {
               ),
               const SizedBox(height: AdminUi.sectionGap),
               AdminEditFormCard(
-                sectionTitle: 'البيانات',
+                sectionTitle: uiTr(context, 'البيانات'),
                 children: [
                   AdminTextField(
                     controller: _model.textController1!,
                     focusNode: _model.textFieldFocusNode1,
-                    label: 'اسم المدينة',
+                    label: uiTr(context, 'اسم المدينة'),
                     icon: Icons.location_city_rounded,
                   ),
                   const SizedBox(height: AdminUi.fieldGap),
                   AdminTextField(
                     controller: _model.textController2!,
                     focusNode: _model.textFieldFocusNode2,
-                    label: 'وصف المدينة',
+                    label: uiTr(context, 'وصف المدينة'),
                     icon: Icons.notes_rounded,
                   ),
                   const SizedBox(height: AdminUi.fieldGap),
                   AdminEditSwitchRow(
-                    label: 'تفعيل المدينة',
-                    subtitle: 'تظهر المدينة في التطبيق عند التفعيل',
+                    label: uiTr(context, 'تفعيل المدينة'),
+                    subtitle: uiTr(context, 'تظهر المدينة في التطبيق عند التفعيل'),
                     value: _model.switchValue ?? record.acctev,
                     onChanged: (v) => setState(() => _model.switchValue = v),
                   ),
@@ -366,7 +366,7 @@ class _EdetVillWidgetState extends State<EdetVillWidget> {
               ),
               const SizedBox(height: 12),
               AdminPrimaryButton(
-                label: 'حفظ التعديلات',
+                label: uiTr(context, 'حفظ التعديلات'),
                 icon: Icons.save_rounded,
                 isLoading: _isSaving,
                 onPressed: () => _save(record),

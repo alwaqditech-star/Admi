@@ -77,7 +77,7 @@ class _AdminAgentReportWidgetState extends State<AdminAgentReportWidget> {
     if (!AdminSuperAdminGate.isAllowed) {
       return AdminSuperAdminGate.deniedEditScaffold(
         context: context,
-        title: 'تقرير الوكيل',
+        title: appTr(context, 'scr_agent_report'),
       );
     }
 
@@ -93,9 +93,9 @@ class _AdminAgentReportWidgetState extends State<AdminAgentReportWidget> {
             ),
             onPressed: () => context.safePop(),
           ),
-          title: const Text('تقرير الوكيل'),
+          title: Text(uiTr(context, 'تقرير الوكيل')),
         ),
-        body: const Center(child: Text('تعذر تحميل بيانات الوكيل')),
+        body: Center(child: Text(uiTr(context, 'تعذر تحميل بيانات الوكيل'))),
       );
     }
 
@@ -166,11 +166,11 @@ class _AdminAgentReportWidgetState extends State<AdminAgentReportWidget> {
                   const SizedBox(height: 16),
                   _AgentContactCard(agent: adminAgentReportUserRecord),
                   const SizedBox(height: 16),
-                  _AgentFirestoreStatsSection(
-                    agent: adminAgentReportUserRecord,
-                  ),
+                    _AgentFirestoreStatsSection(
+                      agent: adminAgentReportUserRecord,
+                    ),
                 ],
-              ),
+                ),
             ),
           ),
         );
@@ -225,16 +225,16 @@ class _AgentFirestoreStatsSectionState
         return Column(
           children: [
             AdminContentCard(
-              child: Column(
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Row(
-                    children: [
+                  children: [
                       const Icon(Icons.bar_chart_rounded,
                           color: AdminUi.brandTeal, size: 22),
                       const SizedBox(width: 8),
-                      Text(
-                        l10n.getText('yw6zaf93'),
+                    Text(
+                      l10n.getText('yw6zaf93'),
                         style: theme.titleSmall.override(
                           fontFamily: theme.titleSmallFamily,
                           fontWeight: FontWeight.w700,
@@ -243,8 +243,8 @@ class _AgentFirestoreStatsSectionState
                         ),
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 16),
+                    ),
+                    const SizedBox(height: 16),
                   LayoutBuilder(
                     builder: (context, constraints) {
                       final cols = constraints.maxWidth >= 520 ? 3 : 1;
@@ -255,48 +255,48 @@ class _AgentFirestoreStatsSectionState
                       return Wrap(
                         spacing: gap,
                         runSpacing: gap,
-                        children: [
+                      children: [
                           SizedBox(
                             width: w,
                             child: _StatBox(
-                              label: l10n.getText('63q98jre'),
-                              value: '${stats.totalBookings}',
+                          label: l10n.getText('63q98jre'),
+                          value: '${stats.totalBookings}',
                               color: const Color(0xFF5C6BC0),
                             ),
-                          ),
+                        ),
                           SizedBox(
                             width: w,
                             child: _StatBox(
-                              label: l10n.getText('ty7kis1x'),
-                              value: '${stats.activeBookings}',
+                          label: l10n.getText('ty7kis1x'),
+                          value: '${stats.activeBookings}',
                               color: AdminUi.brandTeal,
                             ),
-                          ),
+                        ),
                           SizedBox(
                             width: w,
                             child: _StatBox(
-                              label: l10n.getText('0lm704xz'),
-                              value: '${stats.completionRate.toStringAsFixed(0)}%',
+                          label: l10n.getText('0lm704xz'),
+                          value: '${stats.completionRate.toStringAsFixed(0)}%',
                               color: const Color(0xFF39D2C0),
                             ),
-                          ),
-                        ],
+                        ),
+                      ],
                       );
                     },
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
                       color: AdminUi.brandTeal.withValues(alpha: 0.06),
                       borderRadius: BorderRadius.circular(AdminUi.radiusSm),
                       border: Border.all(
                         color: AdminUi.brandTeal.withValues(alpha: 0.15),
                       ),
-                    ),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
+                      ),
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
                         _MoneyRow(
                           label: l10n.getText('uw5ozgrs'),
                           value: _money(stats.totalSales),
@@ -306,31 +306,31 @@ class _AgentFirestoreStatsSectionState
                         Divider(
                           height: 1,
                           color: theme.alternate.withValues(alpha: 0.6),
-                        ),
-                        const SizedBox(height: 12),
+                          ),
+                          const SizedBox(height: 12),
                         _MoneyRow(
                           label: l10n.getText('c4tprvvk'),
                           value: _money(stats.commissionEarned),
                           valueColor: AdminUi.brandTeal,
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
             const SizedBox(height: 16),
             AdminContentCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
                   Row(
                     children: [
                       const Icon(Icons.receipt_long_rounded,
                           color: AdminUi.brandTeal, size: 22),
                       const SizedBox(width: 8),
-                      Text(
-                        l10n.getText('c6f8vf28'),
+                    Text(
+                      l10n.getText('c6f8vf28'),
                         style: theme.titleSmall.override(
                           fontFamily: theme.titleSmallFamily,
                           fontWeight: FontWeight.w700,
@@ -339,9 +339,9 @@ class _AgentFirestoreStatsSectionState
                         ),
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 16),
-                  if (stats.recentOrders.isEmpty)
+                    ),
+                    const SizedBox(height: 16),
+                    if (stats.recentOrders.isEmpty)
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 24),
                       child: Column(
@@ -352,24 +352,24 @@ class _AgentFirestoreStatsSectionState
                             color: AdminUi.brandTeal.withValues(alpha: 0.35),
                           ),
                           const SizedBox(height: 10),
-                          Text(
-                            'لا توجد حجوزات في دولة هذا الوكيل',
-                            textAlign: TextAlign.center,
-                            style: theme.bodyMedium.override(
-                              fontFamily: theme.bodyMediumFamily,
-                              color: theme.secondaryText,
-                              useGoogleFonts: !theme.bodyMediumIsCustom,
+                      Text(
+                        'لا توجد حجوزات في دولة هذا الوكيل',
+                        textAlign: TextAlign.center,
+                        style: theme.bodyMedium.override(
+                          fontFamily: theme.bodyMediumFamily,
+                          color: theme.secondaryText,
+                          useGoogleFonts: !theme.bodyMediumIsCustom,
                             ),
                           ),
                         ],
-                      ),
-                    )
-                  else
-                    ...stats.recentOrders.map(
-                      (order) => Padding(
+                        ),
+                      )
+                    else
+                      ...stats.recentOrders.map(
+                        (order) => Padding(
                         padding: const EdgeInsets.only(bottom: 10),
-                        child: Container(
-                          decoration: BoxDecoration(
+                          child: Container(
+                            decoration: BoxDecoration(
                             color: theme.primaryBackground,
                             borderRadius: BorderRadius.circular(AdminUi.radiusSm),
                             border: Border.all(
@@ -377,8 +377,8 @@ class _AgentFirestoreStatsSectionState
                             ),
                           ),
                           padding: const EdgeInsets.all(14),
-                          child: Row(
-                            children: [
+                            child: Row(
+                              children: [
                               Container(
                                 width: 40,
                                 height: 40,
@@ -393,38 +393,38 @@ class _AgentFirestoreStatsSectionState
                                 ),
                               ),
                               const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
+                                Expanded(
+                                  child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      orderDisplayTitle(order),
-                                      style: theme.bodyMedium.override(
-                                        fontFamily: theme.bodyMediumFamily,
-                                        fontWeight: FontWeight.w600,
-                                        useGoogleFonts:
-                                            !theme.bodyMediumIsCustom,
-                                      ),
-                                    ),
-                                    if (order.dataOrder != null)
+                                    children: [
                                       Text(
-                                        dateTimeFormat(
-                                          'yMMMd',
-                                          order.dataOrder,
-                                          locale: l10n.languageCode,
+                                        orderDisplayTitle(order),
+                                        style: theme.bodyMedium.override(
+                                          fontFamily: theme.bodyMediumFamily,
+                                          fontWeight: FontWeight.w600,
+                                          useGoogleFonts:
+                                              !theme.bodyMediumIsCustom,
                                         ),
+                                      ),
+                                      if (order.dataOrder != null)
+                                        Text(
+                                          dateTimeFormat(
+                                            'yMMMd',
+                                            order.dataOrder,
+                                            locale: l10n.languageCode,
+                                          ),
                                         style: theme.labelSmall.override(
                                           fontFamily: theme.labelSmallFamily,
-                                          color: theme.secondaryText,
-                                          useGoogleFonts:
+                                            color: theme.secondaryText,
+                                            useGoogleFonts:
                                               !theme.labelSmallIsCustom,
                                         ),
-                                      ),
-                                  ],
+                                        ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                _money(order.total),
+                                Text(
+                                  _money(order.total),
                                 style: theme.titleSmall.override(
                                   fontFamily: theme.titleSmallFamily,
                                   fontWeight: FontWeight.w700,
@@ -434,10 +434,10 @@ class _AgentFirestoreStatsSectionState
                               ),
                             ],
                           ),
+                          ),
                         ),
                       ),
-                    ),
-                ],
+                  ],
               ),
             ),
           ],
@@ -619,7 +619,7 @@ class _AgentDatesCard extends StatelessWidget {
     final l10n = FFLocalizations.of(context);
 
     return AdminContentCard(
-      title: 'تواريخ العقد',
+      title: uiTr(context, 'تواريخ العقد'),
       child: Column(
         children: [
           _InfoRow(
@@ -674,25 +674,25 @@ class _AgentContactCard extends StatelessWidget {
         children: [
           _InfoRow(
             icon: Icons.phone_rounded,
-            label: 'الهاتف',
+            label: uiTr(context, 'الهاتف'),
             value: phone.isNotEmpty ? phone : '—',
           ),
           const SizedBox(height: 10),
           _InfoRow(
             icon: Icons.email_rounded,
-            label: 'البريد الإلكتروني',
+            label: uiTr(context, 'البريد الإلكتروني'),
             value: agent.email.isNotEmpty ? agent.email : '—',
           ),
           const SizedBox(height: 10),
           _InfoRow(
             icon: Icons.location_on_rounded,
-            label: 'العنوان',
+            label: uiTr(context, 'العنوان'),
             value: address.isNotEmpty ? address : '—',
           ),
           const SizedBox(height: 10),
           _InfoRow(
             icon: Icons.flag_rounded,
-            label: 'الدولة',
+            label: uiTr(context, 'الدولة'),
             value: agent.dolhAgent.isNotEmpty ? agent.dolhAgent : '—',
           ),
         ],

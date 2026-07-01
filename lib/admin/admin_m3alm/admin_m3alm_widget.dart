@@ -46,7 +46,6 @@ class _AdminM3almWidgetState extends State<AdminM3almWidget> {
   String _searchQuery = '';
   Future<List<MkanRecord>>? _searchFuture;
   int _searchRequestId = 0;
-  bool _isDeletingLandmark = false;
 
   Query _landmarksQuery(Query collection) {
     var q = collection as Query<Map<String, dynamic>>;
@@ -174,10 +173,20 @@ class _AdminM3almWidgetState extends State<AdminM3almWidget> {
     );
   }
 
+  Future<void> _refreshLandmarksAfterCrud() async {
+    if (_searchQuery.trim().isNotEmpty) {
+      final future = _searchLandmarks(_searchQuery);
+      if (mounted) {
+        setState(() => _searchFuture = future);
+      }
+      await future;
+    }
+  }
+
   Future<void> _deleteLandmark(MkanRecord record) async {
     if (!AdminResourceGuard.canEditMkan(record)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('لا تملك صلاحية حذف هذا المعلم')),
+        SnackBar(content: Text(uiTr(context, 'لا تملك صلاحية حذف هذا المعلم'))),
       );
       return;
     }
@@ -185,16 +194,16 @@ class _AdminM3almWidgetState extends State<AdminM3almWidget> {
     final confirmed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('تأكيد الحذف'),
-            content: const Text('هل أنت متأكد من حذف هذا المعلم؟'),
+            title: Text(appTr(context, 'adm_delete_confirm_title')),
+            content: Text(uiTr(context, 'هل أنت متأكد من حذف هذا المعلم؟')),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('لا'),
+                child: Text(appTr(context, 'adm_no')),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('نعم، احذف'),
+                child: Text(appTr(context, 'adm_yes_delete')),
               ),
             ],
           ),
@@ -203,39 +212,31 @@ class _AdminM3almWidgetState extends State<AdminM3almWidget> {
 
     if (!confirmed) return;
 
-    setState(() => _isDeletingLandmark = true);
     try {
       await ensureCurrentUserDocument(forceRefresh: true);
       if (AdminRoleService.isCountryAgent) {
         await AdminAgentCountryLock.ensureCountryResolved();
       }
       await AdminFirestoreDelete.deleteDocument(record.reference);
-      AdminLandmarkIndex.removeId(record.reference.id);
+      AdminLandmarkIndex.removeRecord(record);
       await AdminAuditLog.recordDelete(
         targetType: 'landmark',
         targetId: record.reference.id,
         targetLabel: record.naim,
       );
       if (!mounted) return;
-      if (_searchQuery.trim().isNotEmpty) {
-        setState(() {
-          _searchFuture = _searchLandmarks(_searchQuery);
-        });
-      }
       await AdminCrudFeedback.success(
         context,
         action: AdminCrudAction.delete,
-        message: AdminCrudFeedback.deleteSuccessMessage,
+        message: AdminCrudFeedback.deleteSuccessMessage(context),
         refreshScope: AdminListScope.landmarks,
         removedDocumentId: record.reference.id,
-        deletedRef: record.reference,
+        refresh: _refreshLandmarksAfterCrud,
         invalidateStats: true,
       );
     } catch (e) {
       if (!mounted) return;
-      AdminCrudFeedback.error(context, 'تعذر الحذف: $e');
-    } finally {
-      if (mounted) setState(() => _isDeletingLandmark = false);
+      AdminCrudFeedback.error(context, AdminCrudFeedback.deleteFailed(context, e));
     }
   }
 
@@ -266,7 +267,7 @@ class _AdminM3almWidgetState extends State<AdminM3almWidget> {
   void _editLandmark(MkanRecord record) {
     if (!AdminResourceGuard.canEditMkan(record)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('لا تملك صلاحية تعديل هذا المعلم')),
+        SnackBar(content: Text(uiTr(context, 'لا تملك صلاحية تعديل هذا المعلم'))),
       );
       return;
     }
@@ -428,9 +429,7 @@ class _AdminM3almWidgetState extends State<AdminM3almWidget> {
     final theme = FlutterFlowTheme.of(context);
     final isWide = AdminUi.useTableLayout(context);
 
-    return Stack(
-      children: [
-        GestureDetector(
+    return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
         FocusManager.instance.primaryFocus?.unfocus();
@@ -479,7 +478,7 @@ class _AdminM3almWidgetState extends State<AdminM3almWidget> {
                   future: _searchFuture,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const AdminContentCard(
+                      return AdminContentCard(
                         child: Padding(
                           padding: EdgeInsets.symmetric(vertical: 48),
                           child: Center(
@@ -515,21 +514,6 @@ class _AdminM3almWidgetState extends State<AdminM3almWidget> {
           ),
         ),
       ),
-    ),
-        if (_isDeletingLandmark)
-          const Positioned.fill(
-            child: ColoredBox(
-              color: Color(0x55000000),
-              child: Center(
-                child: SizedBox(
-                  width: 44,
-                  height: 44,
-                  child: CircularProgressIndicator(strokeWidth: 3),
-                ),
-              ),
-            ),
-          ),
-      ],
     );
   }
 
@@ -641,14 +625,14 @@ class _LandmarksSummaryBar extends StatelessWidget {
               children: [
                 _SummaryChip(
                   icon: Icons.check_circle_outline_rounded,
-                  label: 'نشط',
+                  label: uiTr(context, 'نشط'),
                   value: activeCount.toString(),
                   color: const Color(0xFF2E7D32),
                   background: const Color(0xFFE8F5E9),
                 ),
                 _SummaryChip(
                   icon: Icons.pause_circle_outline_rounded,
-                  label: 'غير نشط',
+                  label: uiTr(context, 'غير نشط'),
                   value: inactiveCount.toString(),
                   color: const Color(0xFFE65100),
                   background: const Color(0xFFFFF3E0),
@@ -1197,11 +1181,11 @@ class _LandmarkServices extends StatelessWidget {
   Widget build(BuildContext context) {
     final services = <Widget>[
       if (record.ismsgd)
-        _ServiceChip(icon: Icons.mosque_outlined, label: 'مسجد', compact: compact),
+        _ServiceChip(icon: Icons.mosque_outlined, label: uiTr(context, 'مسجد'), compact: compact),
       if (record.isfood)
-        _ServiceChip(icon: Icons.restaurant_outlined, label: 'طعام', compact: compact),
+        _ServiceChip(icon: Icons.restaurant_outlined, label: uiTr(context, 'طعام'), compact: compact),
       if (record.ishmam)
-        _ServiceChip(icon: Icons.wc_outlined, label: 'حمامات', compact: compact),
+        _ServiceChip(icon: Icons.wc_outlined, label: uiTr(context, 'حمامات'), compact: compact),
       if (record.rate > 0)
         _ServiceChip(
           icon: Icons.star_rounded,
@@ -1292,7 +1276,7 @@ class _LandmarkActions extends StatelessWidget {
       if (canModify) ...[
         buildBtn(
           icon: Icons.edit_rounded,
-          label: 'تعديل',
+          label: uiTr(context, 'تعديل'),
           onPressed: onEdit,
           bg: AdminUi.brandTeal.withValues(alpha: 0.08),
         ),
@@ -1302,7 +1286,7 @@ class _LandmarkActions extends StatelessWidget {
         if (expanded && !canModify) const SizedBox.shrink(),
         buildBtn(
           icon: Icons.map_rounded,
-          label: 'الخريطة',
+          label: uiTr(context, 'الخريطة'),
           onPressed: onMap,
           bg: const Color(0xFFE3F2FD),
           color: const Color(0xFF1565C0),
@@ -1312,7 +1296,7 @@ class _LandmarkActions extends StatelessWidget {
         if (expanded) const SizedBox(width: 6),
         buildBtn(
           icon: Icons.delete_rounded,
-          label: 'حذف',
+          label: uiTr(context, 'حذف'),
           onPressed: onDelete,
           bg: const Color(0xFFFFEBEE),
           color: theme.error,

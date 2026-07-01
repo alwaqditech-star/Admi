@@ -50,7 +50,7 @@ class _EdetTransportCompanyWidgetState
       if (!mounted) return;
       if (!AdminResourceGuard.canEditTransportCompany(company)) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('لا تملك صلاحية تعديل هذه الشركة')),
+          SnackBar(content: Text(uiTr(context, 'لا تملك صلاحية تعديل هذه الشركة'))),
         );
         context.safePop();
         return;
@@ -95,13 +95,14 @@ class _EdetTransportCompanyWidgetState
       await AdminCrudFeedback.success(
         context,
         action: AdminCrudAction.edit,
-        message: 'تم تحديث بيانات الشركة',
+        message: uiTr(context, 'تم تحديث بيانات الشركة'),
         refreshScope: AdminListScope.transportCompanies,
         popPage: true,
+        deferHeavyWork: false,
       );
     } catch (e) {
       if (!mounted) return;
-      AdminCrudFeedback.error(context, 'تعذر الحفظ: $e');
+      AdminCrudFeedback.error(context, AdminCrudFeedback.saveFailed(context, e));
     } finally {
       if (mounted) setState(() => _model.isSubmitting = false);
     }
@@ -114,18 +115,18 @@ class _EdetTransportCompanyWidgetState
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('حذف شركة النقل'),
+        title: Text(uiTr(context, 'حذف شركة النقل')),
         content: const Text(
           'هل أنت متأكد من حذف هذه الشركة؟ لن يُحذف حساب المدير تلقائياً.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('إلغاء'),
+            child: Text(appTr(context, 'adm_cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('حذف', style: TextStyle(color: Colors.red)),
+            child: Text(appTr(context, 'adm_delete'), style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -143,15 +144,14 @@ class _EdetTransportCompanyWidgetState
       await AdminCrudFeedback.success(
         context,
         action: AdminCrudAction.delete,
-        message: 'تم حذف الشركة',
+        message: uiTr(context, 'تم حذف الشركة'),
         refreshScope: AdminListScope.transportCompanies,
         removedDocumentId: ref.id,
-        deletedRef: ref,
         popPage: true,
       );
     } catch (e) {
       if (!mounted) return;
-      AdminCrudFeedback.error(context, 'تعذر الحذف: $e');
+      AdminCrudFeedback.error(context, AdminCrudFeedback.deleteFailed(context, e));
     } finally {
       if (mounted) setState(() => _model.isSubmitting = false);
     }
@@ -160,8 +160,8 @@ class _EdetTransportCompanyWidgetState
   @override
   Widget build(BuildContext context) {
     if (_model.isLoading) {
-      return const AdminEditScaffold(
-        title: 'تعديل شركة نقل',
+      return AdminEditScaffold(
+        title: appTr(context, 'scr_edit_transport'),
         isLoading: true,
         child: SizedBox.shrink(),
       );
@@ -169,7 +169,7 @@ class _EdetTransportCompanyWidgetState
 
     if (_company == null) {
       return AdminEditScaffold(
-        title: 'تعديل شركة نقل',
+        title: appTr(context, 'scr_edit_transport'),
         child: AdminContentCard(
           child: Text(
             'تعذر تحميل بيانات الشركة',
@@ -180,13 +180,13 @@ class _EdetTransportCompanyWidgetState
     }
 
     return AdminEditScaffold(
-      title: 'تعديل شركة نقل',
+      title: appTr(context, 'scr_edit_transport'),
       subtitle: _company!.dolhText.isNotEmpty
           ? 'الدولة: ${_company!.dolhText}'
           : null,
       isLoading: _model.isSubmitting,
       floatingAction: AdminPrimaryButton(
-        label: 'حفظ التعديلات',
+        label: uiTr(context, 'حفظ التعديلات'),
         icon: Icons.save_rounded,
         isLoading: _model.isSubmitting,
         onPressed: _model.isSubmitting ? null : _save,
@@ -202,8 +202,8 @@ class _EdetTransportCompanyWidgetState
                   TextFormField(
                     controller: _model.nameTextController,
                     focusNode: _model.nameFocusNode,
-                    decoration: const InputDecoration(
-                      labelText: 'اسم الشركة',
+                    decoration: InputDecoration(
+                      labelText: uiTr(context, 'اسم الشركة'),
                     ),
                     validator: (v) =>
                         v == null || v.trim().isEmpty ? 'مطلوب' : null,
@@ -212,8 +212,8 @@ class _EdetTransportCompanyWidgetState
                   TextFormField(
                     controller: _model.licenseTextController,
                     focusNode: _model.licenseFocusNode,
-                    decoration: const InputDecoration(
-                      labelText: 'رقم ترخيص هيئة النقل',
+                    decoration: InputDecoration(
+                      labelText: uiTr(context, 'رقم ترخيص هيئة النقل'),
                     ),
                     validator: (v) =>
                         v == null || v.trim().isEmpty ? 'مطلوب' : null,
@@ -222,22 +222,22 @@ class _EdetTransportCompanyWidgetState
                   TextFormField(
                     controller: _model.phoneTextController,
                     focusNode: _model.phoneFocusNode,
-                    decoration: const InputDecoration(labelText: 'جوال'),
+                    decoration: InputDecoration(labelText: uiTr(context, 'جوال')),
                     keyboardType: TextInputType.phone,
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _model.emailTextController,
                     focusNode: _model.emailFocusNode,
-                    decoration: const InputDecoration(
-                      labelText: 'بريد مدير الشركة',
+                    decoration: InputDecoration(
+                      labelText: uiTr(context, 'بريد مدير الشركة'),
                     ),
                     keyboardType: TextInputType.emailAddress,
                   ),
                   const SizedBox(height: 12),
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text('الشركة مفعّلة'),
+                    title: Text(uiTr(context, 'الشركة مفعّلة')),
                     value: _model.activeValue,
                     onChanged: _model.isSubmitting
                         ? null

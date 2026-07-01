@@ -27,10 +27,6 @@ class SettingsModel extends FlutterFlowModel<SettingsWidget> {
 
   bool isSavingProfile = false;
   bool isSavingPassword = false;
-  bool isSeedingDemo = false;
-  bool isSeedingProduction = false;
-  bool isCountryBackfilling = false;
-  bool isPartnerOrderBackfilling = false;
   bool isUploadingPhoto = false;
   FFUploadedFile uploadedLocalPhoto =
       FFUploadedFile(bytes: Uint8List.fromList([]));

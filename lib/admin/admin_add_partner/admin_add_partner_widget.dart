@@ -90,19 +90,19 @@ class _AdminAddPartnerWidgetState extends State<AdminAddPartnerWidget> {
 
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى إدخال اسم الشريك')),
+        SnackBar(content: Text(uiTr(context, 'يرجى إدخال اسم الشريك'))),
       );
       return;
     }
     if (description.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى إدخال وصف الخدمات')),
+        SnackBar(content: Text(uiTr(context, 'يرجى إدخال وصف الخدمات'))),
       );
       return;
     }
     if (FFAppState().REvCITE == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى اختيار المدينة')),
+        SnackBar(content: Text(uiTr(context, 'يرجى اختيار المدينة'))),
       );
       return;
     }
@@ -112,13 +112,13 @@ class _AdminAddPartnerWidgetState extends State<AdminAddPartnerWidget> {
     if (email.isNotEmpty) {
       if (password.length < 6) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('كلمة مرور الحساب يجب أن تكون 6 أحرف على الأقل')),
+          SnackBar(content: Text(uiTr(context, 'كلمة مرور الحساب يجب أن تكون 6 أحرف على الأقل'))),
         );
         return;
       }
       if (password != confirmPassword) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('كلمتا مرور الحساب غير متطابقتين')),
+          SnackBar(content: Text(uiTr(context, 'كلمتا مرور الحساب غير متطابقتين'))),
         );
         return;
       }
@@ -132,7 +132,7 @@ class _AdminAddPartnerWidgetState extends State<AdminAddPartnerWidget> {
     if (location == null ||
         !AdminLocationService.isValidLocation(location)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى تحديد موقع الشريك على الخريطة')),
+        SnackBar(content: Text(uiTr(context, 'يرجى تحديد موقع الشريك على الخريطة'))),
       );
       return;
     }
@@ -140,7 +140,7 @@ class _AdminAddPartnerWidgetState extends State<AdminAddPartnerWidget> {
     if (_model.isDataUploading_mainImage ||
         _model.isDataUploading_secondImage) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('انتظر اكتمال رفع الصور ثم احفظ')),
+        SnackBar(content: Text(uiTr(context, 'انتظر اكتمال رفع الصور ثم احفظ'))),
       );
       return;
     }
@@ -162,7 +162,7 @@ class _AdminAddPartnerWidgetState extends State<AdminAddPartnerWidget> {
       if (img1.isEmpty) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('يرجى إضافة صورة للشريك')),
+          SnackBar(content: Text(uiTr(context, 'يرجى إضافة صورة للشريك'))),
         );
         return;
       }
@@ -242,7 +242,7 @@ class _AdminAddPartnerWidgetState extends State<AdminAddPartnerWidget> {
       );
     } catch (e) {
       if (!mounted) return;
-      AdminCrudFeedback.error(context, 'تعذر الحفظ: $e');
+      AdminCrudFeedback.error(context, AdminCrudFeedback.saveFailed(context, e));
     } finally {
       if (mounted) {
         setState(() => _isSaving = false);
@@ -290,11 +290,11 @@ class _AdminAddPartnerWidgetState extends State<AdminAddPartnerWidget> {
         FocusManager.instance.primaryFocus?.unfocus();
       },
       child: AdminEditScaffold(
-        title: 'إضافة شريك جديد',
-        subtitle: 'أدخل بيانات الشريك السياحي لإضافته إلى قائمة الشركاء',
+        title: appTr(context, 'scr_add_partner'),
+        subtitle: uiTr(context, 'أدخل بيانات الشريك السياحي لإضافته إلى قائمة الشركاء'),
         isLoading: _isSaving,
         floatingAction: AdminPrimaryButton(
-          label: 'حفظ الشريك',
+          label: uiTr(context, 'حفظ الشريك'),
           icon: Icons.handshake_rounded,
           isLoading: _isSaving,
           onPressed: _isSaving ? null : _savePartner,
@@ -303,14 +303,14 @@ class _AdminAddPartnerWidgetState extends State<AdminAddPartnerWidget> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             AdminEditFormCard(
-              sectionTitle: 'البيانات الأساسية',
+              sectionTitle: uiTr(context, 'البيانات الأساسية'),
               children: [
                 TextFormField(
                   controller: _model.nameTextController,
                   focusNode: _model.nameFocusNode,
-                  decoration: const InputDecoration(
-                    labelText: 'اسم الشريك / الشركة',
-                    hintText: 'مثال: شركة الرحلات الذهبية',
+                  decoration: InputDecoration(
+                    labelText: uiTr(context, 'اسم الشريك / الشركة'),
+                    hintText: uiTr(context, 'مثال: شركة الرحلات الذهبية'),
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -318,9 +318,9 @@ class _AdminAddPartnerWidgetState extends State<AdminAddPartnerWidget> {
                   controller: _model.descriptionTextController,
                   focusNode: _model.descriptionFocusNode,
                   maxLines: 4,
-                  decoration: const InputDecoration(
-                    labelText: 'وصف الخدمات',
-                    hintText: 'اكتب وصفاً مختصراً لخدمات الشريك',
+                  decoration: InputDecoration(
+                    labelText: uiTr(context, 'وصف الخدمات'),
+                    hintText: uiTr(context, 'اكتب وصفاً مختصراً لخدمات الشريك'),
                     alignLabelWithHint: true,
                   ),
                 ),
@@ -329,8 +329,8 @@ class _AdminAddPartnerWidgetState extends State<AdminAddPartnerWidget> {
                   controller: _model.phoneTextController,
                   focusNode: _model.phoneFocusNode,
                   keyboardType: TextInputType.phone,
-                  decoration: const InputDecoration(
-                    labelText: 'رقم الجوال',
+                  decoration: InputDecoration(
+                    labelText: uiTr(context, 'رقم الجوال'),
                     hintText: '05xxxxxxxx',
                   ),
                 ),
@@ -339,8 +339,8 @@ class _AdminAddPartnerWidgetState extends State<AdminAddPartnerWidget> {
                   controller: _model.emailTextController,
                   focusNode: _model.emailFocusNode,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: 'البريد الإلكتروني لحساب الشريك',
+                  decoration: InputDecoration(
+                    labelText: uiTr(context, 'البريد الإلكتروني لحساب الشريك'),
                     hintText: 'partner@example.com',
                     helperText: 'يُنشأ حساب دخول للشريك عند إدخال البريد وكلمة المرور',
                   ),
@@ -351,8 +351,8 @@ class _AdminAddPartnerWidgetState extends State<AdminAddPartnerWidget> {
                   focusNode: _model.passwordFocusNode,
                   obscureText: !_model.passwordVisibility,
                   decoration: InputDecoration(
-                    labelText: 'كلمة مرور الحساب',
-                    hintText: '6 أحرف على الأقل',
+                    labelText: uiTr(context, 'كلمة مرور الحساب'),
+                    hintText: uiTr(context, '6 أحرف على الأقل'),
                     suffixIcon: InkWell(
                       onTap: () => safeSetState(
                         () => _model.passwordVisibility =
@@ -372,7 +372,7 @@ class _AdminAddPartnerWidgetState extends State<AdminAddPartnerWidget> {
                   focusNode: _model.confirmPasswordFocusNode,
                   obscureText: !_model.confirmPasswordVisibility,
                   decoration: InputDecoration(
-                    labelText: 'تأكيد كلمة المرور',
+                    labelText: uiTr(context, 'تأكيد كلمة المرور'),
                     suffixIcon: InkWell(
                       onTap: () => safeSetState(
                         () => _model.confirmPasswordVisibility =
@@ -390,7 +390,7 @@ class _AdminAddPartnerWidgetState extends State<AdminAddPartnerWidget> {
             ),
             const SizedBox(height: 16),
             AdminEditFormCard(
-              sectionTitle: 'الصور',
+              sectionTitle: uiTr(context, 'الصور'),
               children: [
                 AdminEditableImageCard(
                   imageUrl: _model.uploadedFileUrl_mainImage,
@@ -412,7 +412,7 @@ class _AdminAddPartnerWidgetState extends State<AdminAddPartnerWidget> {
             ),
             const SizedBox(height: 16),
             AdminEditFormCard(
-              sectionTitle: 'الموقع',
+              sectionTitle: uiTr(context, 'الموقع'),
               children: [
                 AdminLocationSection(
                   place: _model.placePickerValue,
@@ -429,12 +429,12 @@ class _AdminAddPartnerWidgetState extends State<AdminAddPartnerWidget> {
             ),
             const SizedBox(height: 16),
             AdminEditFormCard(
-              sectionTitle: 'الموقع الجغرافي',
+              sectionTitle: uiTr(context, 'الموقع الجغرافي'),
               children: [
                 AdminEditPickerRow(
-                  label: 'الدولة',
+                  label: uiTr(context, 'الدولة'),
                   value: FFAppState().RevdolhTEXT,
-                  placeholder: 'اختر الدولة',
+                  placeholder: uiTr(context, 'اختر الدولة'),
                   onTap: () async {
                     await showAdminPickerSheet(
                       context: context,
@@ -445,13 +445,13 @@ class _AdminAddPartnerWidgetState extends State<AdminAddPartnerWidget> {
                 ),
                 const SizedBox(height: 14),
                 AdminEditPickerRow(
-                  label: 'المنطقة / المحافظة',
+                  label: uiTr(context, 'المنطقة / المحافظة'),
                   value: FFAppState().RevRegTEXT,
-                  placeholder: 'اختر المنطقة',
+                  placeholder: uiTr(context, 'اختر المنطقة'),
                   onTap: () async {
                     if (FFAppState().RevDolh == null) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('يرجى اختيار الدولة أولاً')),
+                        SnackBar(content: Text(uiTr(context, 'يرجى اختيار الدولة أولاً'))),
                       );
                       return;
                     }
@@ -466,9 +466,9 @@ class _AdminAddPartnerWidgetState extends State<AdminAddPartnerWidget> {
                 ),
                 const SizedBox(height: 14),
                 AdminEditPickerRow(
-                  label: 'المدينة',
+                  label: uiTr(context, 'المدينة'),
                   value: FFAppState().RevciteTEXT,
-                  placeholder: 'اختر المدينة',
+                  placeholder: uiTr(context, 'اختر المدينة'),
                   onTap: () async {
                     await showAdminPickerSheet(
                       context: context,
@@ -483,7 +483,7 @@ class _AdminAddPartnerWidgetState extends State<AdminAddPartnerWidget> {
             ),
             const SizedBox(height: 16),
             AdminEditFormCard(
-              sectionTitle: 'إعدادات إضافية',
+              sectionTitle: uiTr(context, 'إعدادات إضافية'),
               children: [
                 Row(
                   children: [
@@ -498,8 +498,8 @@ class _AdminAddPartnerWidgetState extends State<AdminAddPartnerWidget> {
                 ),
                 const SizedBox(height: 14),
                 AdminEditSwitchRow(
-                  label: 'تفعيل الشريك',
-                  subtitle: 'يظهر الشريك في التطبيق عند التفعيل',
+                  label: uiTr(context, 'تفعيل الشريك'),
+                  subtitle: uiTr(context, 'يظهر الشريك في التطبيق عند التفعيل'),
                   value: _model.activeValue,
                   onChanged: (v) => safeSetState(() => _model.activeValue = v),
                 ),

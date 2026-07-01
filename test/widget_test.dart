@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -11,8 +12,17 @@ void main() {
     await FFLocalizations.initialize();
   });
 
-  test('FFLocalizations initializes with stored locale', () {
+  test('FFLocalizations initializes and resolves device locale', () {
     expect(FFLocalizations.getStoredLocale(), isNull);
     expect(FFLocalizations.languages(), isNotEmpty);
+    expect(FFLocalizations.resolveInitialLocale().languageCode, isNotEmpty);
+    expect(
+      FFLocalizations.resolveDeviceLocale(const Locale('fr')).languageCode,
+      'en',
+    );
+    expect(
+      FFLocalizations.resolveDeviceLocale(const Locale('ar')).languageCode,
+      'ar',
+    );
   });
 }

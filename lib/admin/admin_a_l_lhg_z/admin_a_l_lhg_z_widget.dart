@@ -67,18 +67,18 @@ class _AdminALLhgZWidgetState extends State<AdminALLhgZWidget> {
     final confirmed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('تأكيد الإلغاء'),
+            title: Text(uiTr(context, 'تأكيد الإلغاء')),
             content: Text(
               'هل أنت متأكد من إلغاء الحجز #${order.iDorder}؟',
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('لا'),
+                child: Text(appTr(context, 'adm_no')),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('نعم، ألغِ'),
+                child: Text(uiTr(context, 'نعم، ألغِ')),
               ),
             ],
           ),
@@ -106,7 +106,7 @@ class _AdminALLhgZWidgetState extends State<AdminALLhgZWidget> {
       await AdminCrudFeedback.success(
         context,
         action: AdminCrudAction.edit,
-        message: 'تم إلغاء الحجز بنجاح',
+        message: uiTr(context, 'تم إلغاء الحجز بنجاح'),
         refreshScope: AdminListScope.bookings,
         invalidateStats: true,
         deferHeavyWork: false,
@@ -148,7 +148,7 @@ class _AdminALLhgZWidgetState extends State<AdminALLhgZWidget> {
         title: l10n.getText('kw5c519x'),
         child: AdminPageBody(
           title: l10n.getText('kw5c519x'),
-          subtitle: 'متابعة الحجوزات الحالية وإدارتها',
+          subtitle: appTr(context, 'scr_bookings_subtitle'),
           scrollable: true,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -553,7 +553,7 @@ class _BookingCard extends StatelessWidget {
             const SizedBox(height: 8),
             _InfoTile(
               icon: Icons.calendar_today_rounded,
-              label: 'تاريخ الحجز',
+              label: uiTr(context, 'تاريخ الحجز'),
               value: dateTimeFormat(
                 'd/M/y – HH:mm',
                 order.dataOrder,

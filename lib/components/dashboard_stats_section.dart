@@ -364,9 +364,9 @@ class DashboardStatsSectionState extends State<DashboardStatsSection> {
     final l10n = FFLocalizations.of(context);
 
     if (_stats == null && _loading) {
-      return const AdminContentCard(
+      return AdminContentCard(
         child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 40),
+          padding: const EdgeInsets.symmetric(vertical: 40),
           child: Center(
             child: SizedBox(
               width: 36,
@@ -389,14 +389,14 @@ class DashboardStatsSectionState extends State<DashboardStatsSection> {
             ),
             const SizedBox(height: 12),
             Text(
-              'تعذر تحميل الإحصائيات',
+              appTr(context, 'dash_stats_load_failed'),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             TextButton.icon(
               onPressed: () => _scheduleLoad(force: true),
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text('إعادة المحاولة'),
+              label: Text(appTr(context, 'adm_retry')),
             ),
           ],
         ),
@@ -406,12 +406,12 @@ class DashboardStatsSectionState extends State<DashboardStatsSection> {
     final stats = _stats ?? DashboardStats.empty();
     final contentSections = <_DashboardStatGroup>[
       _DashboardStatGroup(
-        title: 'المحتوى والمواقع',
+        title: appTr(context, 'dash_section_content'),
         icon: Icons.travel_explore_rounded,
         items: [
           _DashboardStatItem(
             title: l10n.getText('wx29ht01'),
-            subtitle: 'معالم مسجلة',
+            subtitle: appTr(context, 'dash_sub_landmarks'),
             icon: Icons.place_rounded,
             count: stats.attractions,
             colors: const [Color(0xFF1F7372), Color(0xFF2A9D8A)],
@@ -419,7 +419,7 @@ class DashboardStatsSectionState extends State<DashboardStatsSection> {
           ),
           _DashboardStatItem(
             title: l10n.getText('f0wi63xt'),
-            subtitle: 'معالم الشركاء المعتمدة',
+            subtitle: appTr(context, 'dash_sub_partner_landmarks'),
             icon: Icons.handshake_rounded,
             count: stats.partners,
             colors: const [Color(0xFF39D2C0), Color(0xFF2EB8A6)],
@@ -427,7 +427,7 @@ class DashboardStatsSectionState extends State<DashboardStatsSection> {
           ),
           _DashboardStatItem(
             title: l10n.getText('l0vvemch'),
-            subtitle: 'دول',
+            subtitle: appTr(context, 'dash_sub_countries'),
             icon: Icons.flag_rounded,
             count: stats.countries,
             colors: const [Color(0xFF2E8B87), Color(0xFF1F7372)],
@@ -435,7 +435,7 @@ class DashboardStatsSectionState extends State<DashboardStatsSection> {
           ),
           _DashboardStatItem(
             title: l10n.getText('yssiqef1'),
-            subtitle: 'مناطق',
+            subtitle: appTr(context, 'dash_sub_regions'),
             icon: Icons.filter_hdr_rounded,
             count: stats.regions,
             colors: const [Color(0xFF7A9A95), Color(0xFF5F8580)],
@@ -443,7 +443,7 @@ class DashboardStatsSectionState extends State<DashboardStatsSection> {
           ),
           _DashboardStatItem(
             title: l10n.getText('1yttxia9'),
-            subtitle: 'مدن',
+            subtitle: appTr(context, 'dash_sub_cities'),
             icon: Icons.location_city_rounded,
             count: stats.cities,
             colors: const [Color(0xFF3A9E99), Color(0xFF2A8580)],
@@ -452,12 +452,12 @@ class DashboardStatsSectionState extends State<DashboardStatsSection> {
         ].where((item) => AdminRoleService.canAccessRoute(item.route)).toList(),
       ),
       _DashboardStatGroup(
-        title: 'المستخدمون والعمليات',
+        title: appTr(context, 'dash_section_users'),
         icon: Icons.hub_rounded,
         items: [
           _DashboardStatItem(
             title: l10n.getText('s8utoq9k'),
-            subtitle: 'مستخدمو التطبيق',
+            subtitle: appTr(context, 'dash_sub_app_users'),
             icon: Icons.groups_rounded,
             count: stats.appUsers,
             colors: const [Color(0xFF1F7372), Color(0xFF185E5D)],
@@ -465,7 +465,7 @@ class DashboardStatsSectionState extends State<DashboardStatsSection> {
           ),
           _DashboardStatItem(
             title: l10n.getText('l1e7dn8b'),
-            subtitle: 'وكلاء',
+            subtitle: appTr(context, 'dash_sub_agents'),
             icon: Icons.real_estate_agent_rounded,
             count: stats.agents,
             colors: const [Color(0xFF39D2C0), Color(0xFF1F9A8A)],
@@ -473,15 +473,15 @@ class DashboardStatsSectionState extends State<DashboardStatsSection> {
           ),
           _DashboardStatItem(
             title: l10n.getText('ondrq8ci'),
-            subtitle: 'مناديب',
+            subtitle: appTr(context, 'dash_sub_reps'),
             icon: Icons.directions_car_rounded,
             count: stats.representatives,
             colors: const [Color(0xFF4DB6AC), Color(0xFF2E9E94)],
             route: AdmindreverWidget.routeName,
           ),
           _DashboardStatItem(
-            title: 'شركات النقل',
-            subtitle: 'شركات مرخّصة',
+            title: appTr(context, 'nav_transport_companies'),
+            subtitle: appTr(context, 'dash_sub_transport_cos'),
             icon: Icons.local_shipping_rounded,
             count: stats.transportCompanies,
             colors: const [Color(0xFF6D4C41), Color(0xFF4E342E)],
@@ -489,7 +489,7 @@ class DashboardStatsSectionState extends State<DashboardStatsSection> {
           ),
           _DashboardStatItem(
             title: l10n.getText('kw5c519x'),
-            subtitle: 'حجوزات نشطة',
+            subtitle: appTr(context, 'dash_sub_active_bookings'),
             icon: Icons.event_available_rounded,
             count: stats.activeBookings,
             colors: const [Color(0xFF5C6BC0), Color(0xFF3F51B5)],
@@ -497,7 +497,7 @@ class DashboardStatsSectionState extends State<DashboardStatsSection> {
           ),
           _DashboardStatItem(
             title: l10n.getText('8d66hs1w'),
-            subtitle: 'إجمالي التذاكر',
+            subtitle: appTr(context, 'dash_sub_support_tickets'),
             icon: Icons.support_agent_rounded,
             count: stats.supportTickets,
             colors: const [Color(0xFFFF8A65), Color(0xFFE64A19)],
@@ -580,21 +580,21 @@ class _DashboardSummaryStrip extends StatelessWidget {
     final pills = [
       _SummaryPill(
         icon: Icons.place_rounded,
-        label: 'معالم',
+        label: appTr(context, 'dash_chart_landmarks'),
         value: stats.attractions,
         color: AdminUi.brandTeal,
         loading: loading && stats.attractions == 0,
       ),
       _SummaryPill(
         icon: Icons.groups_rounded,
-        label: 'مستخدمون',
+        label: appTr(context, 'dash_chart_users'),
         value: stats.appUsers,
         color: const Color(0xFF2A9D8A),
         loading: loading && stats.appUsers == 0,
       ),
       _SummaryPill(
         icon: Icons.event_available_rounded,
-        label: 'حجوزات',
+        label: appTr(context, 'dash_chart_bookings'),
         value: stats.activeBookings,
         color: const Color(0xFF5C6BC0),
         loading: loading && stats.activeBookings == 0,

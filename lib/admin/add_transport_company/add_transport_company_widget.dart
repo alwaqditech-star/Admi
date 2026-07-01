@@ -95,14 +95,14 @@ class _AddTransportCompanyWidgetState extends State<AddTransportCompanyWidget> {
 
     if (license.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى إدخال رقم ترخيص هيئة النقل')),
+        SnackBar(content: Text(uiTr(context, 'يرجى إدخال رقم ترخيص هيئة النقل'))),
       );
       return;
     }
 
     if (_model.selectedCountry == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى اختيار الدولة')),
+        SnackBar(content: Text(uiTr(context, 'يرجى اختيار الدولة'))),
       );
       return;
     }
@@ -110,15 +110,15 @@ class _AddTransportCompanyWidgetState extends State<AddTransportCompanyWidget> {
     if (email.isNotEmpty) {
       if (password.length < 6) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('كلمة مرور مدير الشركة يجب أن تكون 6 أحرف على الأقل'),
+          SnackBar(
+            content: Text(uiTr(context, 'كلمة مرور مدير الشركة يجب أن تكون 6 أحرف على الأقل')),
           ),
         );
         return;
       }
       if (password != confirm) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('كلمتا المرور غير متطابقتين')),
+          SnackBar(content: Text(uiTr(context, 'كلمتا المرور غير متطابقتين'))),
         );
         return;
       }
@@ -175,13 +175,13 @@ class _AddTransportCompanyWidgetState extends State<AddTransportCompanyWidget> {
       await AdminCrudFeedback.success(
         context,
         action: AdminCrudAction.add,
-        message: 'تم تسجيل شركة النقل بنجاح',
+        message: uiTr(context, 'تم تسجيل شركة النقل بنجاح'),
         refreshScope: AdminListScope.transportCompanies,
         popPage: true,
       );
     } catch (e) {
       if (!mounted) return;
-      AdminCrudFeedback.error(context, 'تعذر الحفظ: $e');
+      AdminCrudFeedback.error(context, AdminCrudFeedback.saveFailed(context, e));
     } finally {
       if (mounted) setState(() => _model.isSubmitting = false);
     }
@@ -190,12 +190,12 @@ class _AddTransportCompanyWidgetState extends State<AddTransportCompanyWidget> {
   @override
   Widget build(BuildContext context) {
     return AdminEditScaffold(
-      title: 'تسجيل شركة نقل',
+      title: appTr(context, 'scr_register_transport'),
       subtitle:
           'شركة مرخّصة من هيئة النقل — أدخل بيانات الشركة ثم أضف سائقيها لاحقاً',
       isLoading: _model.isSubmitting,
       floatingAction: AdminPrimaryButton(
-        label: 'حفظ الشركة',
+        label: uiTr(context, 'حفظ الشركة'),
         icon: Icons.local_shipping_rounded,
         isLoading: _model.isSubmitting,
         onPressed: _model.isSubmitting ? null : _save,
@@ -203,14 +203,14 @@ class _AddTransportCompanyWidgetState extends State<AddTransportCompanyWidget> {
       child: Form(
         key: _model.formKey,
         child: AdminEditFormCard(
-          sectionTitle: 'بيانات الشركة المرخّصة',
+          sectionTitle: uiTr(context, 'بيانات الشركة المرخّصة'),
           children: [
             TextFormField(
               controller: _model.nameTextController,
               focusNode: _model.nameFocusNode,
-              decoration: const InputDecoration(
-                labelText: 'اسم الشركة',
-                hintText: 'مثال: شركة النقل الوطنية',
+              decoration: InputDecoration(
+                labelText: uiTr(context, 'اسم الشركة'),
+                hintText: uiTr(context, 'مثال: شركة النقل الوطنية'),
               ),
               validator: (v) =>
                   v == null || v.trim().isEmpty ? 'أدخل اسم الشركة' : null,
@@ -219,9 +219,9 @@ class _AddTransportCompanyWidgetState extends State<AddTransportCompanyWidget> {
             TextFormField(
               controller: _model.licenseTextController,
               focusNode: _model.licenseFocusNode,
-              decoration: const InputDecoration(
-                labelText: 'رقم ترخيص هيئة النقل',
-                hintText: 'الرقم الرسمي للترخيص',
+              decoration: InputDecoration(
+                labelText: uiTr(context, 'رقم ترخيص هيئة النقل'),
+                hintText: uiTr(context, 'الرقم الرسمي للترخيص'),
               ),
             ),
             const SizedBox(height: 14),
@@ -229,8 +229,8 @@ class _AddTransportCompanyWidgetState extends State<AddTransportCompanyWidget> {
               controller: _model.phoneTextController,
               focusNode: _model.phoneFocusNode,
               keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(
-                labelText: 'جوال الشركة',
+              decoration: InputDecoration(
+                labelText: uiTr(context, 'جوال الشركة'),
                 hintText: '05xxxxxxxx',
               ),
             ),
@@ -238,8 +238,8 @@ class _AddTransportCompanyWidgetState extends State<AddTransportCompanyWidget> {
             _buildCountrySelector(),
             const SizedBox(height: 14),
             AdminEditSwitchRow(
-              label: 'تفعيل الشركة',
-              subtitle: 'الشركة المفعّلة يمكن إضافة سائقيها للحجوزات',
+              label: uiTr(context, 'تفعيل الشركة'),
+              subtitle: uiTr(context, 'الشركة المفعّلة يمكن إضافة سائقيها للحجوزات'),
               value: _model.activeValue,
               onChanged: (v) => setState(() => _model.activeValue = v),
             ),
@@ -253,8 +253,8 @@ class _AddTransportCompanyWidgetState extends State<AddTransportCompanyWidget> {
               controller: _model.emailTextController,
               focusNode: _model.emailFocusNode,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: 'بريد مدير الشركة',
+              decoration: InputDecoration(
+                labelText: uiTr(context, 'بريد مدير الشركة'),
                 helperText: 'للدخول وإدارة السائقين لاحقاً',
               ),
             ),
@@ -264,7 +264,7 @@ class _AddTransportCompanyWidgetState extends State<AddTransportCompanyWidget> {
               focusNode: _model.passwordFocusNode,
               obscureText: !_model.passwordVisibility,
               decoration: InputDecoration(
-                labelText: 'كلمة المرور',
+                labelText: uiTr(context, 'كلمة المرور'),
                 suffixIcon: IconButton(
                   icon: Icon(
                     _model.passwordVisibility
@@ -283,7 +283,7 @@ class _AddTransportCompanyWidgetState extends State<AddTransportCompanyWidget> {
               focusNode: _model.confirmPasswordFocusNode,
               obscureText: !_model.confirmPasswordVisibility,
               decoration: InputDecoration(
-                labelText: 'تأكيد كلمة المرور',
+                labelText: uiTr(context, 'تأكيد كلمة المرور'),
                 suffixIcon: IconButton(
                   icon: Icon(
                     _model.confirmPasswordVisibility
@@ -309,12 +309,12 @@ class _AddTransportCompanyWidgetState extends State<AddTransportCompanyWidget> {
     }
 
     if (_model.countries.isEmpty) {
-      return const Text('لا توجد دول مسجّلة');
+      return Text(uiTr(context, 'لا توجد دول مسجّلة'));
     }
 
     if (AdminRoleService.isCountryAgent && _model.selectedCountry != null) {
       return InputDecorator(
-        decoration: const InputDecoration(labelText: 'الدولة'),
+        decoration: InputDecoration(labelText: uiTr(context, 'الدولة')),
         child: Text(_model.selectedCountry!.naim),
       );
     }
@@ -322,7 +322,7 @@ class _AddTransportCompanyWidgetState extends State<AddTransportCompanyWidget> {
     return DropdownButtonFormField<CountriesRecord>(
       value: _model.selectedCountry,
       isExpanded: true,
-      decoration: const InputDecoration(labelText: 'الدولة'),
+      decoration: InputDecoration(labelText: uiTr(context, 'الدولة')),
       items: _model.countries
           .map(
             (c) => DropdownMenuItem(

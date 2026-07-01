@@ -1,9 +1,12 @@
+import '/backend/admin_agent_country_lock.dart';
+import '/backend/admin_country_scope.dart';
+import '/backend/admin_role_service.dart';
 import '/backend/backend.dart';
+import '/components/admin_crud_feedback.dart';
 import '/components/admin_edit_shell.dart';
 import '/components/admin_image_picker.dart';
 import '/components/admin_region_picker.dart';
 import '/components/admin_ui.dart';
-import '/backend/admin_agent_country_lock.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -37,7 +40,25 @@ class _AddRegWidgetState extends State<AddRegWidget> {
 
     AdminAgentCountryLock.applyToAppState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await AdminAgentCountryLock.ensureCountryResolved();
+      if (mounted) safeSetState(() {});
+    });
+  }
+
+  bool get _countryLocked => AdminRoleService.isCountryAgent;
+
+  String get _countryDisplay =>
+      FFAppState().RevdolhTEXT.trim().isNotEmpty
+          ? FFAppState().RevdolhTEXT
+          : '';
+
+  Future<void> _pickCountry() async {
+    await showAdminPickerSheet(
+      context: context,
+      child: const AdminCountryPickerSheet(),
+    );
+    if (mounted) safeSetState(() {});
   }
 
   @override
@@ -62,20 +83,23 @@ class _AddRegWidgetState extends State<AddRegWidget> {
     final name = _model.textFieldnaimTextController!.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى إدخال اسم المنطقة')),
+        SnackBar(content: Text(appTr(context, 'adm_enter_region_name'))),
       );
       return;
     }
     if (FFAppState().RevDolh == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى اختيار الدولة')),
+        SnackBar(content: Text(appTr(context, 'adm_select_country'))),
       );
       return;
     }
 
+    final countryRef =
+        AdminCountryScope.mkanCountryRefForSave() ?? FFAppState().RevDolh;
+
     if (_model.isDataUploading_uploadDataO6sc) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('انتظر اكتمال رفع الصورة ثم احفظ')),
+        SnackBar(content: Text(appTr(context, 'adm_wait_image_upload'))),
       );
       return;
     }
@@ -93,7 +117,7 @@ class _AddRegWidgetState extends State<AddRegWidget> {
             createCitiesRecordData(
               naim: name,
               osf: _model.textFieldDescTextController!.text.trim(),
-              dolh: FFAppState().RevDolh,
+              dolh: countryRef,
               img: img,
               acctev: _model.switchValue,
             ),
@@ -101,13 +125,13 @@ class _AddRegWidgetState extends State<AddRegWidget> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم إضافة المنطقة بنجاح')),
+        SnackBar(content: Text(appTr(context, 'adm_region_added'))),
       );
       context.safePop();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تعذر الحفظ: $e')),
+        SnackBar(content: Text(AdminCrudFeedback.saveFailed(context, e))),
       );
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -124,11 +148,13 @@ class _AddRegWidgetState extends State<AddRegWidget> {
         FocusManager.instance.primaryFocus?.unfocus();
       },
       child: AdminEditScaffold(
-        title: 'إضافة منطقة جديدة',
-        subtitle: 'اختر الدولة ثم أدخل بيانات المنطقة / المحافظة',
+        title: appTr(context, 'adm_add_region_title'),
+        subtitle: _countryLocked
+            ? appTr(context, 'adm_add_region_subtitle_agent')
+            : appTr(context, 'adm_add_region_subtitle'),
         isLoading: _isSaving,
         floatingAction: AdminPrimaryButton(
-          label: 'حفظ المنطقة',
+          label: appTr(context, 'adm_save_region'),
           icon: Icons.map_rounded,
           isLoading: _isSaving,
           onPressed: _isSaving ? null : _saveRegion,
@@ -137,45 +163,40 @@ class _AddRegWidgetState extends State<AddRegWidget> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             AdminEditFormCard(
-              sectionTitle: 'الدولة',
+              sectionTitle: appTr(context, 'adm_country'),
               children: [
                 AdminEditPickerRow(
-                  label: 'الدولة',
-                  value: FFAppState().RevdolhTEXT,
-                  placeholder: 'اختر الدولة',
-                  onTap: () async {
-                    await showAdminPickerSheet(
-                      context: context,
-                      child: const AdminCountryPickerSheet(),
-                    );
-                    if (mounted) safeSetState(() {});
-                  },
+                  label: appTr(context, 'adm_country'),
+                  value: _countryDisplay,
+                  placeholder: appTr(context, 'adm_pick_country'),
+                  locked: _countryLocked,
+                  onTap: _pickCountry,
                 ),
               ],
             ),
             const SizedBox(height: 16),
             AdminEditFormCard(
-              sectionTitle: 'صورة المنطقة',
+              sectionTitle: appTr(context, 'adm_region_image'),
               children: [
                 AdminEditableImageCard(
                   imageUrl: _model.uploadedFileUrl_uploadDataO6sc,
                   localBytes: _model.uploadedLocalFile_uploadDataO6sc.bytes,
                   isUploading: _model.isDataUploading_uploadDataO6sc,
-                  hint: 'اضغط لاختيار صورة المنطقة',
+                  hint: appTr(context, 'adm_pick_region_image'),
                   onPick: _pickRegionImage,
                 ),
               ],
             ),
             const SizedBox(height: 16),
             AdminEditFormCard(
-              sectionTitle: 'البيانات الأساسية',
+              sectionTitle: appTr(context, 'adm_basic_data'),
               children: [
                 TextFormField(
                   controller: _model.textFieldnaimTextController,
                   focusNode: _model.textFieldnaimFocusNode,
-                  decoration: const InputDecoration(
-                    labelText: 'اسم المنطقة / المحافظة',
-                    hintText: 'مثال: منطقة الرياض',
+                  decoration: InputDecoration(
+                    labelText: appTr(context, 'adm_region_name_label'),
+                    hintText: appTr(context, 'adm_region_name_hint'),
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -183,16 +204,16 @@ class _AddRegWidgetState extends State<AddRegWidget> {
                   controller: _model.textFieldDescTextController,
                   focusNode: _model.textFieldDescFocusNode,
                   maxLines: 3,
-                  decoration: const InputDecoration(
-                    labelText: 'وصف المنطقة (اختياري)',
-                    hintText: 'وصف مختصر',
+                  decoration: InputDecoration(
+                    labelText: appTr(context, 'adm_region_desc_label'),
+                    hintText: appTr(context, 'adm_short_desc'),
                     alignLabelWithHint: true,
                   ),
                 ),
                 const SizedBox(height: 14),
                 AdminEditSwitchRow(
-                  label: 'تفعيل المنطقة',
-                  subtitle: 'تظهر المنطقة في التطبيق عند التفعيل',
+                  label: appTr(context, 'adm_activate_region'),
+                  subtitle: appTr(context, 'adm_region_visible_hint'),
                   value: _model.switchValue ?? true,
                   onChanged: (v) => safeSetState(() => _model.switchValue = v),
                 ),

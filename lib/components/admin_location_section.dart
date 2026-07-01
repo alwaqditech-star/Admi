@@ -79,7 +79,7 @@ class _AdminLocationSectionState extends State<AdminLocationSection> {
     final parsed = AdminLocationService.parseCoordinates(_coordsController.text);
     if (parsed == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
             'صيغة غير صحيحة — استخدم: 24.713600, 46.675300 أو إحداثيات DMS من Google Earth',
           ),
@@ -110,7 +110,7 @@ class _AdminLocationSectionState extends State<AdminLocationSection> {
     final query = _searchController.text.trim();
     if (query.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('اكتب اسم المكان أو العنوان للبحث')),
+        SnackBar(content: Text(uiTr(context, 'اكتب اسم المكان أو العنوان للبحث'))),
       );
       return;
     }
@@ -128,7 +128,7 @@ class _AdminLocationSectionState extends State<AdminLocationSection> {
       }
       if (result == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('لم يتم العثور على الموقع — جرّب وصفاً آخر')),
+          SnackBar(content: Text(uiTr(context, 'لم يتم العثور على الموقع — جرّب وصفاً آخر'))),
         );
         return;
       }
@@ -183,7 +183,7 @@ class _AdminLocationSectionState extends State<AdminLocationSection> {
           textInputAction: TextInputAction.search,
           onSubmitted: (_) => _search(),
           decoration: InputDecoration(
-            hintText: 'ابحث عن موقع أو عنوان',
+            hintText: uiTr(context, 'ابحث عن موقع أو عنوان'),
             filled: true,
             fillColor: const Color(0xFFF5F5F5),
             contentPadding: const EdgeInsets.symmetric(
@@ -223,7 +223,7 @@ class _AdminLocationSectionState extends State<AdminLocationSection> {
                 textInputAction: TextInputAction.done,
                 onSubmitted: (_) => _applyCoordinates(),
                 decoration: InputDecoration(
-                  hintText: 'خط العرض، خط الطول (من Google Earth)',
+                  hintText: uiTr(context, 'خط العرض، خط الطول (من Google Earth)'),
                   helperText: 'مثال: 24.713600, 46.675300',
                   filled: true,
                   fillColor: const Color(0xFFF5F5F5),
@@ -248,7 +248,7 @@ class _AdminLocationSectionState extends State<AdminLocationSection> {
               child: FilledButton.icon(
                 onPressed: _applyCoordinates,
                 icon: const Icon(Icons.pin_drop_rounded, size: 18),
-                label: const Text('تطبيق'),
+                label: Text(uiTr(context, 'تطبيق')),
                 style: FilledButton.styleFrom(
                   backgroundColor: AdminUi.brandTeal,
                   padding: const EdgeInsets.symmetric(

@@ -1,4 +1,6 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import '/flutter_flow/flutter_flow_util.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 import '/backend/admin_reports_country_scope.dart';
@@ -334,7 +336,7 @@ class AdminMenuTile extends StatelessWidget {
                   ),
                 ),
                 Icon(
-                  Directionality.of(context) == TextDirection.rtl
+                  Directionality.of(context) == ui.TextDirection.rtl
                       ? Icons.chevron_left_rounded
                       : Icons.chevron_right_rounded,
                   color: Colors.white.withValues(alpha: 0.5),
@@ -724,7 +726,7 @@ class AdminPageBody extends StatelessWidget {
 
 /// Card container for lists, tables, and forms.
 class AdminContentCard extends StatelessWidget {
-  const AdminContentCard({
+  AdminContentCard({
     super.key,
     required this.child,
     this.padding,
@@ -1033,12 +1035,12 @@ class AdminReportsCountryBanner extends StatelessWidget {
                     () {
                       AdminReportsCountryScope.clear();
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('تم إلغاء فلترة الدولة'),
+                        SnackBar(
+                          content: Text(uiTr(context, 'تم إلغاء فلترة الدولة')),
                         ),
                       );
                     },
-                child: const Text('إلغاء الفلتر'),
+                child: Text(uiTr(context, 'إلغاء الفلتر')),
               ),
             ],
           ),

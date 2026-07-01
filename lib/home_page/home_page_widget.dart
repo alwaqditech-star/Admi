@@ -555,8 +555,7 @@ class _HomePageWidgetState extends State<HomePageWidget> {
                                                           builder:
                                                               (alertDialogContext) {
                                                             return AlertDialog(
-                                                              title: const Text(
-                                                                  'غير مصرّح'),
+                                                              title: Text(uiTr(context, 'غير مصرّح')),
                                                               content: Text(
                                                                 messageForLoginResult(
                                                                     result),

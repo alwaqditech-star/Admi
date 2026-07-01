@@ -172,7 +172,7 @@ class _AddDrevWidgetState extends State<AddDrevWidget> {
       if (mounted) {
         setState(() => _companiesLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تعذر تحميل شركات النقل')),
+          SnackBar(content: Text(uiTr(context, 'تعذر تحميل شركات النقل'))),
         );
       }
     }
@@ -194,7 +194,7 @@ class _AddDrevWidgetState extends State<AddDrevWidget> {
         if (!allowed) {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('لا تملك صلاحية تعديل هذا السائق')),
+            SnackBar(content: Text(uiTr(context, 'لا تملك صلاحية تعديل هذا السائق'))),
           );
           context.safePop();
           return;
@@ -239,7 +239,7 @@ class _AddDrevWidgetState extends State<AddDrevWidget> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تعذر تحميل بيانات المندوب: $e')),
+        SnackBar(content: Text('${appTr(context, 'adm_load_courier_failed')}: $e')),
       );
     } finally {
       if (mounted) {
@@ -293,7 +293,7 @@ class _AddDrevWidgetState extends State<AddDrevWidget> {
 
     if (name.isEmpty || email.isEmpty || phone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى تعبئة الاسم والبريد ورقم الجوال')),
+        SnackBar(content: Text(uiTr(context, 'يرجى تعبئة الاسم والبريد ورقم الجوال'))),
       );
       return;
     }
@@ -310,8 +310,8 @@ class _AddDrevWidgetState extends State<AddDrevWidget> {
 
     if (carType.isEmpty || workCity.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('يرجى اختيار نوع السيارة ومدينة العمل'),
+        SnackBar(
+          content: Text(uiTr(context, 'يرجى اختيار نوع السيارة ومدينة العمل')),
         ),
       );
       return;
@@ -319,8 +319,8 @@ class _AddDrevWidgetState extends State<AddDrevWidget> {
 
     if (AdminRoleService.isTransportCompany && _selectedCompany == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('حسابك غير مربوط بشركة نقل — تواصل مع الإدارة'),
+        SnackBar(
+          content: Text(uiTr(context, 'حسابك غير مربوط بشركة نقل — تواصل مع الإدارة')),
         ),
       );
       return;
@@ -329,8 +329,8 @@ class _AddDrevWidgetState extends State<AddDrevWidget> {
     if (!widget.isEditMode) {
       if (_model.passTextController!.text.length < 6) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('كلمة المرور يجب أن تكون 6 أحرف على الأقل'),
+          SnackBar(
+            content: Text(uiTr(context, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل')),
           ),
         );
         return;
@@ -338,7 +338,7 @@ class _AddDrevWidgetState extends State<AddDrevWidget> {
 
       if (_model.passTextController!.text != _model.cpassTextController!.text) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('كلمتا المرور غير متطابقتين')),
+          SnackBar(content: Text(uiTr(context, 'كلمتا المرور غير متطابقتين'))),
         );
         return;
       }
@@ -379,7 +379,7 @@ class _AddDrevWidgetState extends State<AddDrevWidget> {
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تم تحديث بيانات المندوب بنجاح')),
+          SnackBar(content: Text(uiTr(context, 'تم تحديث بيانات المندوب بنجاح'))),
         );
         context.safePop();
         return;
@@ -419,7 +419,7 @@ class _AddDrevWidgetState extends State<AddDrevWidget> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم إضافة المندوب بنجاح')),
+        SnackBar(content: Text(uiTr(context, 'تم إضافة المندوب بنجاح'))),
       );
       context.safePop();
     } on FirebaseAuthException catch (e) {
@@ -480,7 +480,7 @@ class _AddDrevWidgetState extends State<AddDrevWidget> {
             _buildGuideBanner(context, isEdit),
             const SizedBox(height: 16),
             AdminEditFormCard(
-              sectionTitle: '١ — البيانات الشخصية',
+              sectionTitle: uiTr(context, '١ — البيانات الشخصية'),
               children: [
                 _buildFieldHint(
                   'أدخل بيانات التواصل الأساسية للمندوب. سيستخدم البريد وكلمة المرور لتسجيل الدخول في تطبيق المناديب.',
@@ -490,7 +490,7 @@ class _AddDrevWidgetState extends State<AddDrevWidget> {
                   context: context,
                   controller: _model.nameTextController!,
                   focusNode: _model.nameFocusNode,
-                  label: 'الاسم الكامل *',
+                  label: uiTr(context, 'الاسم الكامل *'),
                   hint: 'مثال: محمد أحمد العتيبي',
                   helper: 'اكتب الاسم الثلاثي كما يظهر في الهوية',
                   icon: Icons.person_outline_rounded,
@@ -502,7 +502,7 @@ class _AddDrevWidgetState extends State<AddDrevWidget> {
                   context: context,
                   controller: _model.emailTextController!,
                   focusNode: _model.emailFocusNode,
-                  label: 'البريد الإلكتروني *',
+                  label: uiTr(context, 'البريد الإلكتروني *'),
                   hint: 'example@email.com',
                   helper: isEdit
                       ? 'لا يمكن تغيير البريد من هنا'
@@ -518,7 +518,7 @@ class _AddDrevWidgetState extends State<AddDrevWidget> {
                   context: context,
                   controller: _model.mobilTextController!,
                   focusNode: _model.mobilFocusNode,
-                  label: 'رقم الجوال *',
+                  label: uiTr(context, 'رقم الجوال *'),
                   hint: '05xxxxxxxx',
                   helper: 'أدخل رقم سعودي يبدأ بـ 05 ويتكون من 10 أرقام',
                   icon: Icons.phone_android_rounded,
@@ -537,7 +537,7 @@ class _AddDrevWidgetState extends State<AddDrevWidget> {
                     context: context,
                     controller: _model.passTextController!,
                     focusNode: _model.passFocusNode,
-                    label: 'كلمة المرور *',
+                    label: uiTr(context, 'كلمة المرور *'),
                     hint: '••••••••',
                     helper: '6 أحرف على الأقل — أحرف وأرقام',
                     icon: Icons.lock_rounded,
@@ -555,7 +555,7 @@ class _AddDrevWidgetState extends State<AddDrevWidget> {
                     context: context,
                     controller: _model.cpassTextController!,
                     focusNode: _model.cpassFocusNode,
-                    label: 'تأكيد كلمة المرور *',
+                    label: uiTr(context, 'تأكيد كلمة المرور *'),
                     hint: 'أعد إدخال كلمة المرور',
                     helper: 'يجب أن تطابق كلمة المرور أعلاه',
                     icon: Icons.verified_user_outlined,
@@ -574,7 +574,7 @@ class _AddDrevWidgetState extends State<AddDrevWidget> {
             ),
             const SizedBox(height: 16),
             AdminEditFormCard(
-              sectionTitle: '٢ — بيانات المركبة والعمل',
+              sectionTitle: uiTr(context, '٢ — بيانات المركبة والعمل'),
               children: [
                 _buildFieldHint(
                   'اختر شركة النقل (إن وُجدت) ثم نوع السيارة ومدينة العمل.',
@@ -593,8 +593,8 @@ class _AddDrevWidgetState extends State<AddDrevWidget> {
                   )
                 else if (AdminRoleService.isTransportCompany && _selectedCompany != null)
                   InputDecorator(
-                    decoration: const InputDecoration(
-                      labelText: 'شركة النقل',
+                    decoration: InputDecoration(
+                      labelText: uiTr(context, 'شركة النقل'),
                     ),
                     child: Text(_selectedCompany!.naim),
                   )
@@ -602,14 +602,14 @@ class _AddDrevWidgetState extends State<AddDrevWidget> {
                   DropdownButtonFormField<TransportCompanyRecord?>(
                     value: _selectedCompany,
                     isExpanded: true,
-                    decoration: const InputDecoration(
-                      labelText: 'شركة النقل (اختياري)',
-                      hintText: 'مستقل — بدون شركة',
+                    decoration: InputDecoration(
+                      labelText: uiTr(context, 'شركة النقل (اختياري)'),
+                      hintText: uiTr(context, 'مستقل — بدون شركة'),
                     ),
                     items: [
-                      const DropdownMenuItem<TransportCompanyRecord?>(
+                      DropdownMenuItem<TransportCompanyRecord?>(
                         value: null,
-                        child: Text('مستقل — بدون شركة'),
+                        child: Text(uiTr(context, 'مستقل — بدون شركة')),
                       ),
                       ..._companies.map(
                         (c) => DropdownMenuItem(
@@ -627,9 +627,9 @@ class _AddDrevWidgetState extends State<AddDrevWidget> {
                   ),
                 const SizedBox(height: 14),
                 AdminEditPickerRow(
-                  label: 'نوع السيارة *',
+                  label: uiTr(context, 'نوع السيارة *'),
                   value: _model.cartypeTextController!.text,
-                  placeholder: 'اضغط لاختيار نوع السيارة',
+                  placeholder: uiTr(context, 'اضغط لاختيار نوع السيارة'),
                   onTap: () async {
                     await showAdminPickerSheet(
                       context: context,
@@ -654,7 +654,7 @@ class _AddDrevWidgetState extends State<AddDrevWidget> {
                   context: context,
                   controller: _model.platTextController!,
                   focusNode: _model.platFocusNode,
-                  label: 'رقم اللوحة',
+                  label: uiTr(context, 'رقم اللوحة'),
                   hint: 'مثال: أ ب ج 1234',
                   helper: 'اختياري — أدخل رقم لوحة المركبة إن وُجد',
                   icon: Icons.confirmation_number_outlined,
@@ -662,9 +662,9 @@ class _AddDrevWidgetState extends State<AddDrevWidget> {
                 ),
                 const SizedBox(height: 14),
                 AdminEditPickerRow(
-                  label: 'مدينة العمل *',
+                  label: uiTr(context, 'مدينة العمل *'),
                   value: _model.workcityTextController!.text,
-                  placeholder: 'اضغط لاختيار مدينة العمل',
+                  placeholder: uiTr(context, 'اضغط لاختيار مدينة العمل'),
                   icon: Icons.location_city_rounded,
                   onTap: () async {
                     await showAdminPickerSheet(
@@ -689,7 +689,7 @@ class _AddDrevWidgetState extends State<AddDrevWidget> {
             ),
             const SizedBox(height: 16),
             AdminEditFormCard(
-              sectionTitle: '٣ — الصورة الشخصية',
+              sectionTitle: uiTr(context, '٣ — الصورة الشخصية'),
               children: [
                 _buildFieldHint(
                   'صورة واضحة لوجه المندوب تظهر في التطبيق وفي قائمة المناديب.',

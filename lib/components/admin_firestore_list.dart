@@ -12,6 +12,7 @@ import '/backend/backend.dart';
 import '/components/admin_crud_feedback.dart';
 import '/components/admin_ui.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
+import '/flutter_flow/flutter_flow_util.dart';
 
 /// Fast paginated Firestore list: cache-first load, limited live sync on first page.
 class AdminFirestoreList<T> extends StatefulWidget {
@@ -237,14 +238,14 @@ class _AdminFirestoreListState<T> extends State<AdminFirestoreList<T>> {
       if (_items.isNotEmpty) {
         setState(() {
           _hasError = true;
-          _errorMessage = 'تعذر تحديث البيانات من الخادم';
+          _errorMessage = 'adm_server_refresh_failed';
         });
         return;
       }
       setState(() {
         _loading = false;
         _hasError = true;
-        _errorMessage = 'تعذر تحميل البيانات. تحقق من الاتصال وحاول مرة أخرى.';
+        _errorMessage = 'adm_load_failed_network';
       });
     }
   }
@@ -291,14 +292,14 @@ class _AdminFirestoreListState<T> extends State<AdminFirestoreList<T>> {
         setState(() {
           _loading = false;
           _hasError = true;
-          _errorMessage = 'تعذر تحديث البيانات من الخادم';
+          _errorMessage = 'adm_server_refresh_failed';
         });
         return;
       }
       setState(() {
         _loading = false;
         _hasError = true;
-        _errorMessage = 'تعذر تحميل البيانات. تحقق من الاتصال وحاول مرة أخرى.';
+        _errorMessage = 'adm_load_failed_network';
       });
     }
   }
@@ -349,14 +350,14 @@ class _AdminFirestoreListState<T> extends State<AdminFirestoreList<T>> {
       if (_items.isNotEmpty) {
         setState(() {
           _hasError = true;
-          _errorMessage = 'تعذر تحديث البيانات من الخادم';
+          _errorMessage = 'adm_server_refresh_failed';
         });
         return;
       }
       setState(() {
         _loading = false;
         _hasError = true;
-        _errorMessage = 'تعذر تحميل البيانات. تحقق من الاتصال وحاول مرة أخرى.';
+        _errorMessage = 'adm_load_failed_network';
       });
     }
   }
@@ -425,7 +426,7 @@ class _AdminFirestoreListState<T> extends State<AdminFirestoreList<T>> {
         setState(() {
           _loadingMore = false;
           _hasError = true;
-          _errorMessage = 'تعذر تحميل المزيد من السجلات';
+          _errorMessage = 'adm_load_more_failed';
         });
       }
     }
@@ -456,6 +457,16 @@ class _AdminFirestoreListState<T> extends State<AdminFirestoreList<T>> {
         totalFetched: _items.length,
       );
 
+  String _localizedError(BuildContext context, String? key) {
+    if (key == null) {
+      return appTr(context, 'adm_load_failed');
+    }
+    if (key.startsWith('adm_')) {
+      return appTr(context, key);
+    }
+    return key;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading && _items.isEmpty) {
@@ -474,7 +485,7 @@ class _AdminFirestoreListState<T> extends State<AdminFirestoreList<T>> {
 
     if (_hasError && _items.isEmpty) {
       return AdminListErrorState(
-        message: _errorMessage ?? 'تعذر تحميل البيانات',
+        message: _localizedError(context, _errorMessage),
         onRetry: refresh,
       );
     }
@@ -485,7 +496,7 @@ class _AdminFirestoreListState<T> extends State<AdminFirestoreList<T>> {
       children: [
         if (_hasError && _items.isNotEmpty)
           AdminListErrorBanner(
-            message: _errorMessage ?? 'تعذر تحديث البيانات',
+            message: _localizedError(context, _errorMessage),
             onRetry: refresh,
           ),
         widget.builder(
@@ -524,7 +535,7 @@ class AdminListErrorState extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: onRetry,
             icon: const Icon(Icons.refresh_rounded, size: 20),
-            label: const Text('إعادة المحاولة'),
+            label: Text(appTr(context, 'adm_retry')),
             style: OutlinedButton.styleFrom(
               foregroundColor: AdminUi.brandTeal,
             ),
@@ -562,7 +573,7 @@ class AdminListErrorBanner extends StatelessWidget {
             ),
             TextButton(
               onPressed: onRetry,
-              child: const Text('تحديث'),
+              child: Text(appTr(context, 'adm_refresh')),
             ),
           ],
         ),
@@ -576,11 +587,11 @@ class AdminListLoadMoreFooter extends StatelessWidget {
   const AdminListLoadMoreFooter({
     super.key,
     required this.state,
-    this.label = 'تحميل المزيد',
+    this.labelKey = 'adm_load_more',
   });
 
   final AdminFirestoreListMeta<dynamic> state;
-  final String label;
+  final String labelKey;
 
   @override
   Widget build(BuildContext context) {
@@ -592,7 +603,7 @@ class AdminListLoadMoreFooter extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Center(
           child: Text(
-            'تم عرض $total سجل',
+            appTrFormat(context, 'adm_records_shown', total),
             style: theme.labelMedium.override(
               fontFamily: theme.labelMediumFamily,
               color: theme.secondaryText,
@@ -617,8 +628,8 @@ class AdminListLoadMoreFooter extends StatelessWidget {
                 icon: const Icon(Icons.expand_more_rounded, size: 20),
                 label: Text(
                   state.totalAvailable != null
-                      ? '$label (${state.totalFetched} من ${state.totalAvailable})'
-                      : label,
+                      ? '${appTr(context, labelKey)} (${state.totalFetched} / ${state.totalAvailable})'
+                      : appTr(context, labelKey),
                 ),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AdminUi.brandTeal,

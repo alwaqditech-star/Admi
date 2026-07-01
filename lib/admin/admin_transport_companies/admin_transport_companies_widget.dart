@@ -80,9 +80,9 @@ class _AdminTransportCompaniesWidgetState
       menu2Model: _model.menu2Model,
       updateCallback: () => safeSetState(() {}),
       padContent: false,
-      title: 'شركات النقل',
+      title: appTr(context, 'nav_transport_companies'),
       child: AdminPageBody(
-        title: 'شركات النقل المرخّصة',
+        title: appTr(context, 'scr_transport_companies'),
         subtitle:
             'الشركات المرخّصة من هيئة النقل — أضف الشركة ثم سجّل سائقيها ومركباتهم',
         scrollable: true,
@@ -104,7 +104,7 @@ class _AdminTransportCompaniesWidgetState
                       ),
                     ),
                     decoration: InputDecoration(
-                      hintText: 'بحث باسم الشركة أو رقم الترخيص...',
+                      hintText: uiTr(context, 'بحث باسم الشركة أو رقم الترخيص...'),
                       prefixIcon: const Icon(Icons.search_rounded),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -113,7 +113,7 @@ class _AdminTransportCompaniesWidgetState
                   ),
                   const SizedBox(height: 12),
                   AdminPrimaryButton(
-                    label: 'إضافة شركة نقل',
+                    label: uiTr(context, 'إضافة شركة نقل'),
                     icon: Icons.local_shipping_rounded,
                     onPressed: () =>
                         context.pushNamed(AddTransportCompanyWidget.routeName),
@@ -196,7 +196,7 @@ class _AdminTransportCompaniesWidgetState
                                   if (!context.mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text('تعذر تحديث الحالة: $e'),
+                                      content: Text(AdminCrudFeedback.updateFailed(context, e)),
                                     ),
                                   );
                                 }
@@ -289,7 +289,7 @@ class _CompanyCard extends StatelessWidget {
               style: theme.bodySmall,
             ),
           if (company.phone.isNotEmpty)
-            Text('جوال: ${company.phone}', style: theme.bodySmall),
+            Text(appTrFormat(context, 'adm_phone_label', company.phone), style: theme.bodySmall),
           const SizedBox(height: 10),
           Row(
             children: [
@@ -297,7 +297,7 @@ class _CompanyCard extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: onAddDriver,
                   icon: const Icon(Icons.person_add_alt_1_rounded, size: 18),
-                  label: const Text('إضافة سائق'),
+                  label: Text(uiTr(context, 'إضافة سائق')),
                 ),
               ),
               const SizedBox(width: 8),

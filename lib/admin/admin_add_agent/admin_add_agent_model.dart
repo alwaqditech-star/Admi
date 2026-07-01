@@ -41,7 +41,7 @@ class AdminAddAgentModel extends FlutterFlowModel<AdminAddAgentWidget> {
   FocusNode? appCommissionFocusNode;
   TextEditingController? appCommissionTextController;
   String? Function(BuildContext, String?)? appCommissionTextControllerValidator;
-  // Fixed VAT percent (read-only).
+  // VAT percent for the new agent.
   TextEditingController? vatPercentTextController;
   // State field(s) for Switch widget.
   bool? switchValue;

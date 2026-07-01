@@ -453,9 +453,8 @@ class _AdmintypecarWidgetState extends State<AdmintypecarWidget> {
                                                                                 controller:
                                                                                     nameCtrl,
                                                                                 decoration:
-                                                                                    const InputDecoration(
-                                                                                  labelText:
-                                                                                      'الاسم',
+                                                                                    InputDecoration(
+                                                                                  labelText: uiTr(context, 'الاسم'),
                                                                                 ),
                                                                               ),
                                                                               TextField(
@@ -464,7 +463,7 @@ class _AdmintypecarWidgetState extends State<AdmintypecarWidget> {
                                                                                 keyboardType:
                                                                                     TextInputType.number,
                                                                                 decoration:
-                                                                                    const InputDecoration(
+                                                                                    InputDecoration(
                                                                                   labelText:
                                                                                       'السعر للساعة',
                                                                                 ),
@@ -519,9 +518,9 @@ class _AdmintypecarWidgetState extends State<AdmintypecarWidget> {
                                                                       ScaffoldMessenger.of(
                                                                               context)
                                                                           .showSnackBar(
-                                                                        const SnackBar(
+                                                                        SnackBar(
                                                                           content:
-                                                                              Text('تم حفظ التعديلات'),
+                                                                              Text(uiTr(context, 'تم حفظ التعديلات')),
                                                                         ),
                                                                       );
                                                                     } catch (e) {
@@ -534,7 +533,7 @@ class _AdmintypecarWidgetState extends State<AdmintypecarWidget> {
                                                                           .showSnackBar(
                                                                         SnackBar(
                                                                             content:
-                                                                                Text('تعذر الحفظ: $e')),
+                                                                                Text(AdminCrudFeedback.saveFailed(context, e))),
                                                                       );
                                                                     }
                                                                   },
@@ -611,8 +610,7 @@ class _AdmintypecarWidgetState extends State<AdmintypecarWidget> {
                                                                                       ctx,
                                                                                       true),
                                                                               child:
-                                                                                  const Text(
-                                                                                      'حذف'),
+                                                                                  Text(uiTr(context, 'حذف')),
                                                                             ),
                                                                           ],
                                                                         );
@@ -662,7 +660,7 @@ class _AdmintypecarWidgetState extends State<AdmintypecarWidget> {
                                                                       AdminCrudFeedback
                                                                           .error(
                                                                         context,
-                                                                        'تعذر الحذف: $e',
+                                                                        AdminCrudFeedback.deleteFailed(context, e),
                                                                       );
                                                                     }
                                                                   },

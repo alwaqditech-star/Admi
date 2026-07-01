@@ -1,4 +1,5 @@
 import '/backend/backend.dart';
+import '/components/admin_crud_feedback.dart';
 import '/components/admin_edit_shell.dart';
 import '/components/admin_region_picker.dart';
 import '/components/admin_ui.dart';
@@ -550,7 +551,7 @@ class _DriverActivationWidgetState extends State<DriverActivationWidget> {
                                         context: context,
                                         builder: (alertDialogContext) {
                                           return AlertDialog(
-                                            title: const Text('تم التفعيل'),
+                                            title: Text(uiTr(context, 'تم التفعيل')),
                                             content: const Text(
                                                 'تم تفعيل المندوب بنجاح'),
                                             actions: [
@@ -570,7 +571,9 @@ class _DriverActivationWidgetState extends State<DriverActivationWidget> {
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
                                         SnackBar(
-                                            content: Text('تعذر التفعيل: $e')),
+                                            content: Text(
+                                              AdminCrudFeedback.updateFailed(context, e),
+                                            )),
                                       );
                                     }
                                   },

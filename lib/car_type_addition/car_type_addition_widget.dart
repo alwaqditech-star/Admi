@@ -3,6 +3,7 @@ import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
+import '/components/admin_crud_feedback.dart';
 import '/components/admin_image_picker.dart';
 import '/components/admin_ui.dart';
 import 'package:flutter/material.dart';
@@ -542,14 +543,14 @@ class _CarTypeAdditionWidgetState extends State<CarTypeAdditionWidget> {
                   final name = _model.textController1.text.trim();
                   if (name.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('يرجى إدخال اسم السيارة')),
+                      SnackBar(content: Text(uiTr(context, 'يرجى إدخال اسم السيارة'))),
                     );
                     return;
                   }
                   final rate = int.tryParse(_model.textController2.text.trim());
                   if (rate == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('يرجى إدخال سعر صحيح')),
+                      SnackBar(content: Text(uiTr(context, 'يرجى إدخال سعر صحيح'))),
                     );
                     return;
                   }
@@ -577,7 +578,7 @@ class _CarTypeAdditionWidgetState extends State<CarTypeAdditionWidget> {
                   } catch (e) {
                     if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('تعذر الحفظ: $e')),
+                      SnackBar(content: Text(AdminCrudFeedback.saveFailed(context, e))),
                     );
                   }
                 },

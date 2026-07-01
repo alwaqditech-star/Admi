@@ -1,6 +1,7 @@
 import '/backend/admin_performance.dart';
 import '/backend/admin_resource_guard.dart';
 import '/backend/backend.dart';
+import '/components/admin_crud_feedback.dart';
 import '/components/admin_edit_shell.dart';
 import '/components/admin_region_picker.dart';
 import '/components/admin_ui.dart';
@@ -64,9 +65,9 @@ class _DriverProfileWidgetState extends State<DriverProfileWidget> {
             ),
             onPressed: () => context.safePop(),
           ),
-          title: const Text('ملف السائق'),
+          title: Text(uiTr(context, 'ملف السائق')),
         ),
-        body: const Center(child: Text('تعذر تحميل بيانات السائق')),
+        body: Center(child: Text(uiTr(context, 'تعذر تحميل بيانات السائق'))),
       );
     }
 
@@ -125,10 +126,10 @@ class _DriverProfileWidgetState extends State<DriverProfileWidget> {
                     ),
                     onPressed: () => context.safePop(),
                   ),
-                  title: const Text('ملف السائق'),
+                  title: Text(uiTr(context, 'ملف السائق')),
                 ),
-                body: const Center(
-                  child: Text('لا تملك صلاحية عرض ملف هذا السائق'),
+                body: Center(
+                  child: Text(uiTr(context, 'لا تملك صلاحية عرض ملف هذا السائق')),
                 ),
               );
             }
@@ -418,7 +419,7 @@ class _DriverProfileWidgetState extends State<DriverProfileWidget> {
                                           if (!mounted) return;
                                           ScaffoldMessenger.of(context)
                                               .showSnackBar(
-                                            const SnackBar(
+                                            SnackBar(
                                               content: Text(
                                                 'تم تحديث مدينة العمل',
                                               ),
@@ -527,7 +528,7 @@ class _DriverProfileWidgetState extends State<DriverProfileWidget> {
                                               if (!mounted) return;
                                               ScaffoldMessenger.of(context)
                                                   .showSnackBar(
-                                                const SnackBar(
+                                                SnackBar(
                                                   content: Text(
                                                     'تم إيقاف المندوب',
                                                   ),
@@ -605,7 +606,7 @@ class _DriverProfileWidgetState extends State<DriverProfileWidget> {
                                               context: context,
                                               builder: (alertDialogContext) {
                                                 return AlertDialog(
-                                                  title: Text('تفعيل  المندوب'),
+                                                  title: Text(uiTr(context, 'تفعيل  المندوب')),
                                                   content: Text(
                                                       'هل انت متاكد من تفعيل المندوب؟'),
                                                   actions: [
@@ -640,8 +641,8 @@ class _DriverProfileWidgetState extends State<DriverProfileWidget> {
                                         if (!mounted) return;
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(
-                                          const SnackBar(
-                                            content: Text('تم تفعيل المندوب'),
+                                          SnackBar(
+                                            content: Text(uiTr(context, 'تم تفعيل المندوب')),
                                           ),
                                         );
                                       } catch (e) {
@@ -649,7 +650,9 @@ class _DriverProfileWidgetState extends State<DriverProfileWidget> {
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(
                                           SnackBar(
-                                            content: Text('تعذر التفعيل: $e'),
+                                            content: Text(
+                                              '${AdminCrudFeedback.updateFailed(context, e)}',
+                                            ),
                                           ),
                                         );
                                       }

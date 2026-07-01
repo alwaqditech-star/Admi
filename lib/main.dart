@@ -55,7 +55,7 @@ class MyAppScrollBehavior extends MaterialScrollBehavior {
 }
 
 class _MyAppState extends State<MyApp> {
-  Locale? _locale = FFLocalizations.getStoredLocale();
+  late Locale _locale = FFLocalizations.resolveInitialLocale();
 
   ThemeMode _themeMode = FlutterFlowTheme.themeMode;
 
@@ -121,7 +121,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      title: 'لوحة التحكم',
+      title: FFLocalizations.localizedAppTitle(_locale),
       scrollBehavior: MyAppScrollBehavior(),
       localizationsDelegates: [
         FFLocalizationsDelegate(),
@@ -132,6 +132,21 @@ class _MyAppState extends State<MyApp> {
         FallbackCupertinoLocalizationDelegate(),
       ],
       locale: _locale,
+      localeListResolutionCallback: (locales, supported) {
+        if (FFLocalizations.hasUserPickedLocale) {
+          return _locale;
+        }
+        for (final locale in locales ?? const <Locale>[]) {
+          final resolved = FFLocalizations.resolveDeviceLocale(locale);
+          if (supported.contains(resolved) ||
+              supported.any(
+                (s) => s.languageCode == resolved.languageCode,
+              )) {
+            return resolved;
+          }
+        }
+        return const Locale('en');
+      },
       supportedLocales: const [
         Locale('en'),
         Locale('ar'),

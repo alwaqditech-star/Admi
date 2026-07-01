@@ -157,7 +157,7 @@ class _AdminProfitsWidgetState extends State<AdminProfitsWidget>
                           TextButton.icon(
                             onPressed: _refresh,
                             icon: const Icon(Icons.refresh_rounded),
-                            label: const Text('إعادة المحاولة'),
+                            label: Text(appTr(context, 'adm_retry')),
                           ),
                         ],
                       ),
@@ -581,42 +581,42 @@ class _ProfitsStatGrid extends StatelessWidget {
     final theme = FlutterFlowTheme.of(context);
     final items = [
       (
-        title: 'إجمالي المبيعات',
+        title: uiTr(context, 'إجمالي المبيعات'),
         value: formatMoney(stats.totalSales),
         icon: Icons.storefront_rounded,
         color: const Color(0xFF1F7372),
         onTap: null as VoidCallback?,
       ),
       (
-        title: 'رسوم التطبيق',
+        title: uiTr(context, 'رسوم التطبيق'),
         value: formatMoney(stats.appProfit),
         icon: Icons.phone_iphone_rounded,
         color: const Color(0xFF39D2C0),
         onTap: null,
       ),
       (
-        title: 'الضريبة',
+        title: uiTr(context, 'الضريبة'),
         value: formatMoney(stats.vat),
         icon: Icons.percent_rounded,
         color: const Color(0xFF7E57C2),
         onTap: null,
       ),
       (
-        title: 'عمولات المناديب',
+        title: uiTr(context, 'عمولات المناديب'),
         value: formatMoney(stats.repCommission + stats.deliveryFees),
         icon: Icons.local_shipping_rounded,
         color: const Color(0xFFFF8A65),
         onTap: null,
       ),
       (
-        title: 'حجوزات مدفوعة',
+        title: uiTr(context, 'حجوزات مدفوعة'),
         value: '${stats.paidCount}',
         icon: Icons.check_circle_rounded,
         color: const Color(0xFF43A047),
         onTap: onBookingsTap,
       ),
       (
-        title: 'قيد الانتظار',
+        title: uiTr(context, 'قيد الانتظار'),
         value: '${stats.pendingCount}',
         icon: Icons.hourglass_top_rounded,
         color: const Color(0xFFFFB300),
@@ -922,22 +922,22 @@ class _ProfitBreakdownCard extends StatelessWidget {
     final theme = FlutterFlowTheme.of(context);
     final segments = [
       _BreakdownSegment(
-        label: 'رسوم التطبيق',
+        label: uiTr(context, 'رسوم التطبيق'),
         value: stats.appProfit,
         color: AdminUi.brandTeal,
       ),
       _BreakdownSegment(
-        label: 'الضريبة',
+        label: uiTr(context, 'الضريبة'),
         value: stats.vat,
         color: const Color(0xFF7E57C2),
       ),
       _BreakdownSegment(
-        label: 'عمولة المناديب',
+        label: uiTr(context, 'عمولة المناديب'),
         value: stats.repCommission,
         color: const Color(0xFFFF8A65),
       ),
       _BreakdownSegment(
-        label: 'رسوم التوصيل',
+        label: uiTr(context, 'رسوم التوصيل'),
         value: stats.deliveryFees,
         color: const Color(0xFFFFB300),
       ),
@@ -1147,8 +1147,8 @@ class _RecentTransactionsCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AdminPageHeader(
-            title: 'آخر العمليات',
-            subtitle: 'اضغط على أي عملية لعرض تفاصيل الحجز',
+            title: uiTr(context, 'آخر العمليات'),
+            subtitle: uiTr(context, 'اضغط على أي عملية لعرض تفاصيل الحجز'),
             compact: true,
           ),
           if (rows.isEmpty)

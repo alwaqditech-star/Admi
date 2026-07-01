@@ -1,7 +1,7 @@
 
-import '/backend/admin_firestore_delete.dart';
 import '/backend/admin_audit_log.dart';
 import '/backend/admin_cascade_delete.dart';
+import '/backend/admin_firestore_delete.dart';
 import '/backend/backend.dart';
 import '/backend/firebase_storage/storage.dart';
 import '/components/admin_crud_feedback.dart';
@@ -84,12 +84,12 @@ class _EdetRegWidgetState extends State<EdetRegWidget> {
       });
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم اختيار الصورة بنجاح')),
+        SnackBar(content: Text(appTr(context, 'adm_image_selected'))),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تعذر رفع الصورة: ${uploadErrorMessage(e)}')),
+        SnackBar(content: Text(AdminCrudFeedback.uploadFailed(context, uploadErrorMessage(e)))),
       );
     } finally {
       if (mounted) {
@@ -102,13 +102,13 @@ class _EdetRegWidgetState extends State<EdetRegWidget> {
     final name = _model.textFieldnaimTextController!.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى إدخال اسم المنطقة')),
+        SnackBar(content: Text(uiTr(context, 'يرجى إدخال اسم المنطقة'))),
       );
       return;
     }
     if (FFAppState().RevDolh == null && record.dolh == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى اختيار الدولة')),
+        SnackBar(content: Text(uiTr(context, 'يرجى اختيار الدولة'))),
       );
       return;
     }
@@ -133,13 +133,14 @@ class _EdetRegWidgetState extends State<EdetRegWidget> {
       await AdminCrudFeedback.success(
         context,
         action: AdminCrudAction.edit,
-        message: 'تم حفظ التعديلات بنجاح',
+        message: uiTr(context, 'تم حفظ التعديلات بنجاح'),
         refreshScope: AdminListScope.regions,
         popPage: true,
+        deferHeavyWork: false,
       );
     } catch (e) {
       if (!mounted) return;
-      AdminCrudFeedback.error(context, 'تعذر الحفظ: $e');
+      AdminCrudFeedback.error(context, AdminCrudFeedback.saveFailed(context, e));
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -149,18 +150,18 @@ class _EdetRegWidgetState extends State<EdetRegWidget> {
     final confirmed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('تأكيد الحذف'),
+            title: Text(appTr(context, 'adm_delete_confirm_title')),
             content: const Text(
               'عند حذف المنطقة سيتم حذف كل المدن والمعالم المرتبطة. هل أنت متأكد؟',
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('لا'),
+                child: Text(appTr(context, 'adm_no')),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('نعم، احذف'),
+                child: Text(appTr(context, 'adm_yes_delete')),
               ),
             ],
           ),
@@ -181,15 +182,14 @@ class _EdetRegWidgetState extends State<EdetRegWidget> {
       await AdminCrudFeedback.success(
         context,
         action: AdminCrudAction.delete,
-        message: 'تم حذف المنطقة وكل البيانات المرتبطة',
+        message: uiTr(context, 'تم حذف المنطقة وكل البيانات المرتبطة'),
         refreshScope: AdminListScope.regions,
         removedDocumentId: record.reference.id,
-        deletedRef: record.reference,
         popPage: true,
       );
     } catch (e) {
       if (!mounted) return;
-      AdminCrudFeedback.error(context, 'تعذر الحذف: $e');
+      AdminCrudFeedback.error(context, AdminCrudFeedback.deleteFailed(context, e));
     } finally {
       if (mounted) setState(() => _isDeleting = false);
     }
@@ -203,8 +203,8 @@ class _EdetRegWidgetState extends State<EdetRegWidget> {
       stream: CitiesRecord.getDocument(widget.idreg!),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const AdminEditScaffold(
-            title: 'تعديل المنطقة',
+          return AdminEditScaffold(
+            title: uiTr(context, 'تعديل المنطقة'),
             isLoading: true,
             child: SizedBox.shrink(),
           );
@@ -219,14 +219,14 @@ class _EdetRegWidgetState extends State<EdetRegWidget> {
             : (_model.countryLabel ?? '');
 
         return AdminEditScaffold(
-          title: 'تعديل المنطقة',
-          subtitle: 'حدّث بيانات المنطقة وربطها بالدولة',
+          title: uiTr(context, 'تعديل المنطقة'),
+          subtitle: uiTr(context, 'حدّث بيانات المنطقة وربطها بالدولة'),
           child: AdminEditFormCard(
             children: [
               AdminEditPickerRow(
-                label: 'الدولة',
+                label: uiTr(context, 'الدولة'),
                 value: countryLabel,
-                placeholder: 'اختر الدولة',
+                placeholder: uiTr(context, 'اختر الدولة'),
                 onTap: () async {
                   await showAdminPickerSheet(
                     context: context,
@@ -243,20 +243,20 @@ class _EdetRegWidgetState extends State<EdetRegWidget> {
               AdminTextField(
                 controller: _model.textFieldnaimTextController!,
                 focusNode: _model.textFieldnaimFocusNode,
-                label: 'اسم المنطقة',
+                label: uiTr(context, 'اسم المنطقة'),
                 icon: Icons.filter_hdr_rounded,
               ),
               const SizedBox(height: AdminUi.fieldGap),
               AdminTextField(
                 controller: _model.textFieldDescTextController!,
                 focusNode: _model.textFieldDescFocusNode,
-                label: 'وصف المنطقة',
+                label: uiTr(context, 'وصف المنطقة'),
                 icon: Icons.notes_rounded,
               ),
               const SizedBox(height: AdminUi.fieldGap),
               AdminEditSwitchRow(
-                label: 'تفعيل المنطقة',
-                subtitle: 'تظهر المنطقة للمستخدمين عند التفعيل',
+                label: uiTr(context, 'تفعيل المنطقة'),
+                subtitle: uiTr(context, 'تظهر المنطقة للمستخدمين عند التفعيل'),
                 value: _model.switchValue ?? record.acctev,
                 onChanged: (v) => setState(() => _model.switchValue = v),
               ),
@@ -286,7 +286,7 @@ class _EdetRegWidgetState extends State<EdetRegWidget> {
               ),
               const SizedBox(height: 12),
               AdminPrimaryButton(
-                label: 'حفظ التعديلات',
+                label: uiTr(context, 'حفظ التعديلات'),
                 icon: Icons.save_rounded,
                 isLoading: _isSaving,
                 onPressed: () => _save(record),

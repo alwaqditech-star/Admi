@@ -68,16 +68,16 @@ class _AdminSuportWidgetState extends State<AdminSuportWidget> {
     final confirmed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('تأكيد'),
+            title: Text(uiTr(context, 'تأكيد')),
             content: Text(confirmMessage),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('لا'),
+                child: Text(appTr(context, 'adm_no')),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('نعم'),
+                child: Text(uiTr(context, 'نعم')),
               ),
             ],
           ),
@@ -98,7 +98,7 @@ class _AdminSuportWidgetState extends State<AdminSuportWidget> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تعذر تحديث التذكرة: $e')),
+        SnackBar(content: Text('${appTr(context, 'adm_update_ticket_failed')}: $e')),
       );
     }
   }
@@ -122,7 +122,7 @@ class _AdminSuportWidgetState extends State<AdminSuportWidget> {
         title: l10n.getText('8d66hs1w'),
         child: AdminPageBody(
           title: l10n.getText('wpcwo7sq'),
-          subtitle: 'متابعة تذاكر الدعم الفني وحلها',
+          subtitle: appTr(context, 'scr_support_subtitle'),
           scrollable: true,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -257,7 +257,7 @@ class _AdminSuportWidgetState extends State<AdminSuportWidget> {
       ),
       decoration: AdminUi.inputDecoration(
         context,
-        label: 'بحث',
+        label: uiTr(context, 'بحث'),
         hint: l10n.getText('olbmog91'),
         prefixIcon: Icons.search_rounded,
       ),
@@ -523,27 +523,27 @@ class _TicketCard extends StatelessWidget {
           if (ticket.tsnef.isNotEmpty)
             _InfoTile(
               icon: Icons.category_outlined,
-              label: 'التصنيف',
+              label: uiTr(context, 'التصنيف'),
               value: ticket.tsnef,
             ),
           if (ticket.tsnef.isNotEmpty) const SizedBox(height: 8),
           if (ticket.phone > 0)
             _InfoTile(
               icon: Icons.phone_rounded,
-              label: 'الجوال',
+              label: uiTr(context, 'الجوال'),
               value: ticket.phone.toString(),
             ),
           if (ticket.phone > 0) const SizedBox(height: 8),
           _InfoTile(
             icon: Icons.description_outlined,
-            label: 'الوصف',
+            label: uiTr(context, 'الوصف'),
             value: ticket.osf.isNotEmpty ? ticket.osf : '—',
           ),
           if (ticket.data != null) ...[
             const SizedBox(height: 8),
             _InfoTile(
               icon: Icons.schedule_rounded,
-              label: 'التاريخ',
+              label: uiTr(context, 'التاريخ'),
               value: dateTimeFormat(
                 'd/M/y – HH:mm',
                 ticket.data,

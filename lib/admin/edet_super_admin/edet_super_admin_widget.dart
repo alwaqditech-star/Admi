@@ -52,7 +52,7 @@ class _EdetSuperAdminWidgetState extends State<EdetSuperAdminWidget> {
 
       if (!AdminRoleService.isSuperAdminUser(admin)) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('هذا الحساب ليس سوبر أدمن')),
+          SnackBar(content: Text(uiTr(context, 'هذا الحساب ليس سوبر أدمن'))),
         );
         context.safePop();
         return;
@@ -122,13 +122,14 @@ class _EdetSuperAdminWidgetState extends State<EdetSuperAdminWidget> {
       await AdminCrudFeedback.success(
         context,
         action: AdminCrudAction.edit,
-        message: 'تم تحديث بيانات السوبر أدمن',
+        message: uiTr(context, 'تم تحديث بيانات السوبر أدمن'),
         refreshScope: AdminListScope.superAdmins,
         popPage: true,
+        deferHeavyWork: false,
       );
     } catch (e) {
       if (!mounted) return;
-      AdminCrudFeedback.error(context, 'تعذر الحفظ: $e');
+      AdminCrudFeedback.error(context, AdminCrudFeedback.saveFailed(context, e));
     } finally {
       if (mounted) setState(() => _model.isSubmitting = false);
     }
@@ -138,7 +139,7 @@ class _EdetSuperAdminWidgetState extends State<EdetSuperAdminWidget> {
     if (!AdminSuperAdminGate.isAllowed) return;
     if (_isSelf) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('لا يمكنك حذف حسابك الحالي')),
+        SnackBar(content: Text(uiTr(context, 'لا يمكنك حذف حسابك الحالي'))),
       );
       return;
     }
@@ -149,7 +150,7 @@ class _EdetSuperAdminWidgetState extends State<EdetSuperAdminWidget> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('حذف السوبر أدمن'),
+        title: Text(uiTr(context, 'حذف السوبر أدمن')),
         content: Text(
           'هل أنت متأكد من حذف "${_admin!.displayName}"؟\n'
           'سيتم حذف بياناته من قاعدة البيانات فقط.',
@@ -157,11 +158,11 @@ class _EdetSuperAdminWidgetState extends State<EdetSuperAdminWidget> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('إلغاء'),
+            child: Text(appTr(context, 'adm_cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('حذف', style: TextStyle(color: Colors.red)),
+            child: Text(appTr(context, 'adm_delete'), style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -180,15 +181,14 @@ class _EdetSuperAdminWidgetState extends State<EdetSuperAdminWidget> {
       await AdminCrudFeedback.success(
         context,
         action: AdminCrudAction.delete,
-        message: 'تم حذف السوبر أدمن',
+        message: uiTr(context, 'تم حذف السوبر أدمن'),
         refreshScope: AdminListScope.superAdmins,
         removedDocumentId: ref.id,
-        deletedRef: ref,
         popPage: true,
       );
     } catch (e) {
       if (!mounted) return;
-      AdminCrudFeedback.error(context, 'تعذر الحذف: $e');
+      AdminCrudFeedback.error(context, AdminCrudFeedback.deleteFailed(context, e));
     } finally {
       if (mounted) setState(() => _model.isSubmitting = false);
     }
@@ -205,21 +205,21 @@ class _EdetSuperAdminWidgetState extends State<EdetSuperAdminWidget> {
     if (!AdminSuperAdminGate.isAllowed) {
       return AdminSuperAdminGate.deniedEditScaffold(
         context: context,
-        title: 'تعديل سوبر أدمن',
+        title: appTr(context, 'scr_edit_super_admin'),
       );
     }
 
     if (_model.isLoading) {
-      return const AdminEditScaffold(
-        title: 'تعديل سوبر أدمن',
+      return AdminEditScaffold(
+        title: appTr(context, 'scr_edit_super_admin'),
         isLoading: true,
-        child: SizedBox.shrink(),
+        child: const SizedBox.shrink(),
       );
     }
 
     if (_admin == null) {
-      return const AdminEditScaffold(
-        title: 'تعديل سوبر أدمن',
+      return AdminEditScaffold(
+        title: appTr(context, 'scr_edit_super_admin'),
         child: AdminContentCard(
           child: Text(
             'تعذر تحميل بيانات السوبر أدمن',
@@ -230,11 +230,11 @@ class _EdetSuperAdminWidgetState extends State<EdetSuperAdminWidget> {
     }
 
     return AdminEditScaffold(
-      title: 'تعديل سوبر أدمن',
+      title: appTr(context, 'scr_edit_super_admin'),
       subtitle: _isSelf ? 'حسابك الحالي' : null,
       isLoading: _model.isSubmitting,
       floatingAction: AdminPrimaryButton(
-        label: 'حفظ التعديلات',
+        label: uiTr(context, 'حفظ التعديلات'),
         icon: Icons.save_rounded,
         isLoading: _model.isSubmitting,
         onPressed: _model.isSubmitting ? null : _save,
@@ -245,12 +245,12 @@ class _EdetSuperAdminWidgetState extends State<EdetSuperAdminWidget> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             AdminEditFormCard(
-              sectionTitle: 'بيانات السوبر أدمن',
+              sectionTitle: uiTr(context, 'بيانات السوبر أدمن'),
               children: [
                 TextFormField(
                   controller: _model.nameTextController,
                   focusNode: _model.nameFocusNode,
-                  decoration: const InputDecoration(labelText: 'الاسم الكامل'),
+                  decoration: InputDecoration(labelText: uiTr(context, 'الاسم الكامل')),
                   validator: (v) =>
                       v == null || v.trim().isEmpty ? 'مطلوب' : null,
                 ),
@@ -258,7 +258,7 @@ class _EdetSuperAdminWidgetState extends State<EdetSuperAdminWidget> {
                 TextFormField(
                   controller: _model.phoneTextController,
                   focusNode: _model.phoneFocusNode,
-                  decoration: const InputDecoration(labelText: 'رقم الجوال'),
+                  decoration: InputDecoration(labelText: uiTr(context, 'رقم الجوال')),
                   keyboardType: TextInputType.phone,
                 ),
                 const SizedBox(height: 12),
@@ -266,8 +266,8 @@ class _EdetSuperAdminWidgetState extends State<EdetSuperAdminWidget> {
                   controller: _model.emailTextController,
                   readOnly: true,
                   enabled: false,
-                  decoration: const InputDecoration(
-                    labelText: 'البريد الإلكتروني',
+                  decoration: InputDecoration(
+                    labelText: uiTr(context, 'البريد الإلكتروني'),
                     helperText: 'لا يمكن تغيير البريد من هنا',
                   ),
                 ),
@@ -275,11 +275,11 @@ class _EdetSuperAdminWidgetState extends State<EdetSuperAdminWidget> {
             ),
             const SizedBox(height: 16),
             AdminEditFormCard(
-              sectionTitle: 'الحالة',
+              sectionTitle: uiTr(context, 'الحالة'),
               children: [
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('تفعيل الحساب'),
+                  title: Text(uiTr(context, 'تفعيل الحساب')),
                   subtitle: Text(
                     _isSelf && !_model.activeValue
                         ? 'لا يُنصح بإيقاف حسابك أثناء استخدام اللوحة'

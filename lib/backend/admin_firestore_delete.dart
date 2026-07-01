@@ -4,27 +4,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 abstract final class AdminFirestoreDelete {
   AdminFirestoreDelete._();
 
-  static const _verifyAttempts = 4;
-  static const _verifyDelay = Duration(milliseconds: 500);
-  static const _pendingWritesTimeout = Duration(seconds: 20);
-
-  static Future<void> _ensureOnline() async {
-    try {
-      await FirebaseFirestore.instance.enableNetwork();
-    } catch (_) {}
-  }
-
-  static Future<void> _awaitServerCommit() async {
-    try {
-      await FirebaseFirestore.instance
-          .waitForPendingWrites()
-          .timeout(_pendingWritesTimeout);
-    } catch (_) {}
-  }
+  static const _verifyAttempts = 3;
+  static const _verifyDelay = Duration(milliseconds: 450);
 
   /// Confirms [ref] no longer exists on the server.
   static Future<void> verifyDeleted(DocumentReference ref) async {
-    await _ensureOnline();
     for (var attempt = 0; attempt < _verifyAttempts; attempt++) {
       final snap = await ref.get(const GetOptions(source: Source.server));
       if (!snap.exists) return;
@@ -37,7 +21,6 @@ abstract final class AdminFirestoreDelete {
 
   /// Confirms [ref] exists on the server after create/update.
   static Future<void> verifySaved(DocumentReference ref) async {
-    await _ensureOnline();
     for (var attempt = 0; attempt < _verifyAttempts; attempt++) {
       final snap = await ref.get(const GetOptions(source: Source.server));
       if (snap.exists) return;
@@ -50,9 +33,7 @@ abstract final class AdminFirestoreDelete {
 
   /// Deletes [ref] then verifies absence on the server.
   static Future<void> deleteDocument(DocumentReference ref) async {
-    await _ensureOnline();
     await ref.delete();
-    await _awaitServerCommit();
     await verifyDeleted(ref);
   }
 
@@ -62,13 +43,11 @@ abstract final class AdminFirestoreDelete {
     Map<String, dynamic> data, {
     SetOptions? options,
   }) async {
-    await _ensureOnline();
     if (options != null) {
       await ref.set(data, options);
     } else {
       await ref.set(data);
     }
-    await _awaitServerCommit();
     await verifySaved(ref);
   }
 
@@ -77,9 +56,7 @@ abstract final class AdminFirestoreDelete {
     DocumentReference ref,
     Map<String, dynamic> data,
   ) async {
-    await _ensureOnline();
     await ref.update(data);
-    await _awaitServerCommit();
     await verifySaved(ref);
   }
 }

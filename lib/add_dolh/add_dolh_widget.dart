@@ -1,4 +1,5 @@
 import '/backend/backend.dart';
+import '/components/admin_crud_feedback.dart';
 import '/components/admin_edit_shell.dart';
 import '/components/admin_image_picker.dart';
 import '/components/admin_super_admin_gate.dart';
@@ -62,14 +63,14 @@ class _AddDolhWidgetState extends State<AddDolhWidget> {
     final name = _model.textController1!.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى إدخال اسم الدولة')),
+        SnackBar(content: Text(uiTr(context, 'يرجى إدخال اسم الدولة'))),
       );
       return;
     }
 
     if (_model.isDataUploading_uploadDataX8mc) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('انتظر اكتمال رفع الصورة ثم احفظ')),
+        SnackBar(content: Text(uiTr(context, 'انتظر اكتمال رفع الصورة ثم احفظ'))),
       );
       return;
     }
@@ -98,13 +99,13 @@ class _AddDolhWidgetState extends State<AddDolhWidget> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم إضافة الدولة بنجاح')),
+        SnackBar(content: Text(uiTr(context, 'تم إضافة الدولة بنجاح'))),
       );
       context.safePop();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تعذر الحفظ: $e')),
+        SnackBar(content: Text(AdminCrudFeedback.saveFailed(context, e))),
       );
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -115,14 +116,14 @@ class _AddDolhWidgetState extends State<AddDolhWidget> {
   Widget build(BuildContext context) {
     if (AdminSuperAdminGate.isProfileLoading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('إضافة دولة')),
+        appBar: AppBar(title: Text(uiTr(context, 'إضافة دولة'))),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
     if (!AdminSuperAdminGate.isAllowed) {
       return AdminSuperAdminGate.deniedEditScaffold(
         context: context,
-        title: 'إضافة دولة',
+        title: uiTr(context, 'إضافة دولة'),
       );
     }
 
@@ -132,11 +133,11 @@ class _AddDolhWidgetState extends State<AddDolhWidget> {
         FocusManager.instance.primaryFocus?.unfocus();
       },
       child: AdminEditScaffold(
-        title: 'إضافة دولة جديدة',
-        subtitle: 'أدخل بيانات الدولة لإضافتها إلى النظام',
+        title: uiTr(context, 'إضافة دولة جديدة'),
+        subtitle: uiTr(context, 'أدخل بيانات الدولة لإضافتها إلى النظام'),
         isLoading: _isSaving,
         floatingAction: AdminPrimaryButton(
-          label: 'حفظ الدولة',
+          label: uiTr(context, 'حفظ الدولة'),
           icon: Icons.public_rounded,
           isLoading: _isSaving,
           onPressed: _isSaving ? null : _saveCountry,
@@ -145,7 +146,7 @@ class _AddDolhWidgetState extends State<AddDolhWidget> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             AdminEditFormCard(
-              sectionTitle: 'صورة الدولة',
+              sectionTitle: uiTr(context, 'صورة الدولة'),
               children: [
                 AdminEditableImageCard(
                   imageUrl: _model.uploadedFileUrl_uploadDataX8mc,
@@ -158,14 +159,14 @@ class _AddDolhWidgetState extends State<AddDolhWidget> {
             ),
             const SizedBox(height: 16),
             AdminEditFormCard(
-              sectionTitle: 'البيانات الأساسية',
+              sectionTitle: uiTr(context, 'البيانات الأساسية'),
               children: [
                 TextFormField(
                   controller: _model.textController1,
                   focusNode: _model.textFieldFocusNode1,
-                  decoration: const InputDecoration(
-                    labelText: 'اسم الدولة',
-                    hintText: 'مثال: المملكة العربية السعودية',
+                  decoration: InputDecoration(
+                    labelText: uiTr(context, 'اسم الدولة'),
+                    hintText: uiTr(context, 'مثال: المملكة العربية السعودية'),
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -173,9 +174,9 @@ class _AddDolhWidgetState extends State<AddDolhWidget> {
                   controller: _model.textController2,
                   focusNode: _model.textFieldFocusNode2,
                   maxLines: 4,
-                  decoration: const InputDecoration(
-                    labelText: 'وصف الدولة (اختياري)',
-                    hintText: 'وصف مختصر عن الدولة',
+                  decoration: InputDecoration(
+                    labelText: uiTr(context, 'وصف الدولة (اختياري)'),
+                    hintText: uiTr(context, 'وصف مختصر عن الدولة'),
                     alignLabelWithHint: true,
                   ),
                 ),
@@ -184,9 +185,9 @@ class _AddDolhWidgetState extends State<AddDolhWidget> {
                   controller: _model.textController3,
                   focusNode: _model.textFieldFocusNode3,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'نسبة الضريبة (%)',
-                    hintText: 'مثال: 15',
+                  decoration: InputDecoration(
+                    labelText: uiTr(context, 'نسبة الضريبة (%)'),
+                    hintText: uiTr(context, 'مثال: 15'),
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -194,15 +195,15 @@ class _AddDolhWidgetState extends State<AddDolhWidget> {
                   controller: _model.textController4,
                   focusNode: _model.textFieldFocusNode4,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'نسبة أرباح التطبيق (%)',
-                    hintText: 'مثال: 10',
+                  decoration: InputDecoration(
+                    labelText: uiTr(context, 'نسبة أرباح التطبيق (%)'),
+                    hintText: uiTr(context, 'مثال: 10'),
                   ),
                 ),
                 const SizedBox(height: 14),
                 AdminEditSwitchRow(
-                  label: 'تفعيل الدولة',
-                  subtitle: 'تظهر الدولة في التطبيق عند التفعيل',
+                  label: uiTr(context, 'تفعيل الدولة'),
+                  subtitle: uiTr(context, 'تظهر الدولة في التطبيق عند التفعيل'),
                   value: _model.switchValue ?? true,
                   onChanged: (v) => safeSetState(() => _model.switchValue = v),
                 ),

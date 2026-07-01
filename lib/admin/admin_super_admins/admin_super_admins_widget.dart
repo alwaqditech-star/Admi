@@ -59,7 +59,7 @@ class _AdminSuperAdminsWidgetState extends State<AdminSuperAdminsWidget> {
   Future<void> _deleteAdmin(UserRecord admin) async {
     if (admin.reference.id == currentUserUid) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('لا يمكنك حذف حسابك الحالي')),
+        SnackBar(content: Text(uiTr(context, 'لا يمكنك حذف حسابك الحالي'))),
       );
       return;
     }
@@ -67,7 +67,7 @@ class _AdminSuperAdminsWidgetState extends State<AdminSuperAdminsWidget> {
     final confirmed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('تأكيد الحذف'),
+            title: Text(appTr(context, 'adm_delete_confirm_title')),
             content: Text(
               'هل أنت متأكد من حذف السوبر أدمن "${admin.displayName}"؟\n'
               'سيتم حذف بياناته من قاعدة البيانات فقط.',
@@ -75,11 +75,11 @@ class _AdminSuperAdminsWidgetState extends State<AdminSuperAdminsWidget> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('إلغاء'),
+                child: Text(appTr(context, 'adm_cancel')),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('حذف', style: TextStyle(color: Colors.red)),
+                child: Text(appTr(context, 'adm_delete'), style: const TextStyle(color: Colors.red)),
               ),
             ],
           ),
@@ -99,14 +99,13 @@ class _AdminSuperAdminsWidgetState extends State<AdminSuperAdminsWidget> {
       await AdminCrudFeedback.success(
         context,
         action: AdminCrudAction.delete,
-        message: 'تم حذف السوبر أدمن',
+        message: uiTr(context, 'تم حذف السوبر أدمن'),
         refreshScope: AdminListScope.superAdmins,
         removedDocumentId: admin.reference.id,
-        deletedRef: admin.reference,
       );
     } catch (e) {
       if (!mounted) return;
-      AdminCrudFeedback.error(context, 'تعذر الحذف: $e');
+      AdminCrudFeedback.error(context, AdminCrudFeedback.deleteFailed(context, e));
     }
   }
 
@@ -133,8 +132,8 @@ class _AdminSuperAdminsWidgetState extends State<AdminSuperAdminsWidget> {
         scaffoldKey: scaffoldKey,
         menu2Model: _model.menu2Model,
         updateCallback: () => safeSetState(() {}),
-        title: 'سوبر أدمن',
-        feature: 'إدارة سوبر أدمن',
+        title: appTr(context, 'nav_super_admin'),
+        feature: appTr(context, 'scr_super_admin_mgmt'),
       );
       if (blocked != null) return blocked;
     }
@@ -149,10 +148,10 @@ class _AdminSuperAdminsWidgetState extends State<AdminSuperAdminsWidget> {
         menu2Model: _model.menu2Model,
         updateCallback: () => safeSetState(() {}),
         padContent: false,
-        title: 'سوبر أدمن',
+        title: appTr(context, 'nav_super_admin'),
         child: AdminPageBody(
-          title: 'سوبر أدمن',
-          subtitle: 'إضافة وتعديل وحذف حسابات السوبر أدمن',
+          title: appTr(context, 'nav_super_admin'),
+          subtitle: appTr(context, 'scr_super_admin_subtitle'),
           scrollable: true,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -275,7 +274,7 @@ class _AdminSuperAdminsWidgetState extends State<AdminSuperAdminsWidget> {
       ),
       decoration: AdminUi.inputDecoration(
         context,
-        label: 'بحث',
+        label: uiTr(context, 'بحث'),
         hint: 'الاسم، البريد، أو الجوال',
         prefixIcon: Icons.search_rounded,
       ),
@@ -284,7 +283,7 @@ class _AdminSuperAdminsWidgetState extends State<AdminSuperAdminsWidget> {
 
   Widget _buildAddButton() {
     return AdminPrimaryButton(
-      label: 'إضافة سوبر أدمن',
+      label: uiTr(context, 'إضافة سوبر أدمن'),
       icon: Icons.person_add_alt_1_rounded,
       onPressed: () => context.pushNamed(AdminAddSuperAdminWidget.routeName),
     );
@@ -312,12 +311,12 @@ class _SuperAdminsTable extends StatelessWidget {
         headingRowColor: WidgetStateProperty.all(
           AdminUi.brandTeal.withValues(alpha: 0.06),
         ),
-        columns: const [
-          DataColumn(label: Text('الاسم')),
-          DataColumn(label: Text('البريد')),
-          DataColumn(label: Text('الجوال')),
-          DataColumn(label: Text('الحالة')),
-          DataColumn(label: Text('إجراءات')),
+        columns: [
+          DataColumn(label: Text(uiTr(context, 'الاسم'))),
+          DataColumn(label: Text(uiTr(context, 'البريد'))),
+          DataColumn(label: Text(uiTr(context, 'الجوال'))),
+          DataColumn(label: Text(uiTr(context, 'الحالة'))),
+          DataColumn(label: Text(uiTr(context, 'إجراءات'))),
         ],
         rows: admins.map((admin) {
           final isSelf = admin.reference.id == currentUserUid;
@@ -446,7 +445,7 @@ class _SuperAdminCard extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: onEdit,
                   icon: const Icon(Icons.edit_outlined, size: 18),
-                  label: const Text('تعديل'),
+                  label: Text(uiTr(context, 'تعديل')),
                 ),
               ),
               const SizedBox(width: 8),

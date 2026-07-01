@@ -1,5 +1,8 @@
 import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
+import 'package:flutter/material.dart';
+
+import '/flutter_flow/internationalization.dart';
 
 /// Panel access levels (`isAdminRule` on `user`):
 /// - `1` → سوبر أدمن (كل الدول)
@@ -184,6 +187,21 @@ class AdminRoleService {
         return 'مدير شركة نقل';
       case AdminRole.none:
         return 'غير مصرّح';
+    }
+  }
+
+  static String roleLabelL10n(BuildContext context, AdminRole role) {
+    switch (role) {
+      case AdminRole.superAdmin:
+        return FFLocalizations.of(context).getText('role_super_admin');
+      case AdminRole.countryAgent:
+        return FFLocalizations.of(context).getText('role_country_agent');
+      case AdminRole.partner:
+        return FFLocalizations.of(context).getText('role_partner');
+      case AdminRole.transportCompany:
+        return FFLocalizations.of(context).getText('role_transport_manager');
+      case AdminRole.none:
+        return FFLocalizations.of(context).getText('role_unauthorized');
     }
   }
 }

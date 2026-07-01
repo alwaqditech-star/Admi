@@ -189,6 +189,47 @@ class AdminCountryScope {
     return applyRegionQuery(collection);
   }
 
+  /// Villages list for pickers — by region when set, otherwise by agent country.
+  static Query<Map<String, dynamic>> applyVillagePickerQuery(
+    Query<Map<String, dynamic>> collection, {
+    DocumentReference? regionRef,
+    DocumentReference? countryRef,
+  }) {
+    var q = collection.where('acctev', isEqualTo: true);
+    if (regionRef != null) {
+      return q.where('cities', isEqualTo: regionRef);
+    }
+
+    final country = countryRef ?? activeCountryRef ?? FFAppState().RevDolh;
+    final scopeActive = AdminRoleService.isCountryAgent ||
+        AdminReportsCountryScope.isActive ||
+        country != null;
+
+    if (!scopeActive) return q;
+
+    if (isSaudiCountryAgent) {
+      final refs = <DocumentReference>[
+        ...AdminSaudiCountry.countryRefsForQuery(),
+      ];
+      if (country != null && !refs.any((r) => r.path == country.path)) {
+        refs.add(country);
+      }
+      if (refs.isNotEmpty) {
+        return q.where(
+          'dolh',
+          whereIn: refs.take(30).toList(growable: false),
+        );
+      }
+    }
+
+    final scoped = country ?? activeCountryRef;
+    if (scoped != null) {
+      return q.where('dolh', isEqualTo: scoped);
+    }
+
+    return q;
+  }
+
   static Query applyAgentUserQuery(Query collection) {
     var q = (collection as Query<Map<String, dynamic>>)
         .where('Isagent', isEqualTo: true);
