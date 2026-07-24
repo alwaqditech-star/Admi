@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import '/auth/firebase_auth/auth_util.dart';
 import '/backend/admin_role_service.dart';
+import '/backend/admin_stats_coordinator.dart';
 import '/backend/backend.dart';
 import '/backend/admin_performance.dart';
 import '/backend/dashboard_stats_loader.dart';
@@ -27,7 +30,8 @@ class CompanyDriversWidget extends StatefulWidget {
 class _CompanyDriversWidgetState extends State<CompanyDriversWidget> {
   late CompanyDriversModel _model;
   final scaffoldKey = GlobalKey<ScaffoldState>();
-  late final Future<DashboardStats> _statsFuture;
+  late Future<DashboardStats> _statsFuture;
+  StreamSubscription<int>? _statsInvalidationSub;
 
   DocumentReference? get _companyRef =>
       AdminRoleService.transportCompanyRef;
@@ -37,11 +41,19 @@ class _CompanyDriversWidgetState extends State<CompanyDriversWidget> {
     super.initState();
     _model = createModel(context, () => CompanyDriversModel());
     _statsFuture = loadDashboardStats(forceRefresh: false);
+    _statsInvalidationSub =
+        AdminStatsCoordinator.instance.stream(StatsDomain.dashboard).listen((_) {
+      if (!mounted) return;
+      setState(() {
+        _statsFuture = loadDashboardStats(forceRefresh: true);
+      });
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
 
   @override
   void dispose() {
+    _statsInvalidationSub?.cancel();
     _model.dispose();
     super.dispose();
   }

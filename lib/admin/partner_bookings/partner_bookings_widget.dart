@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import '/backend/admin_panel_data_bootstrap.dart';
 import '/backend/admin_performance.dart';
 import '/backend/admin_role_service.dart';
+import '/backend/admin_stats_coordinator.dart';
 import '/backend/backend.dart';
 import '/backend/admin_partner_orders.dart';
 import '/backend/dashboard_stats_loader.dart';
@@ -28,17 +31,26 @@ class PartnerBookingsWidget extends StatefulWidget {
 class _PartnerBookingsWidgetState extends State<PartnerBookingsWidget> {
   late PartnerBookingsModel _model;
   final scaffoldKey = GlobalKey<ScaffoldState>();
-  late final Future<DashboardStats> _statsFuture;
+  late Future<DashboardStats> _statsFuture;
+  StreamSubscription<int>? _statsInvalidationSub;
 
   @override
   void initState() {
     super.initState();
     _model = createModel(context, () => PartnerBookingsModel());
     _statsFuture = loadDashboardStats(forceRefresh: false);
+    _statsInvalidationSub =
+        AdminStatsCoordinator.instance.stream(StatsDomain.dashboard).listen((_) {
+      if (!mounted) return;
+      setState(() {
+        _statsFuture = loadDashboardStats(forceRefresh: true);
+      });
+    });
   }
 
   @override
   void dispose() {
+    _statsInvalidationSub?.cancel();
     _model.dispose();
     super.dispose();
   }

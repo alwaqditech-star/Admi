@@ -1,3 +1,4 @@
+import '/core/i18n/admin_i18n_save_helper.dart';
 import '/backend/admin_agent_country_lock.dart';
 import '/backend/admin_country_scope.dart';
 import '/backend/admin_role_service.dart';
@@ -144,12 +145,26 @@ class _AddVillWidgetState extends State<AddVillWidget> {
         localBytes: _model.uploadedLocalFile_uploadDataWt55.bytes,
       );
 
+      final desc = _model.textController2!.text.trim();
+      final namesMap = await adminEnsureI18nMap(
+        context: context,
+        sourceText: name,
+        fieldLabel: 'city name',
+      );
+      final osfMap = await adminEnsureI18nMap(
+        context: context,
+        sourceText: desc,
+        fieldLabel: 'city description',
+      );
+
       await VillagesRecord.collection.doc().set(
             createVillagesRecordData(
               cities: FFAppState().Revreg,
               dolh: countryRef,
-              naim: name,
-              osf: _model.textController2!.text.trim(),
+              naim: adminLegacyFromI18n(namesMap, name),
+              osf: adminLegacyFromI18n(osfMap, desc),
+              namesI18n: namesMap,
+              osfI18n: osfMap,
               acctev: _model.switchValue,
               img: img,
             ),

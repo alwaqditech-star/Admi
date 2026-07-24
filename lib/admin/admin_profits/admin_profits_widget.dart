@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import '/backend/admin_stats_coordinator.dart';
 import '/backend/profits_stats_loader.dart';
 import '/components/admin_layout_widget.dart';
 import '/components/admin_ui.dart';
@@ -29,6 +32,7 @@ class _AdminProfitsWidgetState extends State<AdminProfitsWidget>
   late Future<ProfitsSummary> _statsFuture;
   int? _selectedBarIndex;
   late AnimationController _pulseController;
+  StreamSubscription<int>? _statsInvalidationSub;
 
   @override
   void initState() {
@@ -39,10 +43,16 @@ class _AdminProfitsWidgetState extends State<AdminProfitsWidget>
       duration: const Duration(milliseconds: 1800),
     )..repeat(reverse: true);
     _statsFuture = _loadStats(showStaleImmediately: true);
+    _statsInvalidationSub =
+        AdminStatsCoordinator.instance.stream(StatsDomain.profits).listen((_) {
+      if (!mounted) return;
+      _refresh();
+    });
   }
 
   @override
   void dispose() {
+    _statsInvalidationSub?.cancel();
     _pulseController.dispose();
     _model.dispose();
     super.dispose();

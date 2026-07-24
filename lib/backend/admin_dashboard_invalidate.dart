@@ -3,6 +3,7 @@ import 'dart:async';
 import '/backend/admin_landmark_count.dart';
 import '/backend/admin_performance.dart';
 import '/backend/admin_reports_loader.dart';
+import '/backend/admin_stats_coordinator.dart';
 import '/backend/dashboard_stats_loader.dart';
 import '/components/dashboard_stats_section.dart';
 
@@ -34,6 +35,7 @@ void refreshDashboardStatsAfterDelete({
   AdminLandmarkCountCache.invalidate();
   clearAdminReportsSummaryCache();
   cancelDashboardStatsLoadInFlight();
+  AdminStatsCoordinator.instance.invalidate();
 
   if (DashboardStatsSectionState.hasLiveSections) {
     DashboardStatsSectionState.reloadAllFromServer();
@@ -58,6 +60,7 @@ void _flushDashboardInvalidate() {
   clearAdminReportsSummaryCache();
   AdminLandmarkCount.invalidateCache();
   AdminLandmarkCountCache.invalidate();
+  AdminStatsCoordinator.instance.invalidate();
   if (DashboardStatsSectionState.hasLiveSections) {
     DashboardStatsSectionState.invalidateAll();
   }
@@ -66,6 +69,7 @@ void _flushDashboardInvalidate() {
 /// Clears reports summary cache when dashboard stats refresh after CRUD.
 void invalidateAdminReportsStats() {
   clearAdminReportsSummaryCache();
+  AdminStatsCoordinator.instance.invalidate(domains: const [StatsDomain.reports]);
 }
 
 /// Maps list refresh scopes to dashboard stat keys adjusted after delete.

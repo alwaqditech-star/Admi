@@ -30,9 +30,9 @@ class SettingsRecord extends FirestoreRecord {
   int get id => _id ?? 0;
   bool hasId() => _id != null;
 
-  // "islogenGoogle" field.
+  // "islogenGoogle" field — enabled by default unless admin sets false.
   bool? _islogenGoogle;
-  bool get islogenGoogle => _islogenGoogle ?? false;
+  bool get islogenGoogle => _islogenGoogle ?? true;
   bool hasIslogenGoogle() => _islogenGoogle != null;
 
   void _initializeFields() {

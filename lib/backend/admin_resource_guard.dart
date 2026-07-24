@@ -1,5 +1,6 @@
 import '/backend/admin_country_scope.dart';
 import '/backend/admin_role_service.dart';
+import '/backend/admin_saudi_country.dart';
 import '/backend/backend.dart';
 
 /// Document-level access checks (route guard alone is not enough).
@@ -13,7 +14,8 @@ class AdminResourceGuard {
       case AdminRole.countryAgent:
         final country = AdminCountryScope.activeCountryRef;
         if (country == null) return false;
-        return order.revDolh?.path == country.path;
+        if (order.revDolh?.path == country.path) return true;
+        return AdminSaudiCountry.sameCountryScope(order.revDolh, country);
       case AdminRole.partner:
         final mkan = AdminRoleService.partnerMkanRef;
         if (mkan == null) return false;

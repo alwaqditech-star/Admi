@@ -144,28 +144,20 @@ class _AddTransportCompanyWidgetState extends State<AddTransportCompanyWidget> {
       );
 
       if (email.isNotEmpty) {
-        final credential = await AdminUserCreation.createEmailUser(
+        final uid = await AdminUserCreation.createEmailUser(
           email: email,
           password: password,
+          userData: {
+            'display_name': name,
+            'phone_number': phone,
+            'actev_user': true,
+            'transport_company': companyRef.path,
+            'transport_company_text': name,
+            'isAdminRule': AdminRoleService.ruleTransportCompany,
+          },
         );
-        final uid = credential.user?.uid;
-        if (uid == null) throw Exception('تعذر إنشاء حساب مدير الشركة');
 
         ownerRef = UserRecord.collection.doc(uid);
-        await ownerRef.set(
-          createUserRecordData(
-            displayName: name,
-            email: email,
-            phoneNumber: phone,
-            actevUser: true,
-            createdTime: getCurrentTimestamp,
-            transportCompany: companyRef,
-            transportCompanyText: name,
-            isAdminRule: AdminRoleService.ruleTransportCompany,
-          ),
-          SetOptions(merge: true),
-        );
-
         await companyRef.update(
           createTransportCompanyRecordData(ownerUser: ownerRef),
         );

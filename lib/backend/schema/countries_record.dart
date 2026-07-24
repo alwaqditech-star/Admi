@@ -55,6 +55,36 @@ class CountriesRecord extends FirestoreRecord {
   double get appCommissionPercent => _appCommissionPercent ?? 0.0;
   bool hasAppCommissionPercent() => _appCommissionPercent != null;
 
+  // "naimEnglesh" field.
+  String? _naimEnglesh;
+  String get naimEnglesh => _naimEnglesh ?? '';
+  bool hasNaimEnglesh() => _naimEnglesh != null;
+
+  // "iso_code" field — ISO 3166-1 alpha-2 (SA, AE, …).
+  String? _isoCode;
+  String get isoCode => _isoCode ?? '';
+  bool hasIsoCode() => _isoCode != null;
+
+  // "geo_center" field.
+  LatLng? _geoCenter;
+  LatLng? get geoCenter => _geoCenter;
+  bool hasGeoCenter() => _geoCenter != null;
+
+  // "bounds_sw" field — جنوب غرب الحدود.
+  LatLng? _boundsSw;
+  LatLng? get boundsSw => _boundsSw;
+  bool hasBoundsSw() => _boundsSw != null;
+
+  // "bounds_ne" field — شمال شرق الحدود.
+  LatLng? _boundsNe;
+  LatLng? get boundsNe => _boundsNe;
+  bool hasBoundsNe() => _boundsNe != null;
+
+  bool hasBounds() => hasBoundsSw() && hasBoundsNe();
+
+  Map<String, String>? _namesI18n;
+  Map<String, String> get namesI18n => _namesI18n ?? const {};
+
   void _initializeFields() {
     _naim = snapshotData['naim'] as String?;
     _osf = snapshotData['osf'] as String?;
@@ -65,6 +95,22 @@ class CountriesRecord extends FirestoreRecord {
     _vatPercent = castToType<double>(snapshotData['vat_percent']);
     _appCommissionPercent =
         castToType<double>(snapshotData['app_commission_percent']);
+    _naimEnglesh = snapshotData['naimEnglesh'] as String?;
+    _isoCode = snapshotData['iso_code'] as String?;
+    _geoCenter = snapshotData['geo_center'] as LatLng?;
+    _boundsSw = snapshotData['bounds_sw'] as LatLng?;
+    _boundsNe = snapshotData['bounds_ne'] as LatLng?;
+    _namesI18n = _parseI18nStringMap(snapshotData['names_i18n']);
+  }
+
+  static Map<String, String>? _parseI18nStringMap(dynamic raw) {
+    if (raw == null || raw is! Map) return null;
+    final out = <String, String>{};
+    raw.forEach((key, value) {
+      final text = value?.toString().trim() ?? '';
+      if (text.isNotEmpty) out[key.toString()] = text;
+    });
+    return out.isEmpty ? null : out;
   }
 
   static CollectionReference get collection =>
@@ -110,6 +156,12 @@ Map<String, dynamic> createCountriesRecordData({
   bool? saudi,
   double? vatPercent,
   double? appCommissionPercent,
+  String? naimEnglesh,
+  String? isoCode,
+  LatLng? geoCenter,
+  LatLng? boundsSw,
+  LatLng? boundsNe,
+  Map<String, String>? namesI18n,
 }) {
   final firestoreData = mapToFirestore(
     <String, dynamic>{
@@ -121,6 +173,12 @@ Map<String, dynamic> createCountriesRecordData({
       'saudi': saudi,
       'vat_percent': vatPercent,
       'app_commission_percent': appCommissionPercent,
+      'naimEnglesh': naimEnglesh,
+      'iso_code': isoCode,
+      'geo_center': geoCenter,
+      'bounds_sw': boundsSw,
+      'bounds_ne': boundsNe,
+      'names_i18n': namesI18n,
     }.withoutNulls,
   );
 

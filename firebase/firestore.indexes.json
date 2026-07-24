@@ -1033,6 +1033,42 @@
                                            "order":  "ASCENDING"
                                        }
                                    ]
+                    },
+                    {
+                        "collectionGroup":  "order",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "status_code",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "mndob_user",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_order",
+                                           "order":  "DESCENDING"
+                                       }
+                                   ]
+                    },
+                    {
+                        "collectionGroup":  "order",
+                        "queryScope":  "COLLECTION",
+                        "fields":  [
+                                       {
+                                           "fieldPath":  "status_code",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "mndob_user",
+                                           "order":  "ASCENDING"
+                                       },
+                                       {
+                                           "fieldPath":  "data_order",
+                                           "order":  "ASCENDING"
+                                       }
+                                   ]
                     }
                 ],
     "fieldOverrides":  [

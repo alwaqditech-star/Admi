@@ -150,12 +150,8 @@ class _MyAppState extends State<MyApp> {
       supportedLocales: const [
         Locale('en'),
         Locale('ar'),
-        Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans'),
-        Locale('tr'),
-        Locale('ur'),
         Locale('ru'),
-        Locale('az'),
-        Locale('ka'),
+        Locale('ky'),
       ],
       theme: AdminUi.buildLightTheme(),
       darkTheme: AdminUi.buildDarkTheme(),

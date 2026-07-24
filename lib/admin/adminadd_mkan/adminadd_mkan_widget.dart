@@ -1,4 +1,7 @@
 import '/backend/admin_agent_country_lock.dart';
+import '/core/admin_content_locale.dart';
+import '/components/admin_i18n_fields.dart';
+import '/core/i18n/toury_i18n_text.dart';
 import '/backend/admin_country_scope.dart';
 import '/backend/admin_firestore_delete.dart';
 import '/backend/admin_role_service.dart';
@@ -34,11 +37,15 @@ class _AdminaddMkanWidgetState extends State<AdminaddMkanWidget> {
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isSaving = false;
+  late final AdminI18nFieldsController _nameI18n;
+  late final AdminI18nFieldsController _descI18n;
 
   @override
   void initState() {
     super.initState();
     _model = createModel(context, () => AdminaddMkanModel());
+    _nameI18n = AdminI18nFieldsController();
+    _descI18n = AdminI18nFieldsController();
 
     _model.textController1 ??= TextEditingController();
     _model.textFieldFocusNode1 ??= FocusNode();
@@ -131,6 +138,8 @@ class _AdminaddMkanWidgetState extends State<AdminaddMkanWidget> {
 
   @override
   void dispose() {
+    _nameI18n.dispose();
+    _descI18n.dispose();
     _model.dispose();
 
     super.dispose();
@@ -404,6 +413,26 @@ class _AdminaddMkanWidgetState extends State<AdminaddMkanWidget> {
                           ].divide(SizedBox(height: 16.0)),
                         ),
                       ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 16),
+                    child: AdminI18nFieldsSection(
+                      title: uiTr(context, 'اسم المعلم — جميع اللغات'),
+                      hint: uiTr(context, 'اسم المعلم'),
+                      controller: _nameI18n,
+                      legacyController: _model.textController1,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 16),
+                    child: AdminI18nFieldsSection(
+                      title: uiTr(context, 'وصف المعلم — جميع اللغات'),
+                      hint: uiTr(context, 'وصف المعلم'),
+                      controller: _descI18n,
+                      legacyController: _model.textController2,
+                      minLines: 2,
+                      maxLines: 6,
                     ),
                   ),
                   Material(
@@ -1198,12 +1227,37 @@ class _AdminaddMkanWidgetState extends State<AdminaddMkanWidget> {
                               _model.uploadedLocalFile_uploadData8dqs.bytes,
                         );
 
+                        final sourceLocale = adminContentLocaleKey(context);
+                        _nameI18n.syncPrimary(sourceLocale, name);
+                        _descI18n.syncPrimary(
+                          sourceLocale,
+                          _model.textController2.text.trim(),
+                        );
+                        final namesMap = touryBuildI18nMap(
+                          values: _nameI18n.toMap(),
+                          sourceLocale: sourceLocale,
+                          sourceText: name,
+                        );
+                        final osfMap = touryBuildI18nMap(
+                          values: _descI18n.toMap(),
+                          sourceLocale: sourceLocale,
+                          sourceText: _model.textController2.text.trim(),
+                        );
+                        final legacyNaim = touryPrimaryLegacyText(namesMap, name);
+                        final legacyOsf = touryPrimaryLegacyText(
+                          osfMap,
+                          _model.textController2.text.trim(),
+                        );
+
                         final ref = MkanRecord.collection.doc();
                         await AdminFirestoreDelete.setDocument(
                           ref,
-                          createMkanRecordData(
-                                naim: name,
-                                osf: _model.textController2.text.trim(),
+                          {
+                            ...createMkanRecordData(
+                                naim: legacyNaim,
+                                osf: legacyOsf,
+                                namesI18n: namesMap,
+                                osfI18n: osfMap,
                                 img1: img1,
                                 ismsgd: _model.switchMosqueValue,
                                 idVill: FFAppState().REvCITE,
@@ -1222,8 +1276,10 @@ class _AdminaddMkanWidgetState extends State<AdminaddMkanWidget> {
                                 img3: img3,
                                 acctev: _model.switchACCTEVValue,
                                 rate: _model.ratingValue,
+                                contentLocale: sourceLocale,
                               ),
-                            );
+                          },
+                        );
                         if (!context.mounted) return;
                         await AdminCrudFeedback.success(
                           context,

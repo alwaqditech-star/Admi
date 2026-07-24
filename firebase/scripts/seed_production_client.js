@@ -104,10 +104,15 @@ function geo(lat, lng) {
 
 async function patchDoc(idToken, docPath, data, retries = 5) {
   const fields = {};
+  const maskParams = [];
   for (const [k, v] of Object.entries(data)) {
     fields[k] = firestoreValue(v);
+    // بدون updateMask يستبدل Firestore المستند بالكامل ويمسح باقي الحقول.
+    maskParams.push(`updateMask.fieldPaths=${encodeURIComponent(k)}`);
   }
-  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${docPath}`;
+  const url =
+    `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${docPath}` +
+    (maskParams.length ? `?${maskParams.join("&")}` : "");
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     const res = await fetch(url, {
@@ -347,7 +352,17 @@ async function main() {
   console.log(`تذاكر دعم: ${tickets.length}`);
 }
 
-main().catch((e) => {
-  console.error("فشل:", e.message || e);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch((e) => {
+    console.error("فشل:", e.message || e);
+    process.exit(1);
+  });
+}
+
+module.exports = {
+  getIdToken,
+  patchDoc,
+  ref,
+  geo,
+  sleep,
+};

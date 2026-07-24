@@ -6,7 +6,9 @@ import '/backend/admin_agent_session_ready.dart';
 import '/backend/admin_panel_data_bootstrap.dart';
 import '/backend/admin_prefetch.dart';
 import '/backend/admin_role_service.dart';
+import '/backend/admin_stats_coordinator.dart';
 import '/backend/dashboard_stats_loader.dart';
+import '/core/country/country_resolver.dart';
 
 /// Fast scope bootstrap + background dashboard warming.
 class AdminPanelSession {
@@ -38,6 +40,7 @@ class AdminPanelSession {
     _statsWarmedForUid = null;
     _scopeInFlight = null;
     _statsInFlight = null;
+    AdminStatsCoordinator.instance.stopLiveSync();
   }
 
   /// Bootstrap only — opens the panel immediately after this completes.
@@ -103,6 +106,7 @@ class AdminPanelSession {
     }
 
     await AdminPanelDataBootstrap.ensureReady(force: force);
+    await CountryResolver.ensureLoaded();
     AdminAgentCountryLock.applyToAppState();
 
     if (AdminRoleService.isCountryAgent &&
@@ -113,6 +117,7 @@ class AdminPanelSession {
 
     _scopeReadyForUid = uid;
     AdminAgentSessionReady.notify();
+    AdminStatsCoordinator.instance.startLiveSync();
   }
 
   static Future<void> _warmStats(String uid, {required bool force}) async {

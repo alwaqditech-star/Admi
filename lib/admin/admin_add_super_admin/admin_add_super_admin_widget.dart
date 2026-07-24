@@ -73,28 +73,19 @@ class _AdminAddSuperAdminWidgetState extends State<AdminAddSuperAdminWidget> {
 
     try {
       final email = _model.emailTextController!.text.trim();
-      final credential = await AdminUserCreation.createEmailUser(
-        email: email,
-        password: password,
-      );
-      final uid = credential.user?.uid;
-      if (uid == null) return;
-
       final displayName = _model.nameTextController!.text.trim();
 
-      await UserRecord.collection.doc(uid).set(
-            createUserRecordData(
-              displayName: displayName,
-              phoneNumber: _model.phoneTextController!.text.trim(),
-              email: email,
-              uid: uid,
-              actevUser: _model.activeValue,
-              createdTime: getCurrentTimestamp,
-              isAdmin: true,
-              isAdminRule: AdminRoleService.ruleSuperAdmin,
-            ),
-            SetOptions(merge: true),
-          );
+      final uid = await AdminUserCreation.createEmailUser(
+        email: email,
+        password: password,
+        userData: {
+          'display_name': displayName,
+          'phone_number': _model.phoneTextController!.text.trim(),
+          'actev_user': _model.activeValue,
+          'IsAdmin': true,
+          'isAdminRule': AdminRoleService.ruleSuperAdmin,
+        },
+      );
 
       await AdminAuditLog.record(
         action: 'create',

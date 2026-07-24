@@ -2,6 +2,7 @@
 import '/backend/admin_production_seed_data.dart';
 import '/backend/admin_role_service.dart';
 import '/backend/backend.dart';
+import '/core/country/country_resolver.dart';
 
 /// Resolves Saudi Arabia country document(s) in Firestore.
 class AdminSaudiCountry {
@@ -14,21 +15,28 @@ class AdminSaudiCountry {
   static Set<String>? _cachedRegionPaths;
   static Set<String>? _cachedVillagePaths;
 
-  /// Stable refs for Firestore `whereIn` — uses live cache when available.
+  /// Stable refs for Firestore `whereIn` — canonical Saudi ref when resolved.
   static List<DocumentReference> countryRefsForQuery() {
     if (_cachedQueryRefs != null && _cachedQueryRefs!.isNotEmpty) {
       return List<DocumentReference>.from(_cachedQueryRefs!);
     }
-    return knownDocIds.map((id) => CountriesRecord.collection.doc(id)).toList();
+    return [CountriesRecord.collection.doc(CountryResolver.canonicalSaudiId)];
   }
 
   /// Loads every Saudi country doc (known ids + `saudi=true`).
   static Future<void> ensureQueryRefsLoaded() async {
     if (_cachedQueryRefs != null && _cachedQueryRefs!.isNotEmpty) return;
+    await CountryResolver.ensureLoaded();
+    final saudi = await CountryResolver.saudiCanonical();
+    if (saudi != null) {
+      _cachedQueryRefs = [saudi.canonicalRef];
+      _cachedQueryPaths = {saudi.canonicalRef.path};
+      return;
+    }
     final all = await resolveAllRefs();
     if (all.isNotEmpty) {
-      _cachedQueryRefs = all;
-      _cachedQueryPaths = all.map((r) => r.path).toSet();
+      _cachedQueryRefs = [all.first];
+      _cachedQueryPaths = {all.first.path};
     }
   }
 

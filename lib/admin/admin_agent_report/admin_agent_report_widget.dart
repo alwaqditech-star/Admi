@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import '/backend/admin_agent_stats_loader.dart';
+import '/backend/admin_stats_coordinator.dart';
 import '/backend/backend.dart';
 import '/components/admin_super_admin_gate.dart';
 import '/components/admin_ui.dart';
@@ -192,11 +195,32 @@ class _AgentFirestoreStatsSection extends StatefulWidget {
 class _AgentFirestoreStatsSectionState
     extends State<_AgentFirestoreStatsSection> {
   late Future<AgentReportStats> _statsFuture;
+  StreamSubscription<int>? _statsInvalidationSub;
 
   @override
   void initState() {
     super.initState();
     _statsFuture = loadAgentReportStats(widget.agent);
+    _statsInvalidationSub =
+        AdminStatsCoordinator.instance.stream(StatsDomain.agent).listen((_) {
+      if (!mounted) return;
+      setState(() {
+        _statsFuture = loadAgentReportStats(widget.agent);
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _statsInvalidationSub?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _refreshStats() async {
+    setState(() {
+      _statsFuture = loadAgentReportStats(widget.agent);
+    });
+    await _statsFuture;
   }
 
   String _money(double value) => formatNumber(
@@ -233,7 +257,8 @@ class _AgentFirestoreStatsSectionState
                       const Icon(Icons.bar_chart_rounded,
                           color: AdminUi.brandTeal, size: 22),
                       const SizedBox(width: 8),
-                    Text(
+                    Expanded(
+                      child: Text(
                       l10n.getText('yw6zaf93'),
                         style: theme.titleSmall.override(
                           fontFamily: theme.titleSmallFamily,
@@ -242,6 +267,13 @@ class _AgentFirestoreStatsSectionState
                           useGoogleFonts: !theme.titleSmallIsCustom,
                         ),
                       ),
+                    ),
+                    IconButton(
+                      tooltip: uiTr(context, 'تحديث'),
+                      onPressed: _refreshStats,
+                      icon: const Icon(Icons.refresh_rounded,
+                          color: AdminUi.brandTeal),
+                    ),
                     ],
                     ),
                     const SizedBox(height: 16),

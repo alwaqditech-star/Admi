@@ -6,6 +6,8 @@ import '/components/admin_crud_feedback.dart';
 import '/components/admin_firestore_list.dart';
 import '/components/admin_layout_widget.dart';
 import '/components/admin_ui.dart';
+import '/core/admin_booking_status_label.dart';
+import '/core/finance/financial_engine.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -53,16 +55,18 @@ class _AdminALLhgZWidgetState extends State<AdminALLhgZWidget> {
     if (q.isEmpty) return bookings;
 
     return bookings.where((b) {
+      final statusLabel = AdminBookingStatusLabel.of(b).toLowerCase();
       return b.iDorder.toLowerCase().contains(q) ||
           b.naimUserText.toLowerCase().contains(q) ||
           b.naimMndobText.toLowerCase().contains(q) ||
           b.halhText.toLowerCase().contains(q) ||
+          statusLabel.contains(q) ||
           b.villText.toLowerCase().contains(q);
     }).toList();
   }
 
   Future<void> _cancelBooking(OrderRecord order) async {
-    if (order.halhText == 'ملغي') return;
+    if (OrderStatusHelper.isCanceled(order)) return;
 
     final confirmed = await showDialog<bool>(
           context: context,
@@ -362,7 +366,7 @@ class _BookingTableRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
-    final isCanceled = order.halhText == 'ملغي';
+    final isCanceled = OrderStatusHelper.isCanceled(order);
 
     return Container(
       decoration: BoxDecoration(
@@ -423,7 +427,7 @@ class _BookingTableRow extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(flex: 2, child: _BookingStatusBadge(status: order.halhText)),
+          Expanded(flex: 2, child: _BookingStatusBadge(order: order)),
           Expanded(
             flex: 2,
             child: _BookingActions(
@@ -454,7 +458,7 @@ class _BookingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
-    final isCanceled = order.halhText == 'ملغي';
+    final isCanceled = OrderStatusHelper.isCanceled(order);
 
     return Container(
       decoration: AdminUi.cardDecoration(context, elevated: false).copyWith(
@@ -502,7 +506,7 @@ class _BookingCard extends StatelessWidget {
                       style: theme.bodyMedium,
                     ),
                     const SizedBox(height: 6),
-                    _BookingStatusBadge(status: order.halhText),
+                    _BookingStatusBadge(order: order),
                   ],
                 ),
               ),
@@ -649,14 +653,15 @@ class _InfoTile extends StatelessWidget {
 }
 
 class _BookingStatusBadge extends StatelessWidget {
-  const _BookingStatusBadge({required this.status});
+  const _BookingStatusBadge({required this.order});
 
-  final String status;
+  final OrderRecord order;
 
   @override
   Widget build(BuildContext context) {
     final theme = FlutterFlowTheme.of(context);
-    final colors = _statusColors(status, theme);
+    final status = AdminBookingStatusLabel.of(order);
+    final colors = _statusColors(AdminBookingStatusLabel.toneOf(order), theme);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -686,29 +691,34 @@ class _StatusColors {
   final Color foreground;
 }
 
-_StatusColors _statusColors(String status, FlutterFlowTheme theme) {
-  if (status == 'بإنتظار قبول المندوب') {
-    return _StatusColors(
-      background: const Color(0xFFFFF3E0),
-      foreground: const Color(0xFFE65100),
-    );
+_StatusColors _statusColors(AdminBookingStatusTone tone, FlutterFlowTheme theme) {
+  switch (tone) {
+    case AdminBookingStatusTone.pendingDriver:
+      return const _StatusColors(
+        background: Color(0xFFFFF3E0),
+        foreground: Color(0xFFE65100),
+      );
+    case AdminBookingStatusTone.accepted:
+      return const _StatusColors(
+        background: Color(0xFFE3F2FD),
+        foreground: AdminUi.brandTeal,
+      );
+    case AdminBookingStatusTone.canceled:
+      return _StatusColors(
+        background: const Color(0xFFFFEBEE),
+        foreground: theme.error,
+      );
+    case AdminBookingStatusTone.completed:
+      return _StatusColors(
+        background: theme.success.withValues(alpha: 0.12),
+        foreground: theme.success,
+      );
+    case AdminBookingStatusTone.unknown:
+      return _StatusColors(
+        background: theme.accent4,
+        foreground: theme.secondaryText,
+      );
   }
-  if (status == 'مقبول') {
-    return _StatusColors(
-      background: const Color(0xFFE3F2FD),
-      foreground: AdminUi.brandTeal,
-    );
-  }
-  if (status == 'ملغي') {
-    return _StatusColors(
-      background: const Color(0xFFFFEBEE),
-      foreground: theme.error,
-    );
-  }
-  return _StatusColors(
-    background: theme.accent4,
-    foreground: theme.secondaryText,
-  );
 }
 
 class _BookingActions extends StatelessWidget {

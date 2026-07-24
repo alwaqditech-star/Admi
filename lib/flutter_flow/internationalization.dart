@@ -18,8 +18,7 @@ class FFLocalizations {
   static FFLocalizations of(BuildContext context) =>
       Localizations.of<FFLocalizations>(context, FFLocalizations)!;
 
-  static List<String> languages() =>
-      ['en', 'ar', 'zh_Hans', 'tr', 'ur', 'ru', 'az', 'ka'];
+  static List<String> languages() => ['en', 'ar', 'ru', 'ky'];
 
   static late SharedPreferences _prefs;
   static Future initialize() async =>
@@ -83,7 +82,10 @@ class FFLocalizations {
         kUiCatalog[key] ??
         {};
     final lang = locale.toString();
-    final text = map[lang] ?? map['en'] ?? '';
+    final text = map[lang] ??
+        (lang == 'ky' ? (map['ru'] ?? map['en']) : null) ??
+        map['en'] ??
+        '';
     return text;
   }
 
@@ -96,18 +98,35 @@ class FFLocalizations {
     String? ruText = '',
     String? azText = '',
     String? kaText = '',
-  }) =>
-      [
-        enText,
-        arText,
-        zh_HansText,
-        trText,
-        urText,
-        ruText,
-        azText,
-        kaText
-      ][languageIndex] ??
-      '';
+    String? kyText = '',
+  }) {
+    // Prefer language code over array index so locale list changes cannot
+    // throw RangeError (H-01/H-02).
+    switch (languageCode) {
+      case 'ar':
+        return (arText != null && arText.isNotEmpty) ? arText : (enText ?? '');
+      case 'ru':
+        return (ruText != null && ruText.isNotEmpty) ? ruText : (enText ?? '');
+      case 'ky':
+        if (kyText != null && kyText.isNotEmpty) return kyText;
+        if (ruText != null && ruText.isNotEmpty) return ruText;
+        return enText ?? '';
+      case 'zh_Hans':
+        return (zh_HansText != null && zh_HansText.isNotEmpty)
+            ? zh_HansText
+            : (enText ?? '');
+      case 'tr':
+        return (trText != null && trText.isNotEmpty) ? trText : (enText ?? '');
+      case 'ur':
+        return (urText != null && urText.isNotEmpty) ? urText : (enText ?? '');
+      case 'az':
+        return (azText != null && azText.isNotEmpty) ? azText : (enText ?? '');
+      case 'ka':
+        return (kaText != null && kaText.isNotEmpty) ? kaText : (enText ?? '');
+      default:
+        return enText ?? '';
+    }
+  }
 
   static const Set<String> _languagesWithShortCode = {
     'ar',

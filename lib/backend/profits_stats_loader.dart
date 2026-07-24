@@ -1,7 +1,8 @@
 import '/backend/admin_country_scope.dart';
 import '/backend/admin_performance.dart';
 import '/backend/backend.dart';
-import '/backend/schema/enums/enums.dart';
+import '/core/cloud_functions/cloud_functions_client.dart';
+import '/core/finance/financial_engine.dart';
 
 /// Time window for profits dashboard filters.
 enum ProfitsPeriod {
@@ -97,32 +98,6 @@ DateTime? _periodStart(ProfitsPeriod period) {
   };
 }
 
-bool _isCanceled(OrderRecord order) {
-  if (order.halhOrder == Halh.Canceled) {
-    return true;
-  }
-  return order.halh.toLowerCase() == 'canceled';
-}
-
-bool _isPaid(OrderRecord order) {
-  if (order.halhOrder == Halh.Paid) {
-    return true;
-  }
-  return order.halh.toLowerCase() == 'paid';
-}
-
-bool _isPending(OrderRecord order) {
-  if (_isCanceled(order) || _isPaid(order)) {
-    return false;
-  }
-  if (order.halhOrder == Halh.Pending) {
-    return true;
-  }
-  return order.halh.toLowerCase() == 'pending';
-}
-
-bool _countsTowardRevenue(OrderRecord order) => !_isCanceled(order);
-
 String _monthLabel(DateTime month) {
   const labels = [
     'يناير',
@@ -155,19 +130,14 @@ List<ProfitsMonthlyPoint> _buildMonthlyTrend(List<OrderRecord> orders) {
     var count = 0;
 
     for (final order in orders) {
-      if (!_countsTowardRevenue(order)) {
-        continue;
-      }
+      if (!OrderStatusHelper.countsTowardRevenue(order)) continue;
       final date = order.dataOrder;
-      if (date == null) {
-        continue;
-      }
-      if (!date.isBefore(monthEnd) || date.isBefore(monthStart)) {
-        continue;
-      }
+      if (date == null) continue;
+      if (!date.isBefore(monthEnd) || date.isBefore(monthStart)) continue;
       count++;
-      sales += order.total;
-      appProfit += order.totalApp.toDouble();
+      final f = FinancialEngine.orderFinancials(order);
+      sales += f.totalSales;
+      appProfit += f.appProfit;
     }
 
     return ProfitsMonthlyPoint(
@@ -180,78 +150,100 @@ List<ProfitsMonthlyPoint> _buildMonthlyTrend(List<OrderRecord> orders) {
   }).toList();
 }
 
-/// Loads orders for profits with server-side date filter + pagination cap.
+Future<List<OrderRecord>> _loadAllOrders({
+  DateTime? start,
+}) async {
+  final results = <OrderRecord>[];
+  DocumentSnapshot? last;
+
+  while (true) {
+    final batch = AdminCountryScope.filterOrders(
+      await queryListCacheFirst<OrderRecord>(
+        OrderRecord.collection,
+        OrderRecord.fromSnapshot,
+        queryBuilder: (q) {
+          var query = AdminCountryScope.applyOrderQuery(q)
+              .orderBy('data_order', descending: true);
+          if (start != null) {
+            query = query.where('data_order', isGreaterThanOrEqualTo: start);
+          }
+          if (last != null) {
+            query = query.startAfterDocument(last);
+          }
+          return query;
+        },
+        limit: kAdminPageSize,
+      ),
+    );
+
+    if (batch.isEmpty) break;
+    results.addAll(batch);
+    last = await batch.last.reference.get();
+    if (batch.length < kAdminPageSize) break;
+    if (results.length >= kAdminMaxPages * kAdminPageSize) break;
+  }
+
+  return results;
+}
+
+/// Loads profits via server aggregation with paginated client fallback.
 Future<ProfitsSummary> loadProfitsStats({
   ProfitsPeriod period = ProfitsPeriod.month,
 }) async {
   final start = _periodStart(period);
-  final orderLimit = start == null ? 250 : 150;
+  final countryRef = AdminCountryScope.activeCountryRef;
 
-  final orders = AdminCountryScope.filterOrders(
-    await queryListCacheFirst<OrderRecord>(
-      OrderRecord.collection,
-      OrderRecord.fromSnapshot,
-      queryBuilder: (q) {
-        var query = AdminCountryScope.applyOrderQuery(q)
-            .orderBy('data_order', descending: true);
-        if (start != null) {
-          query = query.where('data_order', isGreaterThanOrEqualTo: start);
-        }
-        return query;
-      },
-      limit: orderLimit,
-    ),
-  );
+  try {
+    final remote = await CloudFunctionsClient.aggregateFinancialSummary(
+      countryPath: countryRef?.path,
+      periodStart: start,
+    );
+    final orders = await _loadAllOrders(start: start);
+    final totals = FinancialEngine.aggregate(orders);
 
-  final filtered = orders;
+    return ProfitsSummary(
+      totalSales: (remote['totalSales'] as num?)?.toDouble() ?? totals.totalSales,
+      appProfit: (remote['appProfit'] as num?)?.toDouble() ?? totals.appProfit,
+      vat: (remote['vat'] as num?)?.toDouble() ?? totals.vat,
+      repCommission:
+          (remote['repCommission'] as num?)?.toDouble() ?? totals.repCommission,
+      deliveryFees:
+          (remote['deliveryFees'] as num?)?.toDouble() ?? totals.deliveryFees,
+      orderCount: (remote['orderCount'] as int?) ?? totals.activeOrderCount,
+      paidCount: (remote['paidCount'] as int?) ?? totals.paidCount,
+      pendingCount: (remote['pendingCount'] as int?) ?? totals.pendingCount,
+      canceledCount: (remote['canceledCount'] as int?) ?? totals.canceledCount,
+      monthlyTrend: _buildMonthlyTrend(orders),
+      recentOrders: orders
+          .where(OrderStatusHelper.countsTowardRevenue)
+          .take(12)
+          .map((o) => ProfitsOrderRow(order: o))
+          .toList(),
+      period: period,
+      loadedAt: DateTime.now(),
+    );
+  } catch (_) {
+    final orders = await _loadAllOrders(start: start);
+    final totals = FinancialEngine.aggregate(orders);
 
-  var totalSales = 0.0;
-  var appProfit = 0.0;
-  var vat = 0.0;
-  var repCommission = 0.0;
-  var deliveryFees = 0.0;
-  var paidCount = 0;
-  var pendingCount = 0;
-  var canceledCount = 0;
-
-  for (final order in filtered) {
-    if (_isCanceled(order)) {
-      canceledCount++;
-      continue;
-    }
-
-    if (_isPaid(order)) {
-      paidCount++;
-    } else if (_isPending(order)) {
-      pendingCount++;
-    }
-
-    totalSales += order.total;
-    appProfit += order.totalApp.toDouble();
-    vat += order.totalVat.toDouble();
-    repCommission += order.totalMndob.toDouble();
-    deliveryFees += order.totalMndob2.toDouble();
+    return ProfitsSummary(
+      totalSales: totals.totalSales,
+      appProfit: totals.appProfit,
+      vat: totals.vat,
+      repCommission: totals.repCommission,
+      deliveryFees: totals.deliveryFees,
+      orderCount: totals.activeOrderCount,
+      paidCount: totals.paidCount,
+      pendingCount: totals.pendingCount,
+      canceledCount: totals.canceledCount,
+      monthlyTrend: _buildMonthlyTrend(orders),
+      recentOrders: orders
+          .where(OrderStatusHelper.countsTowardRevenue)
+          .take(12)
+          .map((o) => ProfitsOrderRow(order: o))
+          .toList(),
+      period: period,
+      loadedAt: DateTime.now(),
+    );
   }
-
-  final recent = filtered
-      .where(_countsTowardRevenue)
-      .take(12)
-      .map((order) => ProfitsOrderRow(order: order))
-      .toList();
-
-  return ProfitsSummary(
-    totalSales: totalSales,
-    appProfit: appProfit,
-    vat: vat,
-    repCommission: repCommission,
-    deliveryFees: deliveryFees,
-    orderCount: filtered.length,
-    paidCount: paidCount,
-    pendingCount: pendingCount,
-    canceledCount: canceledCount,
-    monthlyTrend: _buildMonthlyTrend(orders),
-    recentOrders: recent,
-    period: period,
-    loadedAt: DateTime.now(),
-  );
 }

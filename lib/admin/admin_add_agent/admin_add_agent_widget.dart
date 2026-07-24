@@ -1,5 +1,7 @@
 import '/backend/admin_performance.dart';
 import '/backend/admin_firestore_delete.dart';
+import '/backend/admin_country_location_resolver.dart';
+import '/backend/admin_gps_location_service.dart';
 import '/components/admin_crud_feedback.dart';
 import '/backend/admin_role_service.dart';
 import '/backend/admin_user_creation.dart';
@@ -68,6 +70,8 @@ class _AdminAddAgentWidgetState extends State<AdminAddAgentWidget> {
   static const double _kAgentVatPercent = 15.0;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
+
+  bool _detectingCountryFromGps = false;
 
   @override
   void initState() {
@@ -208,15 +212,6 @@ class _AdminAddAgentWidgetState extends State<AdminAddAgentWidget> {
 
     try {
       final email = _model.emailTextController!.text.trim();
-      final credential = await AdminUserCreation.createEmailUser(
-        email: email,
-        password: password,
-      );
-      final uid = credential.user?.uid;
-      if (uid == null) {
-        throw StateError('تعذر الحصول على معرّف الحساب بعد الإنشاء');
-      }
-
       final agentPercent = _parsePercent(_model.textController7!.text) ?? 0.0;
       final appPercent =
           _parsePercent(_model.appCommissionTextController!.text) ?? 0.0;
@@ -224,26 +219,25 @@ class _AdminAddAgentWidgetState extends State<AdminAddAgentWidget> {
           _parsePercent(_model.vatPercentTextController!.text) ??
               _kAgentVatPercent;
 
-      await AdminFirestoreDelete.setDocument(
-        UserRecord.collection.doc(uid),
-        createUserRecordData(
-          displayName: _model.naimfullTextController!.text.trim(),
-          phoneNumber: _model.textController2!.text.trim(),
-          email: email,
-          uid: uid,
-          actevUser: _model.switchValue ?? true,
-          createdTime: getCurrentTimestamp,
-          isagent: true,
-          isAdminRule: AdminRoleService.ruleCountryAgent,
-          dolhAgent: _model.selectedCountry!.naim,
-          revDlohAgent: _model.selectedCountry!.reference,
-          agentTotal: agentPercent,
-          vatPercent: vatPercent,
-          appCommissionPercent: appPercent,
-          agentDateReg: _model.agentStartDate,
-          agentDateEnd: _model.agentEndDate,
-        ),
-        options: SetOptions(merge: true),
+      await AdminUserCreation.createEmailUser(
+        email: email,
+        password: password,
+        userData: {
+          'display_name': _model.naimfullTextController!.text.trim(),
+          'phone_number': _model.textController2!.text.trim(),
+          'actev_user': _model.switchValue ?? true,
+          'Isagent': true,
+          'isAdminRule': AdminRoleService.ruleCountryAgent,
+          'dolh_agent': _model.selectedCountry!.naim,
+          'Rev_dloh_agent': _model.selectedCountry!.reference.path,
+          'Agent_total': agentPercent,
+          'vat_percent': vatPercent,
+          'app_commission_percent': appPercent,
+          if (_model.agentStartDate != null)
+            'agent_date_reg': _model.agentStartDate!.toIso8601String(),
+          if (_model.agentEndDate != null)
+            'agent_date_end': _model.agentEndDate!.toIso8601String(),
+        },
       );
 
       if (!mounted) return;
@@ -257,7 +251,7 @@ class _AdminAddAgentWidgetState extends State<AdminAddAgentWidget> {
       );
     } catch (e) {
       if (!mounted) return;
-      final msg = e is FirebaseAuthException
+      final msg = e is Exception
           ? AdminUserCreation.authErrorMessage(e)
           : e.toString().replaceFirst('Exception: ', '');
       AdminCrudFeedback.error(context, 'تعذر إضافة الوكيل: $msg');
@@ -403,6 +397,79 @@ class _AdminAddAgentWidgetState extends State<AdminAddAgentWidget> {
     );
   }
 
+  Future<void> _detectCountryFromGps() async {
+    if (_model.countries.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(uiTr(context, 'لا توجد دول مسجلة'))),
+      );
+      return;
+    }
+
+    setState(() => _detectingCountryFromGps = true);
+
+    try {
+      final position = await AdminGpsLocationService.currentPosition();
+      if (!mounted) return;
+
+      if (position == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              uiTr(
+                context,
+                'تعذّر قراءة الموقع — فعّل GPS واسمح للتطبيق بالوصول إلى الموقع',
+              ),
+            ),
+          ),
+        );
+        return;
+      }
+
+      final resolved = await AdminCountryLocationResolver.resolveCountry(
+        position,
+        countries: _model.countries,
+      );
+      if (!mounted) return;
+
+      if (resolved == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              uiTr(
+                context,
+                'لم نتمكن من تحديد الدولة من موقعك. تأكد أن الدولة مسجّلة بحدود جغرافية في قسم الدول',
+              ),
+            ),
+          ),
+        );
+        return;
+      }
+
+      CountriesRecord? match;
+      for (final country in _model.countries) {
+        if (country.reference.path == resolved.reference.path) {
+          match = country;
+          break;
+        }
+      }
+
+      final selected = match ?? resolved;
+      setState(() => _model.selectedCountry = selected);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            uiTr(context, 'تم تحديد الدولة: ${selected.naim}'),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _detectingCountryFromGps = false);
+      }
+    }
+  }
+
   Widget _buildCountrySelector() {
     final theme = FlutterFlowTheme.of(context);
 
@@ -439,30 +506,67 @@ class _AdminAddAgentWidgetState extends State<AdminAddAgentWidget> {
       );
     }
 
-    return DropdownButtonFormField<CountriesRecord>(
-      value: _model.selectedCountry,
-      isExpanded: true,
-      decoration: InputDecoration(
-        labelText: FFLocalizations.of(context).getText('2jwojhmw'),
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-        ),
-      ),
-      hint: Text(uiTr(context, 'اختر البلد')),
-      items: _model.countries
-          .map(
-            (country) => DropdownMenuItem(
-              value: country,
-              child: Text(country.naim.isNotEmpty ? country.naim : '—'),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        DropdownButtonFormField<CountriesRecord>(
+          value: _model.selectedCountry,
+          isExpanded: true,
+          decoration: InputDecoration(
+            labelText: FFLocalizations.of(context).getText('2jwojhmw'),
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
             ),
-          )
-          .toList(),
-      onChanged: (value) => setState(() => _model.selectedCountry = value),
-      validator: (value) => value == null ? 'اختر البلد' : null,
+          ),
+          hint: Text(uiTr(context, 'اختر البلد')),
+          items: _model.countries
+              .map(
+                (country) => DropdownMenuItem(
+                  value: country,
+                  child: Text(country.naim.isNotEmpty ? country.naim : '—'),
+                ),
+              )
+              .toList(),
+          onChanged: (value) => setState(() => _model.selectedCountry = value),
+          validator: (value) => value == null ? 'اختر البلد' : null,
+        ),
+        const SizedBox(height: 10),
+        OutlinedButton.icon(
+          onPressed: _detectingCountryFromGps ? null : _detectCountryFromGps,
+          icon: _detectingCountryFromGps
+              ? SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: theme.primary,
+                  ),
+                )
+              : Icon(Icons.my_location, color: theme.primary),
+          label: Text(
+            uiTr(context, 'تحديد الدولة من الموقع الحالي'),
+          ),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            side: BorderSide(color: AdminUi.brandTeal.withValues(alpha: 0.5)),
+          ),
+        ),
+        Text(
+          uiTr(
+            context,
+            'يستخدم موقعك الحالي لمطابقة الدولة المسجّلة في النظام (يتطلب حدوداً جغرافية للدولة)',
+          ),
+          style: theme.bodySmall.override(
+            fontFamily: theme.bodySmallFamily,
+            color: theme.secondaryText,
+            useGoogleFonts: !theme.bodySmallIsCustom,
+          ),
+        ),
+      ],
     );
   }
 

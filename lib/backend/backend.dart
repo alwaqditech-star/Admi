@@ -1073,8 +1073,12 @@ Future<List<T>> queryCollectionOnce<T>(
 }) {
   final builder = queryBuilder ?? (q) => q;
   var query = builder(collection);
-  if (limit > 0 || singleRecord) {
-    query = query.limit(singleRecord ? 1 : limit);
+  if (singleRecord) {
+    query = query.limit(1);
+  } else if (limit > 0) {
+    query = query.limit(limit);
+  } else {
+    query = query.limit(100);
   }
   return query.get(const GetOptions(source: Source.serverAndCache)).then((s) => s.docs
       .map(

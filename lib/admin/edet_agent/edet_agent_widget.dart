@@ -1,6 +1,8 @@
 import '/backend/admin_audit_log.dart';
 import '/backend/admin_firestore_delete.dart';
 import '/backend/admin_performance.dart';
+import '/backend/admin_country_location_resolver.dart';
+import '/backend/admin_gps_location_service.dart';
 import '/backend/backend.dart';
 import '/components/admin_crud_feedback.dart';
 import '/components/admin_edit_shell.dart';
@@ -32,6 +34,8 @@ class _EdetAgentWidgetState extends State<EdetAgentWidget> {
   static const double _kAgentVatPercent = 15.0;
 
   UserRecord? _agent;
+
+  bool _detectingCountryFromGps = false;
 
   @override
   void initState() {
@@ -231,6 +235,79 @@ class _EdetAgentWidgetState extends State<EdetAgentWidget> {
     );
   }
 
+  Future<void> _detectCountryFromGps() async {
+    if (_model.countries.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(uiTr(context, 'لا توجد دول مسجلة'))),
+      );
+      return;
+    }
+
+    setState(() => _detectingCountryFromGps = true);
+
+    try {
+      final position = await AdminGpsLocationService.currentPosition();
+      if (!mounted) return;
+
+      if (position == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              uiTr(
+                context,
+                'تعذّر قراءة الموقع — فعّل GPS واسمح للتطبيق بالوصول إلى الموقع',
+              ),
+            ),
+          ),
+        );
+        return;
+      }
+
+      final resolved = await AdminCountryLocationResolver.resolveCountry(
+        position,
+        countries: _model.countries,
+      );
+      if (!mounted) return;
+
+      if (resolved == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              uiTr(
+                context,
+                'لم نتمكن من تحديد الدولة من موقعك. تأكد أن الدولة مسجّلة بحدود جغرافية في قسم الدول',
+              ),
+            ),
+          ),
+        );
+        return;
+      }
+
+      CountriesRecord? match;
+      for (final country in _model.countries) {
+        if (country.reference.path == resolved.reference.path) {
+          match = country;
+          break;
+        }
+      }
+
+      final selected = match ?? resolved;
+      setState(() => _model.selectedCountry = selected);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            uiTr(context, 'تم تحديد الدولة: ${selected.naim}'),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _detectingCountryFromGps = false);
+      }
+    }
+  }
+
   Widget _buildCountrySelector() {
     if (_model.countriesLoading) {
       return const Center(child: CircularProgressIndicator(strokeWidth: 2));
@@ -243,26 +320,47 @@ class _EdetAgentWidgetState extends State<EdetAgentWidget> {
       );
     }
 
-    return DropdownButtonFormField<CountriesRecord>(
-      value: _model.selectedCountry,
-      isExpanded: true,
-      decoration: InputDecoration(
-        labelText: uiTr(context, 'البلد'),
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-      hint: Text(uiTr(context, 'اختر البلد')),
-      items: _model.countries
-          .map(
-            (country) => DropdownMenuItem(
-              value: country,
-              child: Text(country.naim.isNotEmpty ? country.naim : '—'),
-            ),
-          )
-          .toList(),
-      onChanged: (value) => setState(() => _model.selectedCountry = value),
-      validator: (value) => value == null ? 'اختر البلد' : null,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        DropdownButtonFormField<CountriesRecord>(
+          value: _model.selectedCountry,
+          isExpanded: true,
+          decoration: InputDecoration(
+            labelText: uiTr(context, 'البلد'),
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+          hint: Text(uiTr(context, 'اختر البلد')),
+          items: _model.countries
+              .map(
+                (country) => DropdownMenuItem(
+                  value: country,
+                  child: Text(country.naim.isNotEmpty ? country.naim : '—'),
+                ),
+              )
+              .toList(),
+          onChanged: (value) => setState(() => _model.selectedCountry = value),
+          validator: (value) => value == null ? 'اختر البلد' : null,
+        ),
+        const SizedBox(height: 10),
+        OutlinedButton.icon(
+          onPressed: _detectingCountryFromGps ? null : _detectCountryFromGps,
+          icon: _detectingCountryFromGps
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.my_location),
+          label: Text(uiTr(context, 'تحديد الدولة من الموقع الحالي')),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            side: BorderSide(color: AdminUi.brandTeal.withValues(alpha: 0.5)),
+          ),
+        ),
+      ],
     );
   }
 

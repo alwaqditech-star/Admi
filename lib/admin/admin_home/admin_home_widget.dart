@@ -1,5 +1,6 @@
 import '/components/admin_layout_widget.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/index.dart';
 import 'package:flutter/material.dart';
 import 'admin_home_model.dart';
 export 'admin_home_model.dart';
@@ -23,28 +24,24 @@ class _AdminHomeWidgetState extends State<AdminHomeWidget> {
   void initState() {
     super.initState();
     _model = createModel(context, () => AdminHomeModel());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.goNamed(Home22DashboardWidget.routeName);
+    });
   }
 
   @override
   void dispose() {
     _model.dispose();
-
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        FocusScope.of(context).unfocus();
-        FocusManager.instance.primaryFocus?.unfocus();
-      },
-      child: AdminLayoutWidget(
-        scaffoldKey: scaffoldKey,
-        menu2Model: _model.menu2Model,
-        updateCallback: () => safeSetState(() {}),
-        child: const SizedBox.shrink(),
-      ),
+    return AdminLayoutWidget(
+      scaffoldKey: scaffoldKey,
+      menu2Model: _model.menu2Model,
+      updateCallback: () => safeSetState(() {}),
+      child: const Center(child: CircularProgressIndicator()),
     );
   }
 }

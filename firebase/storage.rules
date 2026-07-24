@@ -1,52 +1,110 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // قراءة عامة — تطبيق العميل يعرض الصور بدون تسجيل دخول
-    // الكتابة — مستخدم مسجّل (مشرف/مستخدم)
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function claimBool(name) {
+      return signedIn() && request.auth.token[name] == true;
+    }
+
+    function isSuperAdmin() {
+      return claimBool('super_admin');
+    }
+
+    function isCountryAdmin() {
+      return claimBool('country_admin');
+    }
+
+    function isPanelWriter() {
+      return isSuperAdmin()
+        || isCountryAdmin()
+        || claimBool('agent')
+        || claimBool('partner')
+        || claimBool('transport_manager');
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function isUserDocument() {
+      return isImage()
+        || request.resource.contentType == 'application/pdf';
+    }
+
+    function validUserUpload() {
+      return request.resource.size <= 15 * 1024 * 1024
+        && isUserDocument();
+    }
+
+    function validContentImage() {
+      return request.resource.size <= 12 * 1024 * 1024
+        && isImage();
+    }
+
+    function validPanelUpload() {
+      return request.resource.size <= 20 * 1024 * 1024
+        && (isUserDocument()
+          || request.resource.contentType.matches('video/.*'));
+    }
 
     match /users/{userId}/{allPaths=**} {
-      allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow read: if signedIn();
+      allow create, update: if signedIn()
+        && request.auth.uid == userId
+        && validUserUpload();
+      allow delete: if signedIn() && request.auth.uid == userId;
     }
 
     match /landmarks/{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow create, update: if isPanelWriter() && validContentImage();
+      allow delete: if isPanelWriter();
     }
 
     match /countries/{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow create, update: if isSuperAdmin() && validContentImage();
+      allow delete: if isSuperAdmin();
     }
 
     match /regions/{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow create, update: if isPanelWriter() && validContentImage();
+      allow delete: if isPanelWriter();
     }
 
     match /cities/{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow create, update: if isPanelWriter() && validContentImage();
+      allow delete: if isPanelWriter();
     }
 
     match /type_car/{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow create, update: if (isSuperAdmin() || isCountryAdmin())
+        && validContentImage();
+      allow delete: if isSuperAdmin() || isCountryAdmin();
     }
 
     match /representatives/{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow create, update: if isPanelWriter() && validContentImage();
+      allow delete: if isPanelWriter();
     }
 
     match /places/{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow create, update: if isPanelWriter() && validContentImage();
+      allow delete: if isPanelWriter();
     }
 
     match /{allPaths=**} {
-      allow read: if true;
-      allow write: if request.auth != null;
+      allow read: if signedIn();
+      allow create, update: if isPanelWriter() && validPanelUpload();
+      allow delete: if isPanelWriter();
     }
   }
 }

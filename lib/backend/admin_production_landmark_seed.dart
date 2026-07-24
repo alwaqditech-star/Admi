@@ -32,10 +32,18 @@ class AdminProductionLandmarkSeed {
   AdminProductionLandmarkSeed._();
 
   static const _vehicleTypes = [
-    ('type_sedan', 'سيدان', 1),
-    ('type_suv', 'دفع رباعي', 2),
-    ('type_van', 'فان عائلي', 3),
-    ('type_bus', 'حافلة سياحية', 4),
+    ('sedan_standard', 'سيدان اقتصادية', 180),
+    ('sedan_business', 'سيدان أعمال', 240),
+    ('suv_compact', 'SUV مدمجة', 260),
+    ('suv_family', 'SUV عائلية', 320),
+    ('van_family', 'فان عائلي', 360),
+    ('van_vip', 'فان VIP', 450),
+    ('pickup_4x4', 'بيك أب 4x4', 300),
+    ('luxury_suv', 'SUV فاخرة', 520),
+    ('premium_sedan', 'سيدان فاخرة', 420),
+    ('coach_mini', 'ميني باص', 600),
+    ('coach_tour', 'باص سياحي', 900),
+    ('executive_shuttle', 'شاتل تنفيذي', 700),
   ];
 
   static const _categories = [

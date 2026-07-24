@@ -1,3 +1,4 @@
+import '/core/i18n/admin_i18n_save_helper.dart';
 import '/backend/admin_agent_country_lock.dart';
 import '/backend/admin_country_scope.dart';
 import '/backend/admin_role_service.dart';
@@ -113,10 +114,24 @@ class _AddRegWidgetState extends State<AddRegWidget> {
         localBytes: _model.uploadedLocalFile_uploadDataO6sc.bytes,
       );
 
+      final desc = _model.textFieldDescTextController!.text.trim();
+      final namesMap = await adminEnsureI18nMap(
+        context: context,
+        sourceText: name,
+        fieldLabel: 'region name',
+      );
+      final osfMap = await adminEnsureI18nMap(
+        context: context,
+        sourceText: desc,
+        fieldLabel: 'region description',
+      );
+
       await CitiesRecord.collection.doc().set(
             createCitiesRecordData(
-              naim: name,
-              osf: _model.textFieldDescTextController!.text.trim(),
+              naim: adminLegacyFromI18n(namesMap, name),
+              osf: adminLegacyFromI18n(osfMap, desc),
+              namesI18n: namesMap,
+              osfI18n: osfMap,
               dolh: countryRef,
               img: img,
               acctev: _model.switchValue,

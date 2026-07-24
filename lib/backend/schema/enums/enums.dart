@@ -23,6 +23,7 @@ enum HalhSupport {
 
 enum PaymentMethod {
   Cash,
+  OnlinePayment,
 }
 
 extension FFEnumExtensions<T extends Enum> on T {

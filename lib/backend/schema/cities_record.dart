@@ -50,6 +50,11 @@ class CitiesRecord extends FirestoreRecord {
   int get sorting => _sorting ?? 0;
   bool hasSorting() => _sorting != null;
 
+  Map<String, String>? _namesI18n;
+  Map<String, String> get namesI18n => _namesI18n ?? const {};
+  Map<String, String>? _osfI18n;
+  Map<String, String> get osfI18n => _osfI18n ?? const {};
+
   void _initializeFields() {
     _naim = snapshotData['naim'] as String?;
     _osf = snapshotData['osf'] as String?;
@@ -58,6 +63,18 @@ class CitiesRecord extends FirestoreRecord {
     _acctev = snapshotData['acctev'] as bool?;
     _vil = docRefFromFirestore(snapshotData['vil']);
     _sorting = castToType<int>(snapshotData['sorting']);
+    _namesI18n = _parseI18nStringMap(snapshotData['names_i18n']);
+    _osfI18n = _parseI18nStringMap(snapshotData['osf_i18n']);
+  }
+
+  static Map<String, String>? _parseI18nStringMap(dynamic raw) {
+    if (raw == null || raw is! Map) return null;
+    final out = <String, String>{};
+    raw.forEach((key, value) {
+      final text = value?.toString().trim() ?? '';
+      if (text.isNotEmpty) out[key.toString()] = text;
+    });
+    return out.isEmpty ? null : out;
   }
 
   static CollectionReference get collection =>
@@ -101,6 +118,8 @@ Map<String, dynamic> createCitiesRecordData({
   bool? acctev,
   DocumentReference? vil,
   int? sorting,
+  Map<String, String>? namesI18n,
+  Map<String, String>? osfI18n,
 }) {
   final firestoreData = mapToFirestore(
     <String, dynamic>{
@@ -111,6 +130,8 @@ Map<String, dynamic> createCitiesRecordData({
       'acctev': acctev,
       'vil': vil,
       'sorting': sorting,
+      'names_i18n': namesI18n,
+      'osf_i18n': osfI18n,
     }.withoutNulls,
   );
 

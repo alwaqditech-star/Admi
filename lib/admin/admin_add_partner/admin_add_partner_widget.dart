@@ -197,28 +197,18 @@ class _AdminAddPartnerWidgetState extends State<AdminAddPartnerWidget> {
       });
 
       if (email.isNotEmpty) {
-        final credential = await AdminUserCreation.createEmailUser(
+        final uid = await AdminUserCreation.createEmailUser(
           email: email,
           password: password,
+          userData: {
+            'display_name': name,
+            'phone_number': phone,
+            'actev_user': true,
+            'is_partner': true,
+            'partner_mkan': mkanRef.path,
+            'isAdminRule': AdminRoleService.rulePartner,
+          },
         );
-        final uid = credential.user?.uid;
-        if (uid == null) {
-          throw Exception('تعذر إنشاء حساب الشريك');
-        }
-
-        await UserRecord.collection.doc(uid).set(
-              createUserRecordData(
-                displayName: name,
-                email: email,
-                phoneNumber: phone,
-                actevUser: true,
-                createdTime: getCurrentTimestamp,
-                isPartner: true,
-                partnerMkanRef: mkanRef,
-                isAdminRule: AdminRoleService.rulePartner,
-              ),
-              SetOptions(merge: true),
-            );
 
         await mkanRef.update(
           createMkanRecordData(

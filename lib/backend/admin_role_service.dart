@@ -1,14 +1,10 @@
-import '/auth/firebase_auth/auth_util.dart';
-import '/backend/backend.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+import '/backend/schema/user_record.dart';
+import '/core/auth/auth_claims.dart';
 import '/flutter_flow/internationalization.dart';
-
-/// Panel access levels (`isAdminRule` on `user`):
-/// - `1` → سوبر أدمن (كل الدول)
-/// - `2` → وكيل دولة
-/// - `3` → شريك (معالم مرتبطة بحسابه)
-/// - `4` → مدير شركة نقل
+/// Panel roles derived from Firebase Auth custom claims (with Firestore bootstrap).
 enum AdminRole {
   superAdmin,
   countryAgent,
@@ -20,72 +16,115 @@ enum AdminRole {
 class AdminRoleService {
   AdminRoleService._();
 
+  static AuthClaims _claims = AuthClaims.fromToken(null);
+  static UserRecord? _boundProfile;
+
+  static void bindProfile(UserRecord? user) {
+    _boundProfile = user;
+  }
+
   static const int ruleSuperAdmin = 1;
   static const int ruleCountryAgent = 2;
   static const int rulePartner = 3;
   static const int ruleTransportCompany = 4;
 
-  static AdminRole roleFrom(UserRecord? user) {
-    if (user == null) return AdminRole.none;
-    final rule = user.adminRuleValue;
+  /// Legacy shim for callers comparing an already-loaded profile.
+  static AdminRole roleFrom(UserRecord? user) => _roleFromUserDoc(user);
 
-    if (rule == ruleSuperAdmin || user.isAdmin) {
-      return AdminRole.superAdmin;
-    }
-    if (rule == ruleCountryAgent) {
+  static String roleLabel(AdminRole role) => role.name;
+
+  static Future<void> refreshClaims({bool forceRefresh = false}) async {
+    _claims = await AuthClaims.current(forceRefresh: forceRefresh);
+  }
+
+  static void bindClaims(AuthClaims claims) {
+    _claims = claims;
+  }
+
+  static AdminRole get currentRole {
+    if (_claims.isSuperAdmin) return AdminRole.superAdmin;
+    if (_claims.isCountryAdmin || _claims.isAgent || _claims.isSupport) {
       return AdminRole.countryAgent;
     }
-    if (rule == rulePartner || user.isPartner) {
+    if (_claims.isPartner) return AdminRole.partner;
+    if (_claims.isTransportManager) return AdminRole.transportCompany;
+    if (_claims.isFinance) return AdminRole.countryAgent;
+
+    // Bootstrap: claims may be stale until Cloud Function sync runs.
+    return _roleFromUserDoc(_boundProfile);
+  }
+
+  static AdminRole _roleFromUserDoc(UserRecord? user) {
+    if (user == null) return AdminRole.none;
+    if (user.isAdmin || user.isAdminRule == ruleSuperAdmin) {
+      return AdminRole.superAdmin;
+    }
+    if (user.isAdminRule == ruleCountryAgent || user.isagent) {
+      return AdminRole.countryAgent;
+    }
+    if (user.isAdminRule == rulePartner || user.isPartner) {
       return AdminRole.partner;
     }
-    if (rule == ruleTransportCompany ||
-        (user.hasTransportCompany() &&
-            !user.ismndob &&
-            !user.isagent &&
-            !user.isPartner &&
-            !user.isAdmin)) {
+    if (user.isAdminRule == ruleTransportCompany) {
       return AdminRole.transportCompany;
     }
     return AdminRole.none;
   }
 
-  static AdminRole get currentRole => roleFrom(currentUserDocument);
+  static bool get hasPanelAccess =>
+      _claims.hasPanelAccess ||
+      _roleFromUserDoc(_boundProfile) != AdminRole.none;
 
-  static bool isSuperAdminUser(UserRecord? user) =>
-      roleFrom(user) == AdminRole.superAdmin;
+  static bool get isSuperAdmin =>
+      _claims.isSuperAdmin ||
+      _roleFromUserDoc(_boundProfile) == AdminRole.superAdmin;
 
-  static bool get isSuperAdmin => currentRole == AdminRole.superAdmin;
+  /// Firestore user doc check (editing/viewing another account).
+  static bool isSuperAdminUser(UserRecord? user) {
+    if (user == null) return false;
+    return user.isAdmin || user.isAdminRule == ruleSuperAdmin;
+  }
 
-  static bool get isCountryAgent => currentRole == AdminRole.countryAgent;
+  static bool get isCountryAgent =>
+      _claims.isCountryAdmin ||
+      _claims.isAgent ||
+      _claims.isSupport ||
+      _roleFromUserDoc(_boundProfile) == AdminRole.countryAgent;
 
-  static bool get isPartner => currentRole == AdminRole.partner;
+  static bool get isPartner =>
+      _claims.isPartner || _roleFromUserDoc(_boundProfile) == AdminRole.partner;
 
   static bool get isTransportCompany =>
-      currentRole == AdminRole.transportCompany;
+      _claims.isTransportManager ||
+      _roleFromUserDoc(_boundProfile) == AdminRole.transportCompany;
 
-  static bool get hasPanelAccess => currentRole != AdminRole.none;
+  static bool get isFinance => _claims.isFinance || isSuperAdmin;
 
   static DocumentReference? get scopedCountryRef {
-    final user = currentUserDocument;
-    if (user == null) return null;
-    if (isCountryAgent) {
-      return user.revDlohAgent;
+    final path = _claims.countryId;
+    if (path != null && path.isNotEmpty) {
+      return FirebaseFirestore.instance.doc(path);
     }
-    return null;
+    return _boundProfile?.revDlohAgent;
   }
 
-  static String get scopedCountryName {
-    final user = currentUserDocument;
-    if (user == null) return '';
-    if (isCountryAgent) return user.dolhAgent;
-    return '';
+  static String get scopedCountryName => _boundProfile?.dolhAgent ?? '';
+
+  static DocumentReference? get partnerMkanRef {
+    final path = _claims.partnerMkanId;
+    if (path != null && path.isNotEmpty) {
+      return FirebaseFirestore.instance.doc(path);
+    }
+    return _boundProfile?.partnerMkanRef;
   }
 
-  static DocumentReference? get partnerMkanRef =>
-      currentUserDocument?.partnerMkanRef;
-
-  static DocumentReference? get transportCompanyRef =>
-      currentUserDocument?.transportCompany;
+  static DocumentReference? get transportCompanyRef {
+    final path = _claims.transportCompanyId;
+    if (path != null && path.isNotEmpty) {
+      return FirebaseFirestore.instance.doc(path);
+    }
+    return _boundProfile?.transportCompany;
+  }
 
   static const _superAdminOnlyRoutes = {
     'AdminAddAgent',
@@ -102,12 +141,24 @@ class AdminRoleService {
     'adminRegesr',
   };
 
+  static const _financeRoutes = {
+    'AdminProfits',
+    'AdminReportsHub',
+  };
+
   static bool canAccessRoute(String routeName) {
+    if (_claims.isFinance && !_claims.isSuperAdmin && !_claims.isCountryAdmin) {
+      return _financeRoutes.contains(routeName) || routeName == 'Settings';
+    }
+
     switch (currentRole) {
       case AdminRole.superAdmin:
         return routeName != 'adminRegesr';
       case AdminRole.countryAgent:
         if (_superAdminOnlyRoutes.contains(routeName)) {
+          if (_claims.isFinance && _financeRoutes.contains(routeName)) {
+            return true;
+          }
           return false;
         }
         return _agentRoutes.contains(routeName);
@@ -134,6 +185,7 @@ class AdminRoleService {
     'Adminuser',
     'Admindrever',
     'AdminDrivers',
+    'DriverActivation',
     'addDrev',
     'AdminTransportCompanies',
     'AddTransportCompany',
@@ -172,21 +224,6 @@ class AdminRoleService {
         return 'Home22Dashboard';
       case AdminRole.none:
         return 'HomePage';
-    }
-  }
-
-  static String roleLabel(AdminRole role) {
-    switch (role) {
-      case AdminRole.superAdmin:
-        return 'سوبر أدمن';
-      case AdminRole.countryAgent:
-        return 'وكيل الدولة';
-      case AdminRole.partner:
-        return 'شريك';
-      case AdminRole.transportCompany:
-        return 'مدير شركة نقل';
-      case AdminRole.none:
-        return 'غير مصرّح';
     }
   }
 

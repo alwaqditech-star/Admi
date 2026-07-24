@@ -2,6 +2,7 @@ import 'dart:async';
 
 import '/backend/admin_reports_country_scope.dart';
 import '/backend/admin_reports_loader.dart';
+import '/backend/admin_stats_coordinator.dart';
 import '/backend/backend.dart';
 import '/components/admin_layout_widget.dart';
 import '/components/admin_super_admin_gate.dart';
@@ -35,6 +36,7 @@ class _AdminReportsHubWidgetState extends State<AdminReportsHubWidget> {
   bool _isRefreshing = false;
   Timer? _countryDebounce;
   int _loadGeneration = 0;
+  StreamSubscription<int>? _statsInvalidationSub;
 
   @override
   void initState() {
@@ -48,11 +50,17 @@ class _AdminReportsHubWidgetState extends State<AdminReportsHubWidget> {
     _isInitialLoad = _report == null;
     _loadCountries();
     _reloadReport();
+    _statsInvalidationSub =
+        AdminStatsCoordinator.instance.stream(StatsDomain.reports).listen((_) {
+      if (!mounted) return;
+      _reloadReport();
+    });
   }
 
   @override
   void dispose() {
     _countryDebounce?.cancel();
+    _statsInvalidationSub?.cancel();
     if (AdminReportsCountryScope.onChanged == _onScopeChangedExternally) {
       AdminReportsCountryScope.onChanged = null;
     }

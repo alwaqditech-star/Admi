@@ -1,8 +1,11 @@
 import 'dart:async';
 
+import '/backend/admin_country_scope.dart';
+import '/backend/admin_performance.dart';
 import '/backend/backend.dart';
 import '/backend/dashboard_stats_loader.dart';
-import '/backend/schema/enums/enums.dart';
+import '/core/cloud_functions/cloud_functions_client.dart';
+import '/core/finance/financial_engine.dart';
 
 /// Country-scoped admin report for super-admin dashboard.
 class AdminReportsSummary {
@@ -156,7 +159,7 @@ Future<int> _countQuery(Future<int> Function() load) async {
   }
 }
 
-({int paid, int active, double sales, Map<String, int> bookingsByCountry, Map<String, double> salesByCountry})
+({int paid, int active, double sales, int totalBookings, Map<String, int> bookingsByCountry, Map<String, double> salesByCountry})
     _orderStats(List<OrderRecord> orders) {
   var paid = 0;
   var active = 0;
@@ -166,19 +169,18 @@ Future<int> _countQuery(Future<int> Function() load) async {
 
   for (final order in orders) {
     if (order.allnow) active++;
-    final isPaid =
-        order.halhOrder == Halh.Paid || order.halh.toLowerCase() == 'paid';
-    if (isPaid) {
+    final f = FinancialEngine.orderFinancials(order);
+    if (f.isPaid) {
       paid++;
-      sales += order.total;
+      sales += f.totalSales;
     }
     final countryPath = order.revDolh?.path;
     if (countryPath != null) {
       bookingsByCountry[countryPath] =
           (bookingsByCountry[countryPath] ?? 0) + 1;
-      if (isPaid) {
+      if (f.isPaid) {
         salesByCountry[countryPath] =
-            (salesByCountry[countryPath] ?? 0) + order.total;
+            (salesByCountry[countryPath] ?? 0) + f.totalSales;
       }
     }
   }
@@ -187,6 +189,7 @@ Future<int> _countQuery(Future<int> Function() load) async {
     paid: paid,
     active: active,
     sales: sales,
+    totalBookings: orders.length,
     bookingsByCountry: bookingsByCountry,
     salesByCountry: salesByCountry,
   );
@@ -208,35 +211,54 @@ List<AdminReportAgentRow> _agentRows(
       .toList(growable: false);
 }
 
+Future<List<OrderRecord>> _loadAllOrders(DocumentReference? countryRef) async {
+  final results = <OrderRecord>[];
+  DocumentSnapshot? last;
+
+  while (true) {
+    final batch = AdminCountryScope.filterOrders(
+      await queryOrderRecordOnce(
+        queryBuilder: (q) {
+          var query = AdminCountryScope.applyOrderQuery(q)
+              .orderBy('data_order', descending: true);
+          if (countryRef != null) {
+            query = query.where('Rev_dolh', isEqualTo: countryRef);
+          }
+          if (last != null) {
+            query = query.startAfterDocument(last);
+          }
+          return query;
+        },
+        limit: kAdminPageSize,
+      ),
+    );
+    if (batch.isEmpty) break;
+    results.addAll(batch);
+    last = await batch.last.reference.get();
+    if (batch.length < kAdminPageSize) break;
+    if (results.length >= kAdminMaxPages * kAdminPageSize) break;
+  }
+  return results;
+}
+
 Future<({List<UserRecord> agents, List<OrderRecord> orders})> _loadCoreData(
   DocumentReference? countryRef,
 ) async {
-  final results = await Future.wait([
-    queryUserRecordOnce(
-      queryBuilder: (q) {
-        var query = q.where('Isagent', isEqualTo: true);
-        if (countryRef != null) {
-          query = query.where('Rev_dloh_agent', isEqualTo: countryRef);
-        }
-        return query.orderBy(FieldPath.documentId);
-      },
-      limit: 30,
-    ),
-    queryOrderRecordOnce(
-      queryBuilder: (q) {
-        var query = q.orderBy('data_order', descending: true);
-        if (countryRef != null) {
-          query = query.where('Rev_dolh', isEqualTo: countryRef);
-        }
-        return query;
-      },
-      limit: 60,
-    ),
-  ]);
-  return (
-    agents: results[0] as List<UserRecord>,
-    orders: results[1] as List<OrderRecord>,
+  final agents = await queryUserRecordOnce(
+    queryBuilder: (q) {
+      var query = q.where('Isagent', isEqualTo: true);
+      if (countryRef != null) {
+        query = query.where('Rev_dloh_agent', isEqualTo: countryRef);
+      }
+      return query.orderBy(FieldPath.documentId);
+    },
+    limit: 100,
   );
+
+  List<OrderRecord> orders;
+  orders = await _loadAllOrders(countryRef);
+
+  return (agents: agents, orders: orders);
 }
 
 AdminReportsSummary _partialFromCore({
@@ -256,7 +278,7 @@ AdminReportsSummary _partialFromCore({
     representatives: 0,
     transportCompanies: 0,
     activeBookings: 0,
-    totalBookings: orders.length,
+    totalBookings: stats.totalBookings,
     paidBookings: stats.paid,
     totalSales: stats.sales,
     supportTickets: 0,
@@ -289,6 +311,11 @@ Future<AdminReportsSummary> _loadCounts({
         transportCompanies:
             counts['transportCompanies'] ?? partial.transportCompanies,
         activeBookings: counts['activeBookings'] ?? partial.activeBookings,
+        totalBookings: counts['totalBookings'] ?? partial.totalBookings,
+        paidBookings: counts['paidBookings'] ?? partial.paidBookings,
+        totalSales: counts['totalSales'] != null
+            ? (counts['totalSales'] as num).toDouble()
+            : partial.totalSales,
         supportTickets: counts['supportTickets'] ?? partial.supportTickets,
         loadedAt: DateTime.now(),
       );

@@ -1,5 +1,7 @@
+import '/backend/admin_country_scope.dart';
+import '/backend/admin_performance.dart';
 import '/backend/backend.dart';
-import '/backend/schema/enums/enums.dart';
+import '/core/finance/financial_engine.dart';
 
 /// Booking metrics for an agent's country scope (from Firestore `order`).
 class AgentReportStats {
@@ -32,22 +34,36 @@ class AgentReportStats {
   );
 }
 
-bool _isCanceled(OrderRecord order) {
-  if (order.halhOrder == Halh.Canceled) return true;
-  return order.halh.toLowerCase() == 'canceled';
-}
-
-bool _isPaid(OrderRecord order) {
-  if (order.halhOrder == Halh.Paid) return true;
-  return order.halh.toLowerCase() == 'paid';
-}
-
 String orderDisplayTitle(OrderRecord order) {
   if (order.cartext.isNotEmpty) return order.cartext;
   if (order.villText.isNotEmpty) return order.villText;
   if (order.iDorder.isNotEmpty) return order.iDorder;
   if (order.naimUserText.isNotEmpty) return order.naimUserText;
   return 'حجز';
+}
+
+Future<List<OrderRecord>> _loadAgentOrders(DocumentReference countryRef) async {
+  final results = <OrderRecord>[];
+  DocumentSnapshot? last;
+
+  while (true) {
+    final batch = await queryOrderRecordOnce(
+      queryBuilder: (q) {
+        var query = AdminCountryScope.applyOrderQuery(q)
+            .where('Rev_dolh', isEqualTo: countryRef)
+            .orderBy('data_order', descending: true);
+        if (last != null) query = query.startAfterDocument(last);
+        return query;
+      },
+      limit: kAdminPageSize,
+    );
+    if (batch.isEmpty) break;
+    results.addAll(batch);
+    last = await batch.last.reference.get();
+    if (batch.length < kAdminPageSize) break;
+    if (results.length >= kAdminMaxPages * kAdminPageSize) break;
+  }
+  return results;
 }
 
 /// Loads agent performance from orders in the agent's country (`Rev_dolh`).
@@ -57,42 +73,29 @@ Future<AgentReportStats> loadAgentReportStats(UserRecord agent) async {
     return AgentReportStats.empty;
   }
 
-  final orders = await queryOrderRecordOnce(
-    queryBuilder: (q) => q
-        .where('Rev_dolh', isEqualTo: countryRef)
-        .orderBy('data_order', descending: true),
-    limit: 500,
-  );
+  final orders = await _loadAgentOrders(countryRef);
+  final totals = FinancialEngine.aggregate(orders);
 
-  var totalSales = 0.0;
   var activeBookings = 0;
-  var paidBookings = 0;
-  var canceledBookings = 0;
-
   for (final order in orders) {
     if (order.allnow) activeBookings++;
-    if (_isPaid(order)) {
-      paidBookings++;
-      totalSales += order.total;
-    } else if (_isCanceled(order)) {
-      canceledBookings++;
-    }
   }
 
-  final decided = paidBookings + canceledBookings;
+  final decided = totals.paidCount + totals.canceledCount;
   final completionRate =
-      decided == 0 ? 0.0 : (paidBookings / decided) * 100.0;
+      decided == 0 ? 0.0 : (totals.paidCount / decided) * 100.0;
 
   final commissionPercent = agent.agentTotal;
-  final commissionEarned =
-      commissionPercent > 0 ? totalSales * commissionPercent / 100.0 : 0.0;
+  final commissionEarned = commissionPercent > 0
+      ? FinancialEngine.calculateProfit(orders) * commissionPercent / 100.0
+      : 0.0;
 
   return AgentReportStats(
     totalBookings: orders.length,
     activeBookings: activeBookings,
-    paidBookings: paidBookings,
+    paidBookings: totals.paidCount,
     completionRate: completionRate,
-    totalSales: totalSales,
+    totalSales: totals.totalSales,
     commissionEarned: commissionEarned,
     recentOrders: orders.take(10).toList(),
   );

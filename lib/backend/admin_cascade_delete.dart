@@ -1,8 +1,10 @@
 import '/backend/admin_dashboard_invalidate.dart';
 import '/backend/admin_firestore_delete.dart';
+import '/backend/admin_performance.dart';
 import '/backend/backend.dart';
 
 const _batchLimit = 450;
+const _pageSize = 200;
 
 Future<void> _commitDeleteBatch(List<DocumentReference> refs) async {
   for (var i = 0; i < refs.length; i += _batchLimit) {
@@ -29,15 +31,30 @@ Future<void> _commitUpdateBatch(
   }
 }
 
+Future<List<DocumentReference>> _paginatedRefs(Query baseQuery) async {
+  final refs = <DocumentReference>[];
+  DocumentSnapshot? last;
+
+  while (true) {
+    var query = baseQuery.limit(_pageSize);
+    if (last != null) query = query.startAfterDocument(last);
+    final snap = await query.get();
+    if (snap.docs.isEmpty) break;
+    refs.addAll(snap.docs.map((d) => d.reference));
+    last = snap.docs.last;
+    if (snap.size < _pageSize) break;
+    if (refs.length >= kAdminMaxPages * _pageSize) break;
+  }
+
+  return refs;
+}
+
 /// Deletes a city/village and its landmarks.
 Future<void> deleteCityCascade(DocumentReference villageRef) async {
-  final toDelete = <DocumentReference>[];
-
-  final landmarks = await MkanRecord.collection
-      .where('id_vill', isEqualTo: villageRef)
-      .get();
-  toDelete.addAll(landmarks.docs.map((d) => d.reference));
-  toDelete.add(villageRef);
+  final landmarkRefs = await _paginatedRefs(
+    MkanRecord.collection.where('id_vill', isEqualTo: villageRef),
+  );
+  final toDelete = <DocumentReference>[...landmarkRefs, villageRef];
 
   await _commitDeleteBatch(toDelete);
   await AdminFirestoreDelete.verifyDeleted(villageRef);
@@ -51,21 +68,22 @@ Future<void> deleteRegionCascade(
 }) async {
   final toDelete = <DocumentReference>[];
 
-  final villages = await VillagesRecord.collection
-      .where('cities', isEqualTo: regionRef)
-      .get();
-  final villageRefs = villages.docs.map((d) => d.reference).toList();
+  final villageRefs = await _paginatedRefs(
+    VillagesRecord.collection.where('cities', isEqualTo: regionRef),
+  );
 
-  final byRegion = await MkanRecord.collection
-      .where('id_cit', isEqualTo: regionRef)
-      .get();
-  toDelete.addAll(byRegion.docs.map((d) => d.reference));
+  toDelete.addAll(
+    await _paginatedRefs(
+      MkanRecord.collection.where('id_cit', isEqualTo: regionRef),
+    ),
+  );
 
   for (final villageRef in villageRefs) {
-    final byVillage = await MkanRecord.collection
-        .where('id_vill', isEqualTo: villageRef)
-        .get();
-    toDelete.addAll(byVillage.docs.map((d) => d.reference));
+    toDelete.addAll(
+      await _paginatedRefs(
+        MkanRecord.collection.where('id_vill', isEqualTo: villageRef),
+      ),
+    );
     toDelete.add(villageRef);
   }
 
@@ -81,12 +99,12 @@ Future<void> deleteRegionCascade(
 
 /// Deletes a country and all nested regions, cities, landmarks.
 Future<void> deleteCountryCascade(DocumentReference countryRef) async {
-  final regions = await CitiesRecord.collection
-      .where('dolh', isEqualTo: countryRef)
-      .get();
+  final regionRefs = await _paginatedRefs(
+    CitiesRecord.collection.where('dolh', isEqualTo: countryRef),
+  );
 
-  for (final regionDoc in regions.docs) {
-    await deleteRegionCascade(regionDoc.reference, notifyStats: false);
+  for (final regionRef in regionRefs) {
+    await deleteRegionCascade(regionRef, notifyStats: false);
   }
 
   await countryRef.delete();
@@ -101,22 +119,22 @@ Future<void> setRegionLandmarksActive(
 ) async {
   final updates = <DocumentReference, Map<String, dynamic>>{};
 
-  final byRegion = await MkanRecord.collection
-      .where('id_cit', isEqualTo: regionRef)
-      .get();
-  for (final doc in byRegion.docs) {
-    updates[doc.reference] = createMkanRecordData(acctev: active);
+  final byRegion = await _paginatedRefs(
+    MkanRecord.collection.where('id_cit', isEqualTo: regionRef),
+  );
+  for (final ref in byRegion) {
+    updates[ref] = createMkanRecordData(acctev: active);
   }
 
-  final villages = await VillagesRecord.collection
-      .where('cities', isEqualTo: regionRef)
-      .get();
-  for (final villageDoc in villages.docs) {
-    final byVillage = await MkanRecord.collection
-        .where('id_vill', isEqualTo: villageDoc.reference)
-        .get();
-    for (final doc in byVillage.docs) {
-      updates[doc.reference] = createMkanRecordData(acctev: active);
+  final villageRefs = await _paginatedRefs(
+    VillagesRecord.collection.where('cities', isEqualTo: regionRef),
+  );
+  for (final villageRef in villageRefs) {
+    final byVillage = await _paginatedRefs(
+      MkanRecord.collection.where('id_vill', isEqualTo: villageRef),
+    );
+    for (final ref in byVillage) {
+      updates[ref] = createMkanRecordData(acctev: active);
     }
   }
 

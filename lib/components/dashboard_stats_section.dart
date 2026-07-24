@@ -6,6 +6,7 @@ import '/backend/admin_agent_session_ready.dart';
 import '/backend/admin_panel_session.dart';
 import '/backend/admin_panel_data_bootstrap.dart';
 import '/backend/admin_role_service.dart';
+import '/backend/admin_stats_coordinator.dart';
 import '/backend/backend.dart';
 import '/backend/dashboard_stats_loader.dart';
 import '/components/admin_ui.dart';
@@ -34,6 +35,7 @@ class DashboardStatsSectionState extends State<DashboardStatsSection> {
   int _animationGeneration = 0;
   StreamSubscription? _userDocSub;
   StreamSubscription? _agentReadySub;
+  StreamSubscription<int>? _statsInvalidationSub;
   int _loadGeneration = 0;
   bool _waitingForRole = false;
 
@@ -93,6 +95,12 @@ class DashboardStatsSectionState extends State<DashboardStatsSection> {
     }
     _userDocSub = authenticatedUserStream.listen(_onUserProfileChanged);
     _agentReadySub = AdminAgentSessionReady.onReady.listen(_onAgentSessionReady);
+    _statsInvalidationSub =
+        AdminStatsCoordinator.instance.stream(StatsDomain.dashboard).listen((_) {
+      if (!mounted) return;
+      _loadGeneration++;
+      _scheduleLoad(force: true);
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _bootstrapThenLoad();
@@ -231,6 +239,7 @@ class DashboardStatsSectionState extends State<DashboardStatsSection> {
   void dispose() {
     _userDocSub?.cancel();
     _agentReadySub?.cancel();
+    _statsInvalidationSub?.cancel();
     _liveSections.remove(this);
     super.dispose();
   }

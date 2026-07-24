@@ -4,6 +4,7 @@ import '/backend/backend.dart';
 import '/components/admin_crud_feedback.dart';
 import '/components/admin_layout_widget.dart';
 import '/components/admin_ui.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
@@ -68,6 +69,36 @@ class _AdmintypecarWidgetState extends State<AdmintypecarWidget> {
       TypeCarRecord.fromSnapshot,
       queryBuilder: (q) => q.orderBy('sr'),
       limit: 80,
+    );
+  }
+
+  Future<void> _seedVehicleCatalog() async {
+    final batch = FirebaseFirestore.instance.batch();
+    for (final preset in _vehicleTypePresets) {
+      final ref = TypeCarRecord.collection.doc(preset.code);
+      batch.set(
+        ref,
+        createTypeCarRecordData(
+          naim: preset.names['ar'] ?? preset.names['en'],
+          namesI18n: preset.names,
+          sr: preset.hourlyRate,
+          actev: true,
+          ishafelh: preset.isBusLike,
+          aglSaat: preset.minHours,
+          codeCar: preset.code,
+        ),
+        SetOptions(merge: true),
+      );
+    }
+    await batch.commit();
+    if (!mounted) return;
+    await AdminCrudFeedback.success(
+      context,
+      action: AdminCrudAction.add,
+      message:
+          'تمت إضافة/تحديث ${_vehicleTypePresets.length} نوع مركبة جاهز',
+      refreshScope: AdminListScope.typeCars,
+      invalidateStats: false,
     );
   }
 
@@ -157,6 +188,88 @@ class _AdmintypecarWidgetState extends State<AdmintypecarWidget> {
                                         mainAxisAlignment:
                                             MainAxisAlignment.end,
                                         children: [
+                                          FFButtonWidget(
+                                            onPressed: () async {
+                                              final confirmed =
+                                                  await showDialog<bool>(
+                                                context: context,
+                                                builder: (ctx) => AlertDialog(
+                                                  title: const Text(
+                                                      'تأكيد باقة المركبات'),
+                                                  content: Text(
+                                                    'سيتم إضافة/تحديث ${_vehicleTypePresets.length} نوع مركبة '
+                                                    'بترجمات (عربي/إنجليزي/روسي/قيرغيزي/أوزبكي).\n'
+                                                    'العملية آمنة (merge) ولن تحذف الأنواع الحالية.',
+                                                  ),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () =>
+                                                          Navigator.pop(
+                                                              ctx, false),
+                                                      child: const Text('إلغاء'),
+                                                    ),
+                                                    FilledButton(
+                                                      onPressed: () =>
+                                                          Navigator.pop(
+                                                              ctx, true),
+                                                      child: const Text('تأكيد'),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                              if (confirmed != true) return;
+                                              try {
+                                                await _seedVehicleCatalog();
+                                              } catch (e) {
+                                                if (!context.mounted) return;
+                                                AdminCrudFeedback.error(
+                                                  context,
+                                                  AdminCrudFeedback.saveFailed(
+                                                    context,
+                                                    e,
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                            text:
+                                                'إضافة باقة مركبات (${_vehicleTypePresets.length})',
+                                            icon: const Icon(
+                                              Icons.library_add_rounded,
+                                              size: 15.0,
+                                            ),
+                                            options: FFButtonOptions(
+                                              width: 220.0,
+                                              height: 50.0,
+                                              padding: const EdgeInsets.all(8.0),
+                                              iconPadding:
+                                                  const EdgeInsetsDirectional
+                                                      .fromSTEB(
+                                                      0.0, 0.0, 0.0, 0.0),
+                                              color: FlutterFlowTheme.of(context)
+                                                  .secondary,
+                                              textStyle:
+                                                  FlutterFlowTheme.of(context)
+                                                      .titleSmall
+                                                      .override(
+                                                        fontFamily:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .titleSmallFamily,
+                                                        color:
+                                                            FlutterFlowTheme.of(
+                                                                    context)
+                                                                .info,
+                                                        letterSpacing: 0.0,
+                                                        useGoogleFonts:
+                                                            !FlutterFlowTheme.of(
+                                                                    context)
+                                                                .titleSmallIsCustom,
+                                                      ),
+                                              elevation: 0.0,
+                                              borderRadius:
+                                                  BorderRadius.circular(8.0),
+                                            ),
+                                          ),
                                           FFButtonWidget(
                                             onPressed: () async {
                                               context.pushNamed(
@@ -327,7 +440,10 @@ class _AdmintypecarWidgetState extends State<AdmintypecarWidget> {
                                                                 children: [
                                                                   Text(
                                                                     listViewTypeCarRecord
-                                                                        .naim,
+                                                                            .namesI18n['ar']
+                                                                        ??
+                                                                        listViewTypeCarRecord
+                                                                            .naim,
                                                                     style: FlutterFlowTheme.of(
                                                                             context)
                                                                         .bodyLarge
@@ -340,6 +456,32 @@ class _AdmintypecarWidgetState extends State<AdmintypecarWidget> {
                                                                               !FlutterFlowTheme.of(context).bodyLargeIsCustom,
                                                                         ),
                                                                   ),
+                                                                  if (listViewTypeCarRecord
+                                                                          .namesI18n['en'] !=
+                                                                      null)
+                                                                    Text(
+                                                                      listViewTypeCarRecord
+                                                                              .namesI18n['en'] ??
+                                                                          '',
+                                                                      style: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .bodySmall,
+                                                                    ),
+                                                                  if (listViewTypeCarRecord
+                                                                      .codeCar
+                                                                      .isNotEmpty)
+                                                                    Text(
+                                                                      'code: ${listViewTypeCarRecord.codeCar}',
+                                                                      style: FlutterFlowTheme.of(
+                                                                              context)
+                                                                          .bodySmall
+                                                                          .override(
+                                                                            fontFamily: FlutterFlowTheme.of(context).bodySmallFamily,
+                                                                            color: FlutterFlowTheme.of(context).secondaryText,
+                                                                            letterSpacing: 0.0,
+                                                                            useGoogleFonts: !FlutterFlowTheme.of(context).bodySmallIsCustom,
+                                                                          ),
+                                                                    ),
                                                                 ].divide(SizedBox(
                                                                     height:
                                                                         4.0)),
@@ -428,6 +570,27 @@ class _AdmintypecarWidgetState extends State<AdmintypecarWidget> {
                                                                       text: listViewTypeCarRecord
                                                                           .naim,
                                                                     );
+                                                                    final nameEnCtrl =
+                                                                        TextEditingController(
+                                                                      text: listViewTypeCarRecord
+                                                                              .namesI18n[
+                                                                          'en'] ??
+                                                                          '',
+                                                                    );
+                                                                    final nameRuCtrl =
+                                                                        TextEditingController(
+                                                                      text: listViewTypeCarRecord
+                                                                              .namesI18n[
+                                                                          'ru'] ??
+                                                                          '',
+                                                                    );
+                                                                    final nameKyCtrl =
+                                                                        TextEditingController(
+                                                                      text: listViewTypeCarRecord
+                                                                              .namesI18n[
+                                                                          'ky'] ??
+                                                                          '',
+                                                                    );
                                                                     final rateCtrl =
                                                                         TextEditingController(
                                                                       text: listViewTypeCarRecord
@@ -445,7 +608,8 @@ class _AdmintypecarWidgetState extends State<AdmintypecarWidget> {
                                                                           title: const Text(
                                                                               'تعديل نوع السيارة'),
                                                                           content:
-                                                                              Column(
+                                                                              SingleChildScrollView(
+                                                                            child: Column(
                                                                             mainAxisSize:
                                                                                 MainAxisSize.min,
                                                                             children: [
@@ -454,7 +618,31 @@ class _AdmintypecarWidgetState extends State<AdmintypecarWidget> {
                                                                                     nameCtrl,
                                                                                 decoration:
                                                                                     InputDecoration(
-                                                                                  labelText: uiTr(context, 'الاسم'),
+                                                                                  labelText: uiTr(context, 'الاسم (عربي)'),
+                                                                                ),
+                                                                              ),
+                                                                              TextField(
+                                                                                controller:
+                                                                                    nameEnCtrl,
+                                                                                decoration:
+                                                                                    const InputDecoration(
+                                                                                  labelText: 'Name (EN)',
+                                                                                ),
+                                                                              ),
+                                                                              TextField(
+                                                                                controller:
+                                                                                    nameRuCtrl,
+                                                                                decoration:
+                                                                                    const InputDecoration(
+                                                                                  labelText: 'Название (RU)',
+                                                                                ),
+                                                                              ),
+                                                                              TextField(
+                                                                                controller:
+                                                                                    nameKyCtrl,
+                                                                                decoration:
+                                                                                    const InputDecoration(
+                                                                                  labelText: 'Аталышы (KY)',
                                                                                 ),
                                                                               ),
                                                                               TextField(
@@ -469,6 +657,7 @@ class _AdmintypecarWidgetState extends State<AdmintypecarWidget> {
                                                                                 ),
                                                                               ),
                                                                             ],
+                                                                          ),
                                                                           ),
                                                                           actions: [
                                                                             TextButton(
@@ -500,15 +689,56 @@ class _AdmintypecarWidgetState extends State<AdmintypecarWidget> {
                                                                       return;
                                                                     }
                                                                     try {
+                                                                      final ar = nameCtrl
+                                                                          .text
+                                                                          .trim();
+                                                                      final names =
+                                                                          <String,
+                                                                              String>{
+                                                                        ...listViewTypeCarRecord
+                                                                            .namesI18n,
+                                                                        if (ar
+                                                                            .isNotEmpty)
+                                                                          'ar':
+                                                                              ar,
+                                                                      };
+                                                                      final en =
+                                                                          nameEnCtrl
+                                                                              .text
+                                                                              .trim();
+                                                                      final ru =
+                                                                          nameRuCtrl
+                                                                              .text
+                                                                              .trim();
+                                                                      final ky =
+                                                                          nameKyCtrl
+                                                                              .text
+                                                                              .trim();
+                                                                      if (en
+                                                                          .isNotEmpty) {
+                                                                        names[
+                                                                            'en'] = en;
+                                                                      }
+                                                                      if (ru
+                                                                          .isNotEmpty) {
+                                                                        names[
+                                                                            'ru'] = ru;
+                                                                      }
+                                                                      if (ky
+                                                                          .isNotEmpty) {
+                                                                        names[
+                                                                            'ky'] = ky;
+                                                                      }
                                                                       await listViewTypeCarRecord
                                                                           .reference
                                                                           .update(
                                                                         createTypeCarRecordData(
-                                                                          naim: nameCtrl
-                                                                              .text
-                                                                              .trim(),
+                                                                          naim:
+                                                                              ar,
                                                                           sr: int.tryParse(rateCtrl.text.trim()) ??
                                                                               listViewTypeCarRecord.sr,
+                                                                          namesI18n:
+                                                                              names,
                                                                         ),
                                                                       );
                                                                       if (!context
@@ -847,3 +1077,187 @@ class _AdmintypecarWidgetState extends State<AdmintypecarWidget> {
     );
   }
 }
+
+class _VehicleTypePreset {
+  const _VehicleTypePreset({
+    required this.code,
+    required this.names,
+    required this.hourlyRate,
+    required this.minHours,
+    this.isBusLike = false,
+  });
+
+  final String code;
+  final Map<String, String> names;
+  final int hourlyRate;
+  final int minHours;
+  final bool isBusLike;
+}
+
+const List<_VehicleTypePreset> _vehicleTypePresets = [
+  _VehicleTypePreset(
+    code: 'economy',
+    names: {'ar': 'اقتصادية', 'en': 'Economy', 'ru': 'Эконом', 'ky': 'Эконом', 'uz': 'Ekonom'},
+    hourlyRate: 160,
+    minHours: 4,
+  ),
+  _VehicleTypePreset(
+    code: 'compact',
+    names: {'ar': 'مدمجة', 'en': 'Compact', 'ru': 'Компакт', 'ky': 'Компакт', 'uz': 'Kompakt'},
+    hourlyRate: 170,
+    minHours: 4,
+  ),
+  _VehicleTypePreset(
+    code: 'sedan_standard',
+    names: {'ar': 'سيدان قياسية', 'en': 'Standard Sedan', 'ru': 'Стандартный седан', 'ky': 'Стандарт седан', 'uz': 'Standart sedan'},
+    hourlyRate: 180,
+    minHours: 4,
+  ),
+  _VehicleTypePreset(
+    code: 'comfort',
+    names: {'ar': 'مريحة', 'en': 'Comfort', 'ru': 'Комфорт', 'ky': 'Комфорт', 'uz': 'Komfort'},
+    hourlyRate: 210,
+    minHours: 4,
+  ),
+  _VehicleTypePreset(
+    code: 'sedan_business',
+    names: {'ar': 'سيدان أعمال', 'en': 'Business Sedan', 'ru': 'Бизнес седан', 'ky': 'Бизнес седан', 'uz': 'Biznes sedan'},
+    hourlyRate: 240,
+    minHours: 4,
+  ),
+  _VehicleTypePreset(
+    code: 'business',
+    names: {'ar': 'أعمال', 'en': 'Business', 'ru': 'Бизнес', 'ky': 'Бизнес', 'uz': 'Biznes'},
+    hourlyRate: 280,
+    minHours: 4,
+  ),
+  _VehicleTypePreset(
+    code: 'premium',
+    names: {'ar': 'ممتازة', 'en': 'Premium', 'ru': 'Премиум', 'ky': 'Премиум', 'uz': 'Premium'},
+    hourlyRate: 320,
+    minHours: 4,
+  ),
+  _VehicleTypePreset(
+    code: 'premium_sedan',
+    names: {'ar': 'سيدان فاخرة', 'en': 'Premium Sedan', 'ru': 'Премиум седан', 'ky': 'Премиум седан', 'uz': 'Premium sedan'},
+    hourlyRate: 420,
+    minHours: 4,
+  ),
+  _VehicleTypePreset(
+    code: 'luxury',
+    names: {'ar': 'فاخرة', 'en': 'Luxury', 'ru': 'Люкс', 'ky': 'Люкс', 'uz': 'Lyuks'},
+    hourlyRate: 480,
+    minHours: 5,
+  ),
+  _VehicleTypePreset(
+    code: 'suv_compact',
+    names: {'ar': 'SUV مدمجة', 'en': 'Compact SUV', 'ru': 'Компактный SUV', 'ky': 'Ыкчам SUV', 'uz': 'Kompakt SUV'},
+    hourlyRate: 260,
+    minHours: 4,
+  ),
+  _VehicleTypePreset(
+    code: 'suv_standard',
+    names: {'ar': 'SUV قياسية', 'en': 'SUV Standard', 'ru': 'Стандартный SUV', 'ky': 'Стандарт SUV', 'uz': 'Standart SUV'},
+    hourlyRate: 300,
+    minHours: 4,
+  ),
+  _VehicleTypePreset(
+    code: 'suv_family',
+    names: {'ar': 'SUV عائلية', 'en': 'Family SUV', 'ru': 'Семейный SUV', 'ky': 'Үй-бүлөлүк SUV', 'uz': 'Oilaviy SUV'},
+    hourlyRate: 320,
+    minHours: 4,
+  ),
+  _VehicleTypePreset(
+    code: 'suv_large',
+    names: {'ar': 'SUV كبيرة', 'en': 'SUV Large', 'ru': 'Большой SUV', 'ky': 'Чоң SUV', 'uz': 'Katta SUV'},
+    hourlyRate: 380,
+    minHours: 5,
+  ),
+  _VehicleTypePreset(
+    code: 'luxury_suv',
+    names: {'ar': 'SUV فاخرة', 'en': 'Luxury SUV', 'ru': 'Премиум SUV', 'ky': 'Люкс SUV', 'uz': 'Lyuks SUV'},
+    hourlyRate: 520,
+    minHours: 5,
+  ),
+  _VehicleTypePreset(
+    code: 'offroad_4x4',
+    names: {'ar': 'دفع رباعي', 'en': '4x4', 'ru': 'Полный привод 4x4', 'ky': '4x4', 'uz': '4x4'},
+    hourlyRate: 340,
+    minHours: 4,
+  ),
+  _VehicleTypePreset(
+    code: 'pickup_4x4',
+    names: {'ar': 'بيك أب 4x4', 'en': '4x4 Pickup', 'ru': 'Пикап 4x4', 'ky': '4x4 пикап', 'uz': '4x4 pikap'},
+    hourlyRate: 300,
+    minHours: 4,
+  ),
+  _VehicleTypePreset(
+    code: 'minivan',
+    names: {'ar': 'ميني فان', 'en': 'Minivan', 'ru': 'Минивэн', 'ky': 'Минивэн', 'uz': 'Miniven'},
+    hourlyRate: 340,
+    minHours: 5,
+  ),
+  _VehicleTypePreset(
+    code: 'van_family',
+    names: {'ar': 'فان عائلي', 'en': 'Family Van', 'ru': 'Семейный минивэн', 'ky': 'Үй-бүлөлүк минивэн', 'uz': 'Oilaviy miniven'},
+    hourlyRate: 360,
+    minHours: 5,
+  ),
+  _VehicleTypePreset(
+    code: 'van_vip',
+    names: {'ar': 'فان VIP', 'en': 'VIP Van', 'ru': 'VIP минивэн', 'ky': 'VIP минивэн', 'uz': 'VIP miniven'},
+    hourlyRate: 450,
+    minHours: 5,
+  ),
+  _VehicleTypePreset(
+    code: 'coach_mini',
+    names: {'ar': 'ميني باص', 'en': 'Minibus', 'ru': 'Мини-автобус', 'ky': 'Кичи автобус', 'uz': 'Miniavtobus'},
+    hourlyRate: 600,
+    minHours: 6,
+    isBusLike: true,
+  ),
+  _VehicleTypePreset(
+    code: 'coach_tour',
+    names: {'ar': 'باص سياحي', 'en': 'Tour Coach', 'ru': 'Туристический автобус', 'ky': 'Туристтик автобус', 'uz': 'Turistik avtobus'},
+    hourlyRate: 900,
+    minHours: 6,
+    isBusLike: true,
+  ),
+  _VehicleTypePreset(
+    code: 'executive_shuttle',
+    names: {'ar': 'شاتل تنفيذي', 'en': 'Executive Shuttle', 'ru': 'Представительский шаттл', 'ky': 'Аткаруучу шаттл', 'uz': 'Ijro shattli'},
+    hourlyRate: 700,
+    minHours: 6,
+    isBusLike: true,
+  ),
+  _VehicleTypePreset(
+    code: 'electric',
+    names: {'ar': 'كهربائية', 'en': 'Electric', 'ru': 'Электромобиль', 'ky': 'Электромобиль', 'uz': 'Elektromobil'},
+    hourlyRate: 250,
+    minHours: 4,
+  ),
+  _VehicleTypePreset(
+    code: 'hybrid',
+    names: {'ar': 'هجينة', 'en': 'Hybrid', 'ru': 'Гибрид', 'ky': 'Гибрид', 'uz': 'Gibrid'},
+    hourlyRate: 230,
+    minHours: 4,
+  ),
+  _VehicleTypePreset(
+    code: 'wheelchair',
+    names: {'ar': 'مجهزة لكرسي متحرك', 'en': 'Wheelchair Accessible', 'ru': 'Для инвалидных колясок', 'ky': 'Майыптар үчүн', 'uz': 'Nogironlar aravachasi uchun'},
+    hourlyRate: 280,
+    minHours: 4,
+  ),
+  _VehicleTypePreset(
+    code: 'airport_transfer',
+    names: {'ar': 'نقل مطار', 'en': 'Airport Transfer', 'ru': 'Трансфер в аэропорт', 'ky': 'Аэропорт трансфери', 'uz': 'Aeroport transferi'},
+    hourlyRate: 220,
+    minHours: 3,
+  ),
+  _VehicleTypePreset(
+    code: 'tourist_vehicle',
+    names: {'ar': 'مركبة سياحية', 'en': 'Tourist Vehicle', 'ru': 'Туристический транспорт', 'ky': 'Туристтик унаа', 'uz': 'Turistik transport'},
+    hourlyRate: 350,
+    minHours: 5,
+  ),
+];

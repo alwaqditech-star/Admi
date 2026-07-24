@@ -1,3 +1,7 @@
+import 'dart:async';
+
+import '/core/i18n/admin_i18n_save_helper.dart';
+import '/backend/admin_country_geo_service.dart';
 import '/backend/backend.dart';
 import '/components/admin_crud_feedback.dart';
 import '/components/admin_edit_shell.dart';
@@ -5,6 +9,7 @@ import '/components/admin_image_picker.dart';
 import '/components/admin_super_admin_gate.dart';
 import '/components/admin_ui.dart';
 import '/flutter_flow/flutter_flow_util.dart';
+import '/flutter_flow/flutter_flow_google_map.dart';
 import 'package:flutter/material.dart';
 import 'add_dolh_model.dart';
 export 'add_dolh_model.dart';
@@ -22,6 +27,9 @@ class AddDolhWidget extends StatefulWidget {
 class _AddDolhWidgetState extends State<AddDolhWidget> {
   late AddDolhModel _model;
   bool _isSaving = false;
+  bool _isResolvingGeo = false;
+  AdminCountryGeoData? _resolvedGeo;
+  final _countryMapController = Completer<GoogleMapController>();
 
   @override
   void initState() {
@@ -36,6 +44,8 @@ class _AddDolhWidgetState extends State<AddDolhWidget> {
     _model.textFieldFocusNode3 ??= FocusNode();
     _model.textController4 ??= TextEditingController(text: '0');
     _model.textFieldFocusNode4 ??= FocusNode();
+    _model.textController5 ??= TextEditingController();
+    _model.textFieldFocusNode5 ??= FocusNode();
     _model.switchValue = true;
 
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
@@ -59,6 +69,38 @@ class _AddDolhWidgetState extends State<AddDolhWidget> {
             safeSetState(() => _model.uploadedFileUrl_uploadDataX8mc = url),
       );
 
+  Future<AdminCountryGeoData?> _resolveCountryGeo({
+    bool showError = true,
+  }) async {
+    final name = _model.textController1!.text.trim();
+    final isoRaw = _model.textController5!.text.trim();
+    if (name.isEmpty && isoRaw.length != 2) return null;
+
+    setState(() => _isResolvingGeo = true);
+    try {
+      final geo = isoRaw.length == 2
+          ? await AdminCountryGeoService.fetchForIsoCode(isoRaw)
+          : await AdminCountryGeoService.fetchForCountryName(name);
+      if (geo?.center == null || geo?.hasBounds != true) {
+        if (showError && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                uiTr(context,
+                    'تعذر تحميل خريطة الدولة. أدخل رمز ISO الصحيح ثم حاول مرة أخرى.'),
+              ),
+            ),
+          );
+        }
+        return null;
+      }
+      if (mounted) setState(() => _resolvedGeo = geo);
+      return geo;
+    } finally {
+      if (mounted) setState(() => _isResolvingGeo = false);
+    }
+  }
+
   Future<void> _saveCountry() async {
     final name = _model.textController1!.text.trim();
     if (name.isEmpty) {
@@ -70,10 +112,14 @@ class _AddDolhWidgetState extends State<AddDolhWidget> {
 
     if (_model.isDataUploading_uploadDataX8mc) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(uiTr(context, 'انتظر اكتمال رفع الصورة ثم احفظ'))),
+        SnackBar(
+            content: Text(uiTr(context, 'انتظر اكتمال رفع الصورة ثم احفظ'))),
       );
       return;
     }
+
+    final geo = await _resolveCountryGeo();
+    if (geo == null) return;
 
     setState(() => _isSaving = true);
 
@@ -84,18 +130,33 @@ class _AddDolhWidgetState extends State<AddDolhWidget> {
         localBytes: _model.uploadedLocalFile_uploadDataX8mc.bytes,
       );
 
-      await CountriesRecord.collection.doc().set(
-            createCountriesRecordData(
-              naim: name,
-              osf: _model.textController2!.text.trim(),
-              acctev: _model.switchValue,
-              img: img,
-              vatPercent:
-                  double.tryParse(_model.textController3!.text.trim()) ?? 0,
-              appCommissionPercent:
-                  double.tryParse(_model.textController4!.text.trim()) ?? 0,
-            ),
-          );
+      final namesMap = await adminEnsureI18nMap(
+        context: context,
+        sourceText: name,
+        fieldLabel: 'country name',
+        existing: {
+          if (geo.englishName != null && geo.englishName!.trim().isNotEmpty)
+            'en': geo.englishName!.trim(),
+        },
+      );
+
+      final countryData = createCountriesRecordData(
+        naim: adminLegacyFromI18n(namesMap, name),
+        osf: _model.textController2!.text.trim(),
+        acctev: _model.switchValue,
+        img: img,
+        vatPercent: double.tryParse(_model.textController3!.text.trim()) ?? 0,
+        appCommissionPercent:
+            double.tryParse(_model.textController4!.text.trim()) ?? 0,
+        naimEnglesh: geo.englishName,
+        isoCode: geo.isoCode,
+        geoCenter: geo.center,
+        boundsSw: geo.boundsSouthWest,
+        boundsNe: geo.boundsNorthEast,
+        namesI18n: namesMap,
+      );
+
+      await CountriesRecord.collection.doc().set(countryData);
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -169,6 +230,54 @@ class _AddDolhWidgetState extends State<AddDolhWidget> {
                     hintText: uiTr(context, 'مثال: المملكة العربية السعودية'),
                   ),
                 ),
+                const SizedBox(height: 10),
+                OutlinedButton.icon(
+                  onPressed: _isResolvingGeo
+                      ? null
+                      : () async {
+                          await _resolveCountryGeo();
+                        },
+                  icon: _isResolvingGeo
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.map_rounded),
+                  label: Text(uiTr(context, 'تحميل ومعاينة خريطة الدولة')),
+                ),
+                if (_resolvedGeo?.center != null) ...[
+                  const SizedBox(height: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: SizedBox(
+                      height: 220,
+                      child: FlutterFlowGoogleMap(
+                        controller: _countryMapController,
+                        initialLocation: _resolvedGeo!.center,
+                        markers: const [],
+                        markerColor: GoogleMarkerColor.red,
+                        mapType: MapType.normal,
+                        style: GoogleMapStyle.standard,
+                        initialZoom: 4,
+                        allowInteraction: true,
+                        allowZoom: true,
+                        showZoomControls: true,
+                        showLocation: false,
+                        showCompass: true,
+                        showMapToolbar: false,
+                        showTraffic: false,
+                        centerMapOnMarkerTap: false,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${uiTr(context, 'مركز الخريطة')}: '
+                    '${_resolvedGeo!.center!.latitude.toStringAsFixed(4)}, '
+                    '${_resolvedGeo!.center!.longitude.toStringAsFixed(4)}',
+                  ),
+                ],
                 const SizedBox(height: 14),
                 TextFormField(
                   controller: _model.textController2,
@@ -178,6 +287,18 @@ class _AddDolhWidgetState extends State<AddDolhWidget> {
                     labelText: uiTr(context, 'وصف الدولة (اختياري)'),
                     hintText: uiTr(context, 'وصف مختصر عن الدولة'),
                     alignLabelWithHint: true,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                TextFormField(
+                  controller: _model.textController5,
+                  focusNode: _model.textFieldFocusNode5,
+                  textCapitalization: TextCapitalization.characters,
+                  maxLength: 2,
+                  decoration: InputDecoration(
+                    labelText: uiTr(context, 'رمز الدولة ISO (اختياري)'),
+                    hintText: uiTr(context, 'مثال: SA أو AE'),
+                    counterText: '',
                   ),
                 ),
                 const SizedBox(height: 14),

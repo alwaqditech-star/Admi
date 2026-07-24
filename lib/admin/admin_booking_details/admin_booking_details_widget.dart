@@ -1,8 +1,11 @@
 import '/backend/admin_resource_guard.dart';
 import '/backend/backend.dart';
+import '/backend/schema/enums/enums.dart';
 import '/components/admin_location_service.dart';
 import '/components/admin_ui.dart';
 import '/components/profile_photo_image.dart';
+import '/core/admin_booking_status_label.dart';
+import '/core/finance/financial_engine.dart';
 import '/flutter_flow/flutter_flow_google_map.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
@@ -54,6 +57,40 @@ class _AdminBookingDetailsWidgetState extends State<AdminBookingDetailsWidget> {
       return 'لا يوجد موقع محدد حالياً';
     }
     return AdminLocationService.formatCoordinates(location);
+  }
+
+  String _paymentMethodLabel(OrderRecord order) {
+    switch (order.paymentMethod) {
+      case PaymentMethod.Cash:
+        return 'نقداً';
+      case PaymentMethod.OnlinePayment:
+        return 'دفع إلكتروني';
+      default:
+        return order.paymentGatewayOrderId.isNotEmpty
+            ? 'دفع إلكتروني'
+            : 'غير محدد';
+    }
+  }
+
+  String _paymentStatusLabel(OrderRecord order) =>
+      OrderStatusHelper.paymentStatusArabicLabel(order);
+
+  Color _paymentStatusColor(BuildContext context, OrderRecord order) {
+    switch (OrderStatusHelper.statusOf(order)) {
+      case OrderPaymentStatus.paid:
+        return FlutterFlowTheme.of(context).success;
+      case OrderPaymentStatus.canceled:
+        return FlutterFlowTheme.of(context).error;
+      case OrderPaymentStatus.pending:
+        return FlutterFlowTheme.of(context).warning;
+      case OrderPaymentStatus.unknown:
+        return FlutterFlowTheme.of(context).alternate;
+    }
+  }
+
+  String _bookingStatusLabel(OrderRecord order) {
+    final label = AdminBookingStatusLabel.of(order);
+    return label.isNotEmpty ? label : 'غير محدد';
   }
 
   @override
@@ -187,10 +224,9 @@ class _AdminBookingDetailsWidgetState extends State<AdminBookingDetailsWidget> {
     BuildContext context,
     OrderRecord adminBookingDetailsOrderRecord,
   ) {
-        final bookingMapLocation =
-            adminBookingDetailsOrderRecord.mapuser ??
-                adminBookingDetailsOrderRecord.lokeshn;
-        final driverLocation = adminBookingDetailsOrderRecord.lokeshn;
+        final pickupLocation = adminBookingDetailsOrderRecord.lokeshn;
+        final driverLocation = adminBookingDetailsOrderRecord.mapuser;
+        final bookingMapLocation = driverLocation ?? pickupLocation;
 
         return GestureDetector(
           onTap: () {
@@ -279,7 +315,9 @@ class _AdminBookingDetailsWidgetState extends State<AdminBookingDetailsWidget> {
                                 padding: EdgeInsetsDirectional.fromSTEB(
                                     4.0, 12.0, 4.0, 12.0),
                                 child: Text(
-                                  adminBookingDetailsOrderRecord.halhText,
+                                  _bookingStatusLabel(
+                                    adminBookingDetailsOrderRecord,
+                                  ),
                                   style: FlutterFlowTheme.of(context)
                                       .bodySmall
                                       .override(
@@ -523,10 +561,8 @@ class _AdminBookingDetailsWidgetState extends State<AdminBookingDetailsWidget> {
                                       padding: EdgeInsetsDirectional.fromSTEB(
                                           4.0, 12.0, 4.0, 12.0),
                                       child: Text(
-                                        valueOrDefault<String>(
-                                          adminBookingDetailsOrderRecord
-                                              .paymentMethod?.name,
-                                          'دفع إلكتروني',
+                                        _paymentMethodLabel(
+                                          adminBookingDetailsOrderRecord,
                                         ),
                                         style: FlutterFlowTheme.of(context)
                                             .bodySmall
@@ -569,15 +605,19 @@ class _AdminBookingDetailsWidgetState extends State<AdminBookingDetailsWidget> {
                                   ),
                                   Container(
                                     decoration: BoxDecoration(
-                                      color:
-                                          FlutterFlowTheme.of(context).success,
+                                      color: _paymentStatusColor(
+                                        context,
+                                        adminBookingDetailsOrderRecord,
+                                      ),
                                       borderRadius: BorderRadius.circular(8.0),
                                     ),
                                     child: Padding(
                                       padding: EdgeInsetsDirectional.fromSTEB(
                                           4.0, 12.0, 4.0, 12.0),
                                       child: Text(
-                                        adminBookingDetailsOrderRecord.halhText,
+                                        _paymentStatusLabel(
+                                          adminBookingDetailsOrderRecord,
+                                        ),
                                         style: FlutterFlowTheme.of(context)
                                             .bodySmall
                                             .override(
@@ -597,6 +637,51 @@ class _AdminBookingDetailsWidgetState extends State<AdminBookingDetailsWidget> {
                                   ),
                                 ],
                               ),
+                              if (adminBookingDetailsOrderRecord
+                                  .paymentGatewayOrderId.isNotEmpty)
+                                Row(
+                                  mainAxisSize: MainAxisSize.max,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'مرجع الدفع',
+                                      style: FlutterFlowTheme.of(context)
+                                          .bodyMedium
+                                          .override(
+                                            fontFamily:
+                                                FlutterFlowTheme.of(context)
+                                                    .bodyMediumFamily,
+                                            color: FlutterFlowTheme.of(context)
+                                                .secondaryText,
+                                            letterSpacing: 0.0,
+                                            useGoogleFonts:
+                                                !FlutterFlowTheme.of(context)
+                                                    .bodyMediumIsCustom,
+                                          ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        adminBookingDetailsOrderRecord
+                                            .paymentGatewayOrderId,
+                                        textAlign: TextAlign.end,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: FlutterFlowTheme.of(context)
+                                            .bodySmall
+                                            .override(
+                                              fontFamily:
+                                                  FlutterFlowTheme.of(context)
+                                                      .bodySmallFamily,
+                                              letterSpacing: 0.0,
+                                              useGoogleFonts:
+                                                  !FlutterFlowTheme.of(context)
+                                                      .bodySmallIsCustom,
+                                            ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               Row(
                                 mainAxisSize: MainAxisSize.max,
                                 mainAxisAlignment:

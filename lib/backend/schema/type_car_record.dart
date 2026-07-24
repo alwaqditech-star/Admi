@@ -20,6 +20,11 @@ class TypeCarRecord extends FirestoreRecord {
   String get naim => _naim ?? '';
   bool hasNaim() => _naim != null;
 
+  // "names_i18n" field.
+  Map<String, String>? _namesI18n;
+  Map<String, String> get namesI18n => _namesI18n ?? const {};
+  bool hasNamesI18n() => _namesI18n != null && _namesI18n!.isNotEmpty;
+
   // "sr" field.
   int? _sr;
   int get sr => _sr ?? 0;
@@ -55,8 +60,14 @@ class TypeCarRecord extends FirestoreRecord {
   int get aglSaat => _aglSaat ?? 0;
   bool hasAglSaat() => _aglSaat != null;
 
+  // "codeCar" field.
+  String? _codeCar;
+  String get codeCar => _codeCar ?? '';
+  bool hasCodeCar() => _codeCar != null;
+
   void _initializeFields() {
     _naim = snapshotData['naim'] as String?;
+    _namesI18n = _parseI18nStringMap(snapshotData['names_i18n']);
     _sr = castToType<int>(snapshotData['sr']);
     _actev = snapshotData['actev'] as bool?;
     _img = snapshotData['img'] as String?;
@@ -64,6 +75,17 @@ class TypeCarRecord extends FirestoreRecord {
     _vill = getDataList(snapshotData['vill']);
     _not = snapshotData['not'] as String?;
     _aglSaat = castToType<int>(snapshotData['agl_saat']);
+    _codeCar = snapshotData['codeCar'] as String?;
+  }
+
+  static Map<String, String>? _parseI18nStringMap(dynamic raw) {
+    if (raw == null || raw is! Map) return null;
+    final out = <String, String>{};
+    raw.forEach((key, value) {
+      final text = value?.toString().trim() ?? '';
+      if (text.isNotEmpty) out[key.toString()] = text;
+    });
+    return out.isEmpty ? null : out;
   }
 
   static CollectionReference get collection =>
@@ -102,22 +124,26 @@ class TypeCarRecord extends FirestoreRecord {
 
 Map<String, dynamic> createTypeCarRecordData({
   String? naim,
+  Map<String, String>? namesI18n,
   int? sr,
   bool? actev,
   String? img,
   bool? ishafelh,
   String? not,
   int? aglSaat,
+  String? codeCar,
 }) {
   final firestoreData = mapToFirestore(
     <String, dynamic>{
       'naim': naim,
+      'names_i18n': namesI18n,
       'sr': sr,
       'actev': actev,
       'img': img,
       'ishafelh': ishafelh,
       'not': not,
       'agl_saat': aglSaat,
+      'codeCar': codeCar,
     }.withoutNulls,
   );
 
@@ -130,26 +156,31 @@ class TypeCarRecordDocumentEquality implements Equality<TypeCarRecord> {
   @override
   bool equals(TypeCarRecord? e1, TypeCarRecord? e2) {
     const listEquality = ListEquality();
+    const mapEquality = MapEquality<String, String>();
     return e1?.naim == e2?.naim &&
+        mapEquality.equals(e1?.namesI18n, e2?.namesI18n) &&
         e1?.sr == e2?.sr &&
         e1?.actev == e2?.actev &&
         e1?.img == e2?.img &&
         e1?.ishafelh == e2?.ishafelh &&
         listEquality.equals(e1?.vill, e2?.vill) &&
         e1?.not == e2?.not &&
-        e1?.aglSaat == e2?.aglSaat;
+        e1?.aglSaat == e2?.aglSaat &&
+        e1?.codeCar == e2?.codeCar;
   }
 
   @override
   int hash(TypeCarRecord? e) => const ListEquality().hash([
         e?.naim,
+        e?.namesI18n,
         e?.sr,
         e?.actev,
         e?.img,
         e?.ishafelh,
         e?.vill,
         e?.not,
-        e?.aglSaat
+        e?.aglSaat,
+        e?.codeCar,
       ]);
 
   @override

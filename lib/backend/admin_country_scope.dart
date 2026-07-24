@@ -5,6 +5,7 @@ import '/backend/admin_role_service.dart';
 import '/backend/admin_reports_country_scope.dart';
 import '/backend/admin_saudi_country.dart';
 import '/backend/backend.dart';
+import '/core/country/country_resolver.dart';
 
 /// Applies country / partner filters to Firestore queries and in-memory lists.
 class AdminCountryScope {
@@ -69,55 +70,16 @@ class AdminCountryScope {
     return false;
   }
 
-  /// Filters landmark queries for country agents (Saudi uses dynamic `whereIn`).
+  /// Filters landmark queries for country agents (canonical country ref).
   static Query<Map<String, dynamic>> applyLandmarkCountryFilter(
     Query<Map<String, dynamic>> q,
   ) {
-    if (AdminRoleService.isCountryAgent) {
-      if (isSaudiCountryAgent) {
-        final refs = <DocumentReference>[
-          ...AdminSaudiCountry.countryRefsForQuery(),
-        ];
-        final active = activeCountryRef;
-        if (active != null && !refs.any((r) => r.path == active.path)) {
-          refs.add(active);
-        }
-        if (refs.isEmpty) return q;
-        return q.where(
-          'Rev_dolh',
-          whereIn: refs.take(30).toList(growable: false),
-        );
-      }
-
-      final country = activeCountryRef;
-      if (country != null) {
-        return q.where('Rev_dolh', isEqualTo: country);
-      }
-      return q;
-    }
-
-    if (AdminReportsCountryScope.isActive) {
-      if (isSaudiCountryAgent) {
-        final refs = <DocumentReference>[
-          ...AdminSaudiCountry.countryRefsForQuery(),
-        ];
-        final active = activeCountryRef;
-        if (active != null && !refs.any((r) => r.path == active.path)) {
-          refs.add(active);
-        }
-        if (refs.isNotEmpty) {
-          return q.where(
-            'Rev_dolh',
-            whereIn: refs.take(30).toList(growable: false),
-          );
-        }
-      }
+    if (AdminRoleService.isCountryAgent || AdminReportsCountryScope.isActive) {
       final country = activeCountryRef;
       if (country != null) {
         return q.where('Rev_dolh', isEqualTo: country);
       }
     }
-
     return q;
   }
 
@@ -174,6 +136,16 @@ class AdminCountryScope {
       q = q.where('Rev_dolh', isEqualTo: country);
     }
     return q;
+  }
+
+  static Future<Query<Map<String, dynamic>>> applyOrderQueryResolved(
+    Query<Map<String, dynamic>> collection,
+  ) async {
+    final country = activeCountryRef;
+    if (country == null) return collection;
+    final refs = await CountryResolver.queryRefsForPath(country);
+    if (refs.isEmpty) return collection;
+    return collection.where('Rev_dolh', isEqualTo: refs.first);
   }
 
   static Query applyRegionQuery(Query collection) {
@@ -470,9 +442,10 @@ class AdminCountryScope {
   static List<OrderRecord> filterOrders(List<OrderRecord> items) {
     final country = activeCountryRef;
     if (country != null) {
-      return items
-          .where((o) => o.revDolh?.path == country.path)
-          .toList();
+      return items.where((o) {
+        if (o.revDolh?.path == country.path) return true;
+        return AdminSaudiCountry.sameCountryScope(o.revDolh, country);
+      }).toList();
     }
 
     final partnerMkan = AdminRoleService.partnerMkanRef;

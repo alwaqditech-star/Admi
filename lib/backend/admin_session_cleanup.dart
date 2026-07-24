@@ -8,6 +8,7 @@ import '/backend/admin_reports_loader.dart';
 import '/backend/admin_country_scope.dart';
 import '/backend/admin_landmark_search.dart';
 import '/backend/admin_saudi_country.dart';
+import '/backend/admin_stats_coordinator.dart';
 import '/backend/dashboard_stats_loader.dart';
 
 /// Clears role-scoped client state on logout so the next user never inherits it.
@@ -23,6 +24,7 @@ class AdminSessionCleanup {
     clearAdminReportsSummaryCache();
     AdminReportsCountryScope.clear();
     clearDashboardStatsCache();
+    AdminStatsCoordinator.instance.stopLiveSync();
     AdminPanelSession.reset();
     AdminPanelDataBootstrap.reset();
     FFAppState().update(() {

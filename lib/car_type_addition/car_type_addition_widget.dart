@@ -28,6 +28,10 @@ class CarTypeAdditionWidget extends StatefulWidget {
 
 class _CarTypeAdditionWidgetState extends State<CarTypeAdditionWidget> {
   late CarTypeAdditionModel _model;
+  late final TextEditingController _englishNameController;
+  late final TextEditingController _russianNameController;
+  late final TextEditingController _kyrgyzNameController;
+  late final TextEditingController _codeController;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -35,6 +39,10 @@ class _CarTypeAdditionWidgetState extends State<CarTypeAdditionWidget> {
   void initState() {
     super.initState();
     _model = createModel(context, () => CarTypeAdditionModel());
+    _englishNameController = TextEditingController();
+    _russianNameController = TextEditingController();
+    _kyrgyzNameController = TextEditingController();
+    _codeController = TextEditingController();
 
     _model.textController1 ??= TextEditingController();
     _model.textFieldFocusNode1 ??= FocusNode();
@@ -57,6 +65,10 @@ class _CarTypeAdditionWidgetState extends State<CarTypeAdditionWidget> {
   @override
   void dispose() {
     _model.dispose();
+    _englishNameController.dispose();
+    _russianNameController.dispose();
+    _kyrgyzNameController.dispose();
+    _codeController.dispose();
 
     super.dispose();
   }
@@ -82,6 +94,25 @@ class _CarTypeAdditionWidgetState extends State<CarTypeAdditionWidget> {
       parts.add('Bluetooth');
     }
     return parts.join(', ');
+  }
+
+  String _slugifyCode(String value) {
+    final normalized = value
+        .trim()
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+        .replaceAll(RegExp(r'_+'), '_')
+        .replaceAll(RegExp(r'^_|_$'), '');
+    return normalized;
+  }
+
+  Map<String, String> _buildNamesI18n(String ar, String en, String ru, String ky) {
+    return <String, String>{
+      if (ar.isNotEmpty) 'ar': ar,
+      if (en.isNotEmpty) 'en': en,
+      if (ru.isNotEmpty) 'ru': ru,
+      if (ky.isNotEmpty) 'ky': ky,
+    };
   }
 
   @override
@@ -227,6 +258,139 @@ class _CarTypeAdditionWidgetState extends State<CarTypeAdditionWidget> {
                               ),
                           validator: _model.textController1Validator
                               .asValidator(context),
+                        ),
+                        TextFormField(
+                          controller: _englishNameController,
+                          autofocus: false,
+                          obscureText: false,
+                          decoration: InputDecoration(
+                            labelText: 'Car Name (English)',
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: FlutterFlowTheme.of(context).alternate,
+                                width: 1.0,
+                              ),
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: const BorderSide(
+                                color: Color(0x00000000),
+                                width: 1.0,
+                              ),
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            contentPadding: const EdgeInsetsDirectional.fromSTEB(
+                                16.0, 12.0, 16.0, 12.0),
+                          ),
+                          style: FlutterFlowTheme.of(context)
+                              .bodyMedium
+                              .override(
+                                fontFamily: FlutterFlowTheme.of(context)
+                                    .bodyMediumFamily,
+                                letterSpacing: 0.0,
+                                useGoogleFonts: !FlutterFlowTheme.of(context)
+                                    .bodyMediumIsCustom,
+                              ),
+                        ),
+                        TextFormField(
+                          controller: _russianNameController,
+                          autofocus: false,
+                          obscureText: false,
+                          decoration: InputDecoration(
+                            labelText: 'Car Name (Russian)',
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: FlutterFlowTheme.of(context).alternate,
+                                width: 1.0,
+                              ),
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: const BorderSide(
+                                color: Color(0x00000000),
+                                width: 1.0,
+                              ),
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            contentPadding: const EdgeInsetsDirectional.fromSTEB(
+                                16.0, 12.0, 16.0, 12.0),
+                          ),
+                          style: FlutterFlowTheme.of(context)
+                              .bodyMedium
+                              .override(
+                                fontFamily: FlutterFlowTheme.of(context)
+                                    .bodyMediumFamily,
+                                letterSpacing: 0.0,
+                                useGoogleFonts: !FlutterFlowTheme.of(context)
+                                    .bodyMediumIsCustom,
+                              ),
+                        ),
+                        TextFormField(
+                          controller: _kyrgyzNameController,
+                          autofocus: false,
+                          obscureText: false,
+                          decoration: InputDecoration(
+                            labelText: 'Car Name (Kyrgyz)',
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: FlutterFlowTheme.of(context).alternate,
+                                width: 1.0,
+                              ),
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: const BorderSide(
+                                color: Color(0x00000000),
+                                width: 1.0,
+                              ),
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            contentPadding: const EdgeInsetsDirectional.fromSTEB(
+                                16.0, 12.0, 16.0, 12.0),
+                          ),
+                          style: FlutterFlowTheme.of(context)
+                              .bodyMedium
+                              .override(
+                                fontFamily: FlutterFlowTheme.of(context)
+                                    .bodyMediumFamily,
+                                letterSpacing: 0.0,
+                                useGoogleFonts: !FlutterFlowTheme.of(context)
+                                    .bodyMediumIsCustom,
+                              ),
+                        ),
+                        TextFormField(
+                          controller: _codeController,
+                          autofocus: false,
+                          obscureText: false,
+                          decoration: InputDecoration(
+                            labelText: 'Vehicle Code',
+                            hintText: 'sedan_standard',
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: FlutterFlowTheme.of(context).alternate,
+                                width: 1.0,
+                              ),
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: const BorderSide(
+                                color: Color(0x00000000),
+                                width: 1.0,
+                              ),
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            contentPadding: const EdgeInsetsDirectional.fromSTEB(
+                                16.0, 12.0, 16.0, 12.0),
+                          ),
+                          style: FlutterFlowTheme.of(context)
+                              .bodyMedium
+                              .override(
+                                fontFamily: FlutterFlowTheme.of(context)
+                                    .bodyMediumFamily,
+                                letterSpacing: 0.0,
+                                useGoogleFonts: !FlutterFlowTheme.of(context)
+                                    .bodyMediumIsCustom,
+                              ),
                         ),
                         TextFormField(
                           controller: _model.textController2,
@@ -540,10 +704,22 @@ class _CarTypeAdditionWidgetState extends State<CarTypeAdditionWidget> {
               ),
               FFButtonWidget(
                 onPressed: () async {
-                  final name = _model.textController1.text.trim();
-                  if (name.isEmpty) {
+                  final arName = _model.textController1.text.trim();
+                  final enName = _englishNameController.text.trim();
+                  final ruName = _russianNameController.text.trim();
+                  final kyName = _kyrgyzNameController.text.trim();
+                  final code = _slugifyCode(
+                    _codeController.text.trim().isNotEmpty
+                        ? _codeController.text.trim()
+                        : (enName.isNotEmpty ? enName : arName),
+                  );
+                  if (arName.isEmpty && enName.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(uiTr(context, 'يرجى إدخال اسم السيارة'))),
+                      SnackBar(
+                        content: Text(
+                          uiTr(context, 'أدخل الاسم العربي أو الإنجليزي على الأقل'),
+                        ),
+                      ),
                     );
                     return;
                   }
@@ -562,7 +738,9 @@ class _CarTypeAdditionWidgetState extends State<CarTypeAdditionWidget> {
                   try {
                     await TypeCarRecord.collection.doc().set(
                           createTypeCarRecordData(
-                            naim: name,
+                            naim: arName.isNotEmpty ? arName : enName,
+                            namesI18n:
+                                _buildNamesI18n(arName, enName, ruName, kyName),
                             sr: rate,
                             actev: true,
                             img: imgUrl,
@@ -571,6 +749,7 @@ class _CarTypeAdditionWidgetState extends State<CarTypeAdditionWidget> {
                             aglSaat: int.tryParse(
                               _model.textController4.text.trim(),
                             ),
+                            codeCar: code,
                           ),
                         );
                     if (!context.mounted) return;

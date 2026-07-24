@@ -145,6 +145,21 @@ class MkanRecord extends FirestoreRecord {
   bool get isShrek => _isShrek ?? false;
   bool hasIsShrek() => _isShrek != null;
 
+  // "content_locale" field — لغة إدخال بيانات المعلم (ar, en, zh_Hans, …).
+  String? _contentLocale;
+  String get contentLocale => _contentLocale ?? '';
+  bool hasContentLocale() => _contentLocale != null;
+
+  // "names_i18n" field — اسم المعلم بكل اللغات.
+  Map<String, String>? _namesI18n;
+  Map<String, String> get namesI18n => _namesI18n ?? const {};
+  bool hasNamesI18n() => _namesI18n != null && _namesI18n!.isNotEmpty;
+
+  // "osf_i18n" field — وصف المعلم بكل اللغات.
+  Map<String, String>? _osfI18n;
+  Map<String, String> get osfI18n => _osfI18n ?? const {};
+  bool hasOsfI18n() => _osfI18n != null && _osfI18n!.isNotEmpty;
+
   void _initializeFields() {
     _naim = snapshotData['naim'] as String?;
     _osf = snapshotData['osf'] as String?;
@@ -172,6 +187,19 @@ class MkanRecord extends FirestoreRecord {
     _ismzod = snapshotData['ismzod'] as bool?;
     _revDolh = docRefFromFirestore(snapshotData['Rev_dolh']);
     _isShrek = snapshotData['isShrek'] as bool?;
+    _contentLocale = snapshotData['content_locale'] as String?;
+    _namesI18n = _parseI18nStringMap(snapshotData['names_i18n']);
+    _osfI18n = _parseI18nStringMap(snapshotData['osf_i18n']);
+  }
+
+  static Map<String, String>? _parseI18nStringMap(dynamic raw) {
+    if (raw == null || raw is! Map) return null;
+    final out = <String, String>{};
+    raw.forEach((key, value) {
+      final text = value?.toString().trim() ?? '';
+      if (text.isNotEmpty) out[key.toString()] = text;
+    });
+    return out.isEmpty ? null : out;
   }
 
   static CollectionReference get collection =>
@@ -234,6 +262,9 @@ Map<String, dynamic> createMkanRecordData({
   bool? ismzod,
   DocumentReference? revDolh,
   bool? isShrek,
+  String? contentLocale,
+  Map<String, String>? namesI18n,
+  Map<String, String>? osfI18n,
 }) {
   final firestoreData = mapToFirestore(
     <String, dynamic>{
@@ -263,6 +294,9 @@ Map<String, dynamic> createMkanRecordData({
       'ismzod': ismzod,
       'Rev_dolh': revDolh,
       'isShrek': isShrek,
+      'content_locale': contentLocale,
+      'names_i18n': namesI18n,
+      'osf_i18n': osfI18n,
     }.withoutNulls,
   );
 

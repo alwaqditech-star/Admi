@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 
 import '/app_state.dart';
 import '/auth/firebase_auth/auth_util.dart';
+import '/backend/admin_i18n_backfill.dart';
+import '/backend/admin_country_bounds_backfill.dart';
 import '/backend/admin_country_backfill.dart';
 import '/backend/admin_landmark_country_backfill.dart';
 import '/backend/admin_partner_order_backfill.dart';
@@ -15,6 +17,7 @@ class AdminPanelSetup {
   static const _partnerMkansKey = 'admin_setup_partner_mkans_v1';
   static const _countryFieldsKey = 'admin_setup_country_fields_v3';
   static const _landmarkCountryKey = 'admin_setup_landmark_country_v4';
+  static const _i18nBackfillKey = 'admin_setup_i18n_backfill_v1';
   static const _productionSeedKey = 'admin_production_landmark_seed_v3';
 
   /// Runs background setup after login (non-blocking).
@@ -22,21 +25,27 @@ class AdminPanelSetup {
     if (!loggedIn || !AdminRoleService.hasPanelAccess) return;
 
     if (AdminRoleService.isSuperAdmin) {
-      await _runOncePerUser(_productionSeedKey, () async {
-        final result = await AdminProductionLandmarkSeed.runAuthenticated();
-        if (!result.success) {
-          debugPrint('Production seed failed: ${result.error}');
-        } else {
-          debugPrint(
-            'Production seed OK: ${result.landmarks} landmarks, ${result.orders} orders',
-          );
-        }
-      });
+      // Production seed must be launched manually from Settings — never auto
+      // mutate live geography/orders on every super-admin login.
+      // await AdminProductionLandmarkSeed.runAuthenticated();
+
       await _runOncePerUser(_partnerMkansKey, () async {
         await AdminPartnerOrderBackfill.run(activeOnly: true);
       });
       await _runOncePerUser(_countryFieldsKey, () async {
         await AdminCountryBackfill.run();
+      });
+      await _runOncePerUser(_i18nBackfillKey, () async {
+        final result = await AdminI18nBackfill.run();
+        if (!result.success) {
+          debugPrint('I18n backfill failed: ${result.error}');
+        } else {
+          debugPrint(
+            'I18n backfill OK: ${result.landmarks} landmarks, '
+            '${result.cities} regions, ${result.villages} cities, '
+            '${result.countries} countries',
+          );
+        }
       });
     }
 
@@ -72,6 +81,25 @@ class AdminPanelSetup {
     } catch (_) {
       // Retry on next login if setup did not complete.
     }
+  }
+
+  /// Forces i18n backfill for legacy geo content (settings button).
+  static Future<I18nBackfillResult> runI18nBackfill() =>
+      AdminI18nBackfill.run();
+
+  /// Translates up to [maxLandmarks] landmarks via Gemini Cloud Function.
+  static Future<I18nBackfillResult> runI18nGeminiBatch({int maxLandmarks = 15}) =>
+      AdminI18nBackfill.runGeminiTranslateBatch(maxLandmarks: maxLandmarks);
+
+  /// Fetches geographic bounds for countries missing bounds_sw/bounds_ne.
+  static Future<CountryBoundsBackfillResult> runCountryBoundsBackfill() =>
+      AdminCountryBoundsBackfill.run();
+
+  static Future<void> resetI18nBackfillFlag() async {
+    final prefs = FFAppState().prefs;
+    final uid = currentUserUid;
+    if (uid.isEmpty) return;
+    await prefs.remove('${_i18nBackfillKey}_$uid');
   }
 
   /// Forces partner_mkans backfill (settings button).

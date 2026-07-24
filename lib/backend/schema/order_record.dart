@@ -201,6 +201,19 @@ class OrderRecord extends FirestoreRecord {
   PaymentMethod? get paymentMethod => _paymentMethod;
   bool hasPaymentMethod() => _paymentMethod != null;
 
+  // "ngeniusOrderId" field — Network International payment reference.
+  String? _ngeniusOrderId;
+  String get ngeniusOrderId => _ngeniusOrderId ?? '';
+  bool hasNgeniusOrderId() => _ngeniusOrderId != null;
+
+  String get paymentGatewayOrderId =>
+      ngeniusOrderId.isNotEmpty ? ngeniusOrderId : (_idMoyser ?? '');
+
+  // Legacy Moyasar reference (read-only).
+  String? _idMoyser;
+  String get idMoyser => paymentGatewayOrderId;
+  bool hasIdMoyser() => hasNgeniusOrderId() || _idMoyser != null;
+
   // "total_mndob2" field.
   int? _totalMndob2;
   int get totalMndob2 => _totalMndob2 ?? 0;
@@ -253,6 +266,9 @@ class OrderRecord extends FirestoreRecord {
     _paymentMethod = snapshotData['PaymentMethod'] is PaymentMethod
         ? snapshotData['PaymentMethod']
         : deserializeEnum<PaymentMethod>(snapshotData['PaymentMethod']);
+    _ngeniusOrderId = (snapshotData['ngeniusOrderId'] ?? snapshotData['idMoyser'])
+        as String?;
+    _idMoyser = snapshotData['idMoyser'] as String?;
     _totalMndob2 = castToType<int>(snapshotData['total_mndob2']);
   }
 
@@ -324,6 +340,7 @@ Map<String, dynamic> createOrderRecordData({
   List<DocumentReference>? partnerMkans,
   LatLng? mapuser,
   PaymentMethod? paymentMethod,
+  String? ngeniusOrderId,
   int? totalMndob2,
 }) {
   final firestoreData = mapToFirestore(
@@ -362,6 +379,7 @@ Map<String, dynamic> createOrderRecordData({
       'partner_mkans': partnerMkans,
       'mapuser': mapuser,
       'PaymentMethod': paymentMethod,
+      'ngeniusOrderId': ngeniusOrderId,
       'total_mndob2': totalMndob2,
     }.withoutNulls,
   );

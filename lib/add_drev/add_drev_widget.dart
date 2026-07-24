@@ -385,37 +385,28 @@ class _AddDrevWidgetState extends State<AddDrevWidget> {
         return;
       }
 
-      final credential = await AdminUserCreation.createEmailUser(
+      await AdminUserCreation.createEmailUser(
         email: email,
         password: _model.passTextController!.text,
+        userData: {
+          'display_name': name,
+          'phone_number': phone,
+          if (photoUrl != null && photoUrl.isNotEmpty) 'photo_url': photoUrl,
+          'actev_user': true,
+          'actev_mndob': false,
+          'ismndob': true,
+          'ismndom': true,
+          if (workCityRef != null) 'mndob_vill': workCityRef.path,
+          if (carTypeRef != null) 'mndob_type_car': carTypeRef.path,
+          'mndob_vill_text': workCity,
+          'text_type_car_mndob': carLabel,
+          if (_selectedCompany != null)
+            'transport_company': _selectedCompany!.reference.path,
+          if (_selectedCompany != null)
+            'transport_company_text': _selectedCompany!.naim,
+          if (countryRef != null) 'Rev_dolh': countryRef.path,
+        },
       );
-      final uid = credential.user?.uid;
-      if (uid == null) {
-        throw Exception('تعذر إنشاء حساب المندوب');
-      }
-
-      await UserRecord.collection.doc(uid).set(
-            createUserRecordData(
-              displayName: name,
-              email: email,
-              phoneNumber: phone,
-              photoUrl: photoUrl,
-              uid: uid,
-              actevUser: true,
-              actevMndob: false,
-              createdTime: getCurrentTimestamp,
-              ismndob: true,
-              ismndom: true,
-              mndobVill: workCityRef,
-              mndobTypeCar: carTypeRef,
-              mndobVillText: workCity,
-              textTypeCarMndob: carLabel,
-              transportCompany: _selectedCompany?.reference,
-              transportCompanyText: _selectedCompany?.naim,
-              revDolh: countryRef,
-            ),
-            SetOptions(merge: true),
-          );
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import '/backend/admin_panel_setup.dart';
+import '/backend/admin_role_service.dart';
 import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
 import '/backend/firebase_storage/storage.dart';
@@ -32,6 +34,10 @@ class _SettingsWidgetState extends State<SettingsWidget> {
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
   StreamSubscription<UserRecord?>? _userProfileSub;
+  bool _i18nBackfillRunning = false;
+  bool _i18nGeminiRunning = false;
+  bool _boundsBackfillRunning = false;
+  String? _i18nBackfillStatus;
 
   @override
   void initState() {
@@ -140,6 +146,123 @@ class _SettingsWidgetState extends State<SettingsWidget> {
       if (mounted) {
         setState(() => _model.isUploadingPhoto = false);
       }
+    }
+  }
+
+  Future<void> _runI18nBackfill() async {
+    if (_i18nBackfillRunning) return;
+    setState(() {
+      _i18nBackfillRunning = true;
+      _i18nBackfillStatus = uiTr(context, 'جاري تعبئة الترجمات…');
+    });
+
+    try {
+      final result = await AdminPanelSetup.runI18nBackfill();
+      if (!mounted) return;
+      if (!result.success) {
+        setState(() {
+          _i18nBackfillStatus = result.error ?? uiTr(context, 'فشل التحديث');
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_i18nBackfillStatus!)),
+        );
+        return;
+      }
+
+      final msg =
+          '${uiTr(context, 'تمت تعبئة الترجمات')}: '
+          '${result.landmarks} ${uiTr(context, 'معلم')}، '
+          '${result.cities} ${uiTr(context, 'منطقة')}، '
+          '${result.villages} ${uiTr(context, 'مدينة')}، '
+          '${result.countries} ${uiTr(context, 'دولة')}';
+      setState(() => _i18nBackfillStatus = msg);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg)),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _i18nBackfillStatus = e.toString());
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    } finally {
+      if (mounted) setState(() => _i18nBackfillRunning = false);
+    }
+  }
+
+  Future<void> _runI18nGeminiBatch() async {
+    if (_i18nGeminiRunning || _i18nBackfillRunning) return;
+    setState(() {
+      _i18nGeminiRunning = true;
+      _i18nBackfillStatus = uiTr(context, 'جاري ترجمة المعالم بGemini…');
+    });
+
+    try {
+      final result = await AdminPanelSetup.runI18nGeminiBatch(maxLandmarks: 15);
+      if (!mounted) return;
+      if (!result.success) {
+        setState(() {
+          _i18nBackfillStatus = result.error ?? uiTr(context, 'فشل الترجمة');
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_i18nBackfillStatus!)),
+        );
+        return;
+      }
+
+      final msg =
+          '${uiTr(context, 'تمت ترجمة المعالم')}: ${result.landmarks} '
+          '(${uiTr(context, 'أعد الضغط لترجمة المزيد')})';
+      setState(() => _i18nBackfillStatus = msg);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg)),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _i18nBackfillStatus = e.toString());
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    } finally {
+      if (mounted) setState(() => _i18nGeminiRunning = false);
+    }
+  }
+
+  Future<void> _runCountryBoundsBackfill() async {
+    if (_boundsBackfillRunning) return;
+    setState(() {
+      _boundsBackfillRunning = true;
+      _i18nBackfillStatus = uiTr(context, 'جاري جلب حدود الدول…');
+    });
+
+    try {
+      final result = await AdminPanelSetup.runCountryBoundsBackfill();
+      if (!mounted) return;
+      if (!result.success) {
+        setState(() {
+          _i18nBackfillStatus = result.error ?? uiTr(context, 'فشل التحديث');
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_i18nBackfillStatus!)),
+        );
+        return;
+      }
+
+      final msg =
+          '${uiTr(context, 'تم تحديث حدود')}: ${result.updated} '
+          '(${uiTr(context, 'تخطّي')}: ${result.skipped})';
+      setState(() => _i18nBackfillStatus = msg);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg)),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _i18nBackfillStatus = e.toString());
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    } finally {
+      if (mounted) setState(() => _boundsBackfillRunning = false);
     }
   }
 
@@ -421,6 +544,93 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                       ],
                     ),
                   ),
+                  if (AdminRoleService.isSuperAdmin) ...[
+                    AdminContentCard(
+                      title: uiTr(context, 'صيانة البيانات'),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            uiTr(
+                              context,
+                              'يملأ حقول names_i18n للمعالم والمدن والدول القديمة من الأسماء العربية/الإنجليزية المخزنة.',
+                            ),
+                            style: theme.bodySmall.override(
+                              fontFamily: theme.bodySmallFamily,
+                              color: theme.secondaryText,
+                              useGoogleFonts: !theme.bodySmallIsCustom,
+                            ),
+                          ),
+                          if (_i18nBackfillStatus != null) ...[
+                            const SizedBox(height: 10),
+                            Text(
+                              _i18nBackfillStatus!,
+                              style: theme.bodySmall,
+                            ),
+                          ],
+                          const SizedBox(height: 12),
+                          AdminPrimaryButton(
+                            label: uiTr(
+                              context,
+                              'تعبئة ترجمات البيانات القديمة',
+                            ),
+                            icon: Icons.translate_rounded,
+                            isLoading: _i18nBackfillRunning,
+                            onPressed:
+                                _i18nBackfillRunning ? null : _runI18nBackfill,
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            uiTr(
+                              context,
+                              'ترجم تلقائياً حتى 15 معلم في كل مرة عبر Gemini (يتطلب GEMINI_API_KEY في Cloud Functions).',
+                            ),
+                            style: theme.bodySmall.override(
+                              fontFamily: theme.bodySmallFamily,
+                              color: theme.secondaryText,
+                              useGoogleFonts: !theme.bodySmallIsCustom,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          AdminPrimaryButton(
+                            label: uiTr(
+                              context,
+                              'ترجم المعالم بGemini (دفعة)',
+                            ),
+                            icon: Icons.auto_awesome_rounded,
+                            isLoading: _i18nGeminiRunning,
+                            onPressed: (_i18nGeminiRunning || _i18nBackfillRunning)
+                                ? null
+                                : _runI18nGeminiBatch,
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            uiTr(
+                              context,
+                              'يجلب الحدود الجغرافية للدول الناقصة (مطلوب لتحديد دولة الوكيل من GPS).',
+                            ),
+                            style: theme.bodySmall.override(
+                              fontFamily: theme.bodySmallFamily,
+                              color: theme.secondaryText,
+                              useGoogleFonts: !theme.bodySmallIsCustom,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          AdminPrimaryButton(
+                            label: uiTr(
+                              context,
+                              'تعبئة حدود الدول الجغرافية',
+                            ),
+                            icon: Icons.map_rounded,
+                            isLoading: _boundsBackfillRunning,
+                            onPressed: _boundsBackfillRunning
+                                ? null
+                                : _runCountryBoundsBackfill,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   AdminContentCard(
                     child: Align(

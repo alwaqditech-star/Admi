@@ -20,6 +20,7 @@ Future<AdminLoginResult> completePanelSignIn(
     return AdminLoginResult.profileLoadFailed;
   }
 
+  await refreshAuthClaims();
   if (!AdminRoleService.hasPanelAccess) {
     AppStateNotifier.instance.updateNotifyOnAuthChange(true);
     return AdminLoginResult.unauthorized;

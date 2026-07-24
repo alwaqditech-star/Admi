@@ -60,6 +60,11 @@ class VillagesRecord extends FirestoreRecord {
   DocumentReference? get dolh => _dolh;
   bool hasDolh() => _dolh != null;
 
+  Map<String, String>? _namesI18n;
+  Map<String, String> get namesI18n => _namesI18n ?? const {};
+  Map<String, String>? _osfI18n;
+  Map<String, String> get osfI18n => _osfI18n ?? const {};
+
   void _initializeFields() {
     _cities = docRefFromFirestore(snapshotData['cities']);
     _naim = snapshotData['naim'] as String?;
@@ -70,6 +75,18 @@ class VillagesRecord extends FirestoreRecord {
     _naimViilMap = snapshotData['naim_viil_map'] as String?;
     _noDeletePlace = snapshotData['no_delete_place'] as bool?;
     _dolh = docRefFromFirestore(snapshotData['dolh']);
+    _namesI18n = _parseI18nStringMap(snapshotData['names_i18n']);
+    _osfI18n = _parseI18nStringMap(snapshotData['osf_i18n']);
+  }
+
+  static Map<String, String>? _parseI18nStringMap(dynamic raw) {
+    if (raw == null || raw is! Map) return null;
+    final out = <String, String>{};
+    raw.forEach((key, value) {
+      final text = value?.toString().trim() ?? '';
+      if (text.isNotEmpty) out[key.toString()] = text;
+    });
+    return out.isEmpty ? null : out;
   }
 
   static CollectionReference get collection =>
@@ -116,6 +133,8 @@ Map<String, dynamic> createVillagesRecordData({
   String? naimViilMap,
   bool? noDeletePlace,
   DocumentReference? dolh,
+  Map<String, String>? namesI18n,
+  Map<String, String>? osfI18n,
 }) {
   final firestoreData = mapToFirestore(
     <String, dynamic>{
@@ -128,6 +147,8 @@ Map<String, dynamic> createVillagesRecordData({
       'naim_viil_map': naimViilMap,
       'no_delete_place': noDeletePlace,
       'dolh': dolh,
+      'names_i18n': namesI18n,
+      'osf_i18n': osfI18n,
     }.withoutNulls,
   );
 

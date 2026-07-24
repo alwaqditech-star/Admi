@@ -104,6 +104,15 @@ class _AdminaddMkanCopyWidgetState extends State<AdminaddMkanCopyWidget> {
         createMkanRecordData(
           naim: name,
           osf: _model.textController2?.text.trim(),
+          namesI18n: {
+            ...record.namesI18n,
+            'ar': name,
+          },
+          osfI18n: {
+            ...record.osfI18n,
+            if ((_model.textController2?.text.trim() ?? '').isNotEmpty)
+              'ar': _model.textController2!.text.trim(),
+          },
           img1: img1,
           img2: img2,
           img3: record.img3,

@@ -7,6 +7,8 @@ import 'package:stream_transform/stream_transform.dart';
 import '/backend/admin_panel_session.dart';
 import '/backend/admin_role_service.dart';
 import '/backend/backend.dart';
+import '/core/auth/auth_claims.dart';
+import '/core/cloud_functions/cloud_functions_client.dart';
 import '/flutter_flow/nav/nav.dart';
 import 'firebase_auth_manager.dart';
 
@@ -38,7 +40,17 @@ bool get currentUserEmailVerified => currentUser?.emailVerified ?? false;
 String? _currentJwtToken;
 final jwtTokenStream = FirebaseAuth.instance
     .idTokenChanges()
-    .map((user) async => _currentJwtToken = await user?.getIdToken())
+    .map((user) async {
+      _currentJwtToken = await user?.getIdToken();
+      if (user != null) {
+        await AdminRoleService.refreshClaims(forceRefresh: true);
+      } else {
+        AuthClaims.clearCache();
+        AdminRoleService.bindClaims(AuthClaims.fromToken(null));
+        AdminRoleService.bindProfile(null);
+      }
+      return _currentJwtToken;
+    })
     .asBroadcastStream();
 
 DocumentReference? get currentUserReference =>
@@ -58,6 +70,7 @@ final authenticatedUserStream = FirebaseAuth.instance
   final hadProfile = currentUserDocument != null;
   final prevRole = AdminRoleService.roleFrom(currentUserDocument);
   currentUserDocument = user;
+  AdminRoleService.bindProfile(user);
   if (user != null && loggedIn) {
     final newRole = AdminRoleService.roleFrom(user);
     if (!hadProfile || prevRole != newRole) {
@@ -98,6 +111,8 @@ Future<UserRecord?> ensureCurrentUserDocument({
     if (!snap.exists) return null;
     var doc = UserRecord.fromSnapshot(snap);
     currentUserDocument = doc;
+    AdminRoleService.bindProfile(doc);
+    await _syncClaimsFromServer();
 
     // After login, refresh from server when cache may lack admin role fields.
     if (forceRefresh && !AdminRoleService.hasPanelAccess) {
@@ -108,6 +123,7 @@ Future<UserRecord?> ensureCurrentUserDocument({
         if (serverSnap.exists) {
           doc = UserRecord.fromSnapshot(serverSnap);
           currentUserDocument = doc;
+          AdminRoleService.bindProfile(doc);
         }
       } catch (_) {}
     }
@@ -119,12 +135,23 @@ Future<UserRecord?> ensureCurrentUserDocument({
         const Duration(seconds: 8),
       );
       currentUserDocument = doc;
+      AdminRoleService.bindProfile(doc);
       return doc;
     } catch (_) {
       return currentUserDocument;
     }
   }
 }
+
+Future<void> refreshAuthClaims() async {
+  try {
+    await CloudFunctionsClient.refreshMyClaims();
+    await FirebaseAuth.instance.currentUser?.getIdToken(true);
+    await AdminRoleService.refreshClaims(forceRefresh: true);
+  } catch (_) {}
+}
+
+Future<void> _syncClaimsFromServer() => refreshAuthClaims();
 
 class AuthUserStreamWidget extends StatelessWidget {
   const AuthUserStreamWidget({Key? key, required this.builder})
